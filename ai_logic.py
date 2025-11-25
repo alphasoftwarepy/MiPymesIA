@@ -13,7 +13,7 @@ from langchain.prompts import (
 load_dotenv()
 
 class MarketingStrategist:
-    def __init__(self):
+    def __init__(self, business_context=""):
         self.api_key = os.getenv("OPENAI_API_KEY")
         self.llm = None
         self.memory = None
@@ -32,7 +32,7 @@ class MarketingStrategist:
                 self.llm = None
         
         self.memory = ConversationBufferMemory(return_messages=True)
-        self.setup_chain()
+        self.setup_chain(business_context)
 
     def setup_chain(self, business_context=""):
         # Initialize a default generic chain for general chat
