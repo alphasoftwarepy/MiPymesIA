@@ -873,6 +873,34 @@ def wizard_page():
             with st.chat_message("assistant"):
                 st.markdown(response)
 
+def business_brain_page():
+    st.title("🧠 Cerebro del Negocio")
+    st.markdown("""
+    Aquí puedes definir la **personalidad y contexto** de tu negocio. 
+    La IA usará esta información para darte respuestas más precisas y alineadas a tu marca.
+    """)
+    
+    current_profile = st.session_state.user.get('business_profile', '')
+    
+    with st.form("business_profile_form"):
+        new_profile = st.text_area(
+            "Contexto del Negocio (Prompt Base)", 
+            value=current_profile,
+            height=300,
+            placeholder="Ej: Mi negocio es una panadería artesanal con enfoque en masa madre. Mi tono de voz es cálido y familiar. Mis clientes valoran la calidad sobre el precio..."
+        )
+        
+        submit = st.form_submit_button("💾 Guardar Cerebro", type="primary")
+        
+        if submit:
+            auth.update_business_profile(st.session_state.user['username'], new_profile)
+            st.session_state.user['business_profile'] = new_profile
+            # Re-initialize AI with new context
+            st.session_state.ai_agent = MarketingStrategist(business_context=new_profile)
+            st.success("✅ Cerebro actualizado correctamente!")
+            time.sleep(1)
+            st.rerun()
+
 def pricing_page():
     """Professional pricing page with attractive card design"""
     # Top navigation bar
