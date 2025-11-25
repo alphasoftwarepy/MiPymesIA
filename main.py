@@ -53,9 +53,95 @@ def login_page():
     with col_logo:
         st.markdown("### 🚀 SG MiPymes IA")
     with col_login:
-        if st.button("🔐 Iniciar Sesión", use_container_width=True, type="primary"):
-            st.session_state.show_login_modal = True
-            st.rerun()
+        if st.button("🔐 Iniciar Sesión", use_container_width=True, type="primary", key="open_login"):
+            st.session_state.show_login_modal = not st.session_state.show_login_modal
+    
+    # Login Modal/Popup
+    if st.session_state.show_login_modal:
+        # Create a centered container with styling
+        st.markdown("""
+        <style>
+        .login-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            z-index: 1000;
+            max-width: 500px;
+            width: 90%;
+            border: 2px solid #3498db;
+        }
+        .modal-backdrop {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 999;
+        }
+        </style>
+        """, unsafe_allow_html=True)
+        
+        with st.container():
+            col_title, col_close = st.columns([8, 2])
+            with col_title:
+                st.markdown("### 🔐 Iniciar Sesión")
+            with col_close:
+                if st.button("✖️", key="close_modal", help="Cerrar"):
+                    st.session_state.show_login_modal = False
+                    st.rerun()
+            
+            with st.form("login_form"):
+                username = st.text_input("Usuario", placeholder="Ingresa tu usuario")
+                password = st.text_input("Contraseña", type="password", placeholder="Ingresa tu contraseña")
+                submit = st.form_submit_button("Ingresar", use_container_width=True, type="primary")
+                
+                if submit:
+                    if not username or not password:
+                        st.warning("⚠️ Por favor completa todos los campos.")
+                    else:
+                        user = auth.login_user(username, password)
+                        
+                        if user and isinstance(user, dict):
+                            if user.get('error') == 'locked':
+                                remaining = user.get('remaining_seconds', 300)
+                                minutes = remaining // 60
+                                seconds = remaining % 60
+                                st.error(f"🔒 Cuenta bloqueada por intentos fallidos. Intenta de nuevo en {minutes}m {seconds}s.")
+                            elif not user.get('is_active'):
+                                st.error("❌ Tu cuenta no está activa. Contacta a soporte.")
+                            else:
+                                st.session_state.authenticated = True
+                                st.session_state.user = user
+                                st.session_state.ai_agent = MarketingStrategist()
+                                st.session_state.show_login_modal = False
+                                st.success("✅ Inicio de sesión exitoso!")
+                                time.sleep(0.5)
+                                st.rerun()
+                        else:
+                            st.error("❌ Usuario o contraseña incorrectos.")
+            
+            st.divider()
+            
+            col_forgot, col_register = st.columns(2)
+            with col_forgot:
+                if st.button("🔑 Olvidé mi contraseña", use_container_width=True, key="forgot_modal"):
+                    st.session_state.page = 'forgot_password'
+                    st.session_state.show_login_modal = False
+                    st.rerun()
+            with col_register:
+                if st.button("✨ Registrarme", use_container_width=True, type="secondary", key="register_modal"):
+                    st.session_state.page = 'register'
+                    st.session_state.show_login_modal = False
+                    st.rerun()
+        
+        st.divider()
+        st.markdown("---")
     
     st.divider()
     
@@ -163,90 +249,6 @@ def login_page():
         if st.button("✨ Quiero Suscribirme", use_container_width=True, type="primary"):
             st.session_state.page = 'register'
             st.rerun()
-    
-    # Login Modal
-    if st.session_state.show_login_modal:
-        st.markdown("""
-        <style>
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 9998;
-        }
-        .modal-content {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            z-index: 9999;
-            max-width: 500px;
-            width: 90%;
-        }
-        </style>
-        <div class="modal-overlay"></div>
-        """, unsafe_allow_html=True)
-        
-        # Modal content
-        with st.container():
-            col_close_left, col_close_right = st.columns([8, 2])
-            with col_close_left:
-                st.markdown("### 🔐 Iniciar Sesión")
-            with col_close_right:
-                if st.button("✖️", key="close_modal"):
-                    st.session_state.show_login_modal = False
-                    st.rerun()
-            
-            with st.form("login_form"):
-                username = st.text_input("Usuario", placeholder="Ingresa tu usuario")
-                password = st.text_input("Contraseña", type="password", placeholder="Ingresa tu contraseña")
-                submit = st.form_submit_button("Ingresar", use_container_width=True, type="primary")
-                
-                if submit:
-                    if not username or not password:
-                        st.warning("⚠️ Por favor completa todos los campos.")
-                    else:
-                        user = auth.login_user(username, password)
-                        
-                        if user and isinstance(user, dict):
-                            if user.get('error') == 'locked':
-                                remaining = user.get('remaining_seconds', 300)
-                                minutes = remaining // 60
-                                seconds = remaining % 60
-                                st.error(f"🔒 Cuenta bloqueada por intentos fallidos. Intenta de nuevo en {minutes}m {seconds}s.")
-                            elif not user.get('is_active'):
-                                st.error("❌ Tu cuenta no está activa. Contacta a soporte.")
-                            else:
-                                st.session_state.authenticated = True
-                                st.session_state.user = user
-                                st.session_state.ai_agent = MarketingStrategist()
-                                st.session_state.show_login_modal = False
-                                st.success("✅ Inicio de sesión exitoso!")
-                                time.sleep(0.5)
-                                st.rerun()
-                        else:
-                            st.error("❌ Usuario o contraseña incorrectos.")
-            
-            st.divider()
-            
-            col_forgot, col_register = st.columns(2)
-            with col_forgot:
-                if st.button("🔑 Olvidé mi contraseña", use_container_width=True, key="forgot_modal"):
-                    st.session_state.page = 'forgot_password'
-                    st.session_state.show_login_modal = False
-                    st.rerun()
-            with col_register:
-                if st.button("✨ Registrarme", use_container_width=True, type="secondary", key="register_modal"):
-                    st.session_state.page = 'register'
-                    st.session_state.show_login_modal = False
-                    st.rerun()
 
 def registration_page():
     st.title("✨ Crear Cuenta - Prueba Gratuita 7 Días")
