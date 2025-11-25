@@ -1013,7 +1013,7 @@ def pricing_page():
         st.markdown("""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px;'>
             <h3 style='font-size: 1.5em; margin-bottom: 10px;'>🆓 Prueba Gratuita</h3>
-            <h1 style='font-size: 3em; margin: 20px 0;'>$0</h1>
+            <h1 style='font-size: 3em; margin: 20px 0;'>$0 USD</h1>
             <p style='font-size: 1.1em; margin-bottom: 20px;'>7 días • 5 solicitudes/día</p>
             <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para probar la plataforma</p>
         </div>
@@ -1023,7 +1023,7 @@ def pricing_page():
         st.markdown("""
         <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px;'>
             <h3 style='font-size: 1.5em; margin-bottom: 10px;'>💼 Plan Básico</h3>
-            <h1 style='font-size: 3em; margin: 20px 0;'>$7</h1>
+            <h1 style='font-size: 3em; margin: 20px 0;'>$7 USD</h1>
             <p style='font-size: 1.1em; margin-bottom: 20px;'>30 días • 10 solicitudes/día</p>
             <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para emprendedores</p>
         </div>
@@ -1033,7 +1033,7 @@ def pricing_page():
         st.markdown("""
         <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px;'>
             <h3 style='font-size: 1.5em; margin-bottom: 10px;'>🚀 Plan Estándar</h3>
-            <h1 style='font-size: 3em; margin: 20px 0;'>$21</h1>
+            <h1 style='font-size: 3em; margin: 20px 0;'>$21 USD</h1>
             <p style='font-size: 1.1em; margin-bottom: 20px;'>90 días • 15 solicitudes/día</p>
             <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para negocios en crecimiento</p>
         </div>
@@ -1048,7 +1048,7 @@ def pricing_page():
         st.markdown("""
         <div style='background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px;'>
             <h3 style='font-size: 1.5em; margin-bottom: 10px;'>💎 Plan Profesional</h3>
-            <h1 style='font-size: 3em; margin: 20px 0;'>$42</h1>
+            <h1 style='font-size: 3em; margin: 20px 0;'>$42 USD</h1>
             <p style='font-size: 1.1em; margin-bottom: 20px;'>180 días • 20 solicitudes/día</p>
             <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para PYMEs establecidas</p>
         </div>
@@ -1058,7 +1058,7 @@ def pricing_page():
         st.markdown("""
         <div style='background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px; border: 3px solid gold;'>
             <h3 style='font-size: 1.5em; margin-bottom: 10px;'>👑 Plan Empresarial</h3>
-            <h1 style='font-size: 3em; margin: 20px 0;'>$84</h1>
+            <h1 style='font-size: 3em; margin: 20px 0;'>$84 USD</h1>
             <p style='font-size: 1.1em; margin-bottom: 20px;'>360 días • 25 solicitudes/día</p>
             <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para empresas grandes</p>
         </div>
