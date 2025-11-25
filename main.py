@@ -34,14 +34,46 @@ def load_markdown_file(filepath):
         return "Contenido no disponible."
 
 def show_static_page(title, filepath):
-    """Display a static markdown page"""
+    """Display a static markdown page with landing page design"""
+    # Top navigation bar
+    col_logo, col_spacer, col_login = st.columns([2, 6, 2])
+    with col_logo:
+        st.markdown("### 🚀 Generador MiPymesIA")
+    with col_login:
+        if st.button("🔐 Iniciar Sesión", use_container_width=True, type="primary", key="login_static"):
+            st.session_state.page = 'login_form'
+            st.rerun()
+    
+    st.divider()
+    
+    # Page title
     st.title(title)
+    
+    # Load and display content
     content = load_markdown_file(filepath)
     st.markdown(content)
+    
     st.divider()
-    if st.button("⬅️ Volver al Login"):
-        st.session_state.page = 'login'
-        st.rerun()
+    
+    # Footer Links
+    st.markdown("### 📚 Más Información")
+    col_a, col_b, col_c, col_d = st.columns(4)
+    with col_a:
+        if st.button("📋 Términos de Uso", use_container_width=True, key="terms_footer"):
+            st.session_state.page = 'terms'
+            st.rerun()
+    with col_b:
+        if st.button("🔒 Privacidad", use_container_width=True, key="privacy_footer"):
+            st.session_state.page = 'privacy'
+            st.rerun()
+    with col_c:
+        if st.button("💎 Ver Todos los Precios", use_container_width=True, key="pricing_footer"):
+            st.session_state.page = 'pricing'
+            st.rerun()
+    with col_d:
+        if st.button("⬅️ Volver al Inicio", use_container_width=True, key="back_footer"):
+            st.session_state.page = 'login'
+            st.rerun()
 
 def login_page():
     # Top navigation bar with login button
