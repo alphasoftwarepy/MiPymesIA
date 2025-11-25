@@ -343,16 +343,6 @@ def wizard_page():
     if st.session_state.step == 1:
         st.subheader("📋 Diagnóstico y Contexto")
         
-        # Logout button at the top
-        if st.button("🚪 Cerrar Sesión", use_container_width=True):
-            st.session_state.authenticated = False
-            st.session_state.user = None
-            st.session_state.step = 1
-            st.session_state.page = 'login'
-            st.rerun()
-        
-        st.divider()
-        
         # Add custom CSS for better styling
         st.markdown("""
         <style>
@@ -732,6 +722,16 @@ else:
             st.title("Generador MiPymesIA")
             st.caption("Estrategias de Marketing y de Publicidad")
             st.write(f"Hola, **{st.session_state.user['username']}**")
+            
+            # Logout button in sidebar
+            if st.button("🚪 Cerrar Sesión", use_container_width=True, key="logout_sidebar"):
+                st.session_state.authenticated = False
+                st.session_state.user = None
+                st.session_state.step = 1
+                st.session_state.page = 'login'
+                st.rerun()
+            
+            st.divider()
         
         # Page Routing
         if st.session_state.user['is_admin']:
