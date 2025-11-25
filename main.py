@@ -58,36 +58,38 @@ def login_page():
     
     # Login Modal/Popup
     if st.session_state.show_login_modal:
-        # Create a centered container with styling
+        # Create overlay similar to strategy generation
         st.markdown("""
         <style>
-        .login-modal {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            padding: 40px;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-            z-index: 1000;
-            max-width: 500px;
-            width: 90%;
-            border: 2px solid #3498db;
-        }
-        .modal-backdrop {
+        .login-overlay {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            z-index: 999;
+            background: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+        .login-box {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+            max-width: 450px;
+            width: 90%;
         }
         </style>
+        <div class="login-overlay"></div>
         """, unsafe_allow_html=True)
         
-        with st.container():
+        # Login form in centered container
+        st.markdown("<br><br><br>", unsafe_allow_html=True)
+        
+        col_left, col_center, col_right = st.columns([1, 2, 1])
+        with col_center:
             col_title, col_close = st.columns([8, 2])
             with col_title:
                 st.markdown("### 🔐 Iniciar Sesión")
@@ -140,8 +142,7 @@ def login_page():
                     st.session_state.show_login_modal = False
                     st.rerun()
         
-        st.divider()
-        st.markdown("---")
+        st.stop()  # Stop rendering the rest of the page when modal is open
     
     st.divider()
     
