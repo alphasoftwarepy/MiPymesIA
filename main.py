@@ -1067,6 +1067,18 @@ if not st.session_state.authenticated:
     elif st.session_state.page == 'register':
         registration_page()
     elif st.session_state.page == 'forgot_password':
+        forgot_password_page()
+    elif st.session_state.page == 'terms':
+        show_static_page("📋 Términos de Uso", "content/terms_of_service.md")
+    elif st.session_state.page == 'privacy':
+        show_static_page("🔒 Política de Privacidad", "content/privacy_policy.md")
+    elif st.session_state.page == 'pricing':
+        pricing_page()
+else:
+    # Authenticated users
+    if st.session_state.page == 'change_password':
+        change_password_page()
+    else:
         # Sidebar Header (Always visible)
         with st.sidebar:
             st.title("Generador MiPymesIA")
