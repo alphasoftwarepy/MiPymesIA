@@ -869,21 +869,6 @@ def wizard_page():
             with st.chat_message("assistant"):
                 st.markdown(response)
 
-# Main Logic
-if not st.session_state.authenticated:
-    # Route to different pages
-    if st.session_state.page == 'login':
-        login_page()
-    elif st.session_state.page == 'login_form':
-        login_form_page()
-    elif st.session_state.page == 'register':
-        registration_page()
-    elif st.session_state.page == 'forgot_password':
-        forgot_password_page()
-    elif st.session_state.page == 'terms':
-        show_static_page("📋 Términos de Uso", "content/terms_of_service.md")
-    elif st.session_state.page == 'privacy':
-        show_static_page("🔒 Política de Privacidad", "content/privacy_policy.md")
 def pricing_page():
     """Professional pricing page with attractive card design"""
     # Top navigation bar

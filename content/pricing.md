@@ -1,4 +1,4 @@
-# Planes y Precios - SG MiPymes IA
+
 
 ## 🎯 Estrategias de Marketing Profesionales Impulsadas por IA
 
