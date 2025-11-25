@@ -580,14 +580,49 @@ def wizard_page():
                     # Show loading overlay
                     # Modern dynamic loading
                     try:
-                        with st.status("🚀 Iniciando motor de inteligencia artificial...", expanded=True) as status:
-                            st.write("🧠 Analizando perfil del negocio y mercado...")
-                            time.sleep(1)
+                        # Load custom loader image
+                        import base64
+                        def get_base64_image(image_path):
+                            with open(image_path, "rb") as img_file:
+                                return base64.b64encode(img_file.read()).decode()
+                        
+                        loader_b64 = get_base64_image("assets/loader.png")
+                        
+                        with st.status("🚀 Iniciando motor de IA...", expanded=True) as status:
+                            # Custom CSS for rotating loader
+                            st.markdown(f"""
+                            <style>
+                            @keyframes spin {{
+                                0% {{ transform: rotate(0deg); }}
+                                100% {{ transform: rotate(360deg); }}
+                            }}
+                            .custom-loader {{
+                                animation: spin 2s linear infinite;
+                                width: 80px;
+                                height: 80px;
+                                display: block;
+                                margin: 20px auto;
+                            }}
+                            .loading-text {{
+                                text-align: center;
+                                font-size: 1.2em;
+                                color: #2c3e50;
+                                font-weight: 500;
+                                margin-top: 10px;
+                            }}
+                            </style>
+                            <img src="data:image/png;base64,{loader_b64}" class="custom-loader">
+                            """, unsafe_allow_html=True)
                             
-                            st.write("🔍 Investigando tendencias y competidores...")
-                            time.sleep(1)
+                            msg_placeholder = st.empty()
                             
-                            st.write("💡 Diseñando embudos de venta y contenido...")
+                            msg_placeholder.markdown('<p class="loading-text">🧠 Analizando perfil del negocio...</p>', unsafe_allow_html=True)
+                            time.sleep(1.5)
+                            
+                            msg_placeholder.markdown('<p class="loading-text">🔍 Investigando tendencias...</p>', unsafe_allow_html=True)
+                            time.sleep(1.5)
+                            
+                            msg_placeholder.markdown('<p class="loading-text">💡 Diseñando estrategia...</p>', unsafe_allow_html=True)
                             
                             business_info = {
                                 "rubro": rubro,
@@ -606,8 +641,8 @@ def wizard_page():
                             # Generate strategy
                             result = st.session_state.ai_agent.generate_strategy(business_info)
                             
-                            st.write("✨ Optimizando detalles finales...")
-                            time.sleep(0.5)
+                            msg_placeholder.markdown('<p class="loading-text">✨ Finalizando detalles...</p>', unsafe_allow_html=True)
+                            time.sleep(1)
                             
                             st.session_state.strategy_result = result
                             st.session_state.business_info = business_info
