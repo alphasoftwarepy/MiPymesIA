@@ -201,8 +201,8 @@ def forgot_password_page():
                     message = f"🔑 Solicitud de cambio de contraseña\n\nUsuario: {username}\nCorreo: {email}"
                     whatsapp_url = f"https://wa.me/{admin_phone}?text={urllib.parse.quote(message)}"
                     
-                    st.success("✅ Solicitud enviada al administrador.")
-                    st.info(f"📱 También puedes contactar directamente por WhatsApp:")
+                    st.success("✅ Datos encontrados!")
+                    st.info(f"📱 Puedes contactar directamente por WhatsApp:")
                     st.markdown(f"[Abrir WhatsApp]({whatsapp_url})")
                 else:
                     st.error("❌ No se encontró la combinación de usuario/correo en el sistema.")
