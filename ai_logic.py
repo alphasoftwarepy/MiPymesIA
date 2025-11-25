@@ -19,16 +19,24 @@ class MarketingStrategist:
         self.memory = None
         self.chain = None
         
+        # Debug logging
+        if self.api_key:
+            print(f"✅ API Key found: {self.api_key[:10]}...{self.api_key[-4:]}")
+        else:
+            print("❌ API Key NOT found in environment variables")
+        
         if self.api_key:
             try:
+                print("🔄 Initializing ChatOpenAI with gpt-4o...")
                 self.llm = ChatOpenAI(
-                    model_name="gpt-4o",  # Fallback to gpt-3.5-turbo if 4o not available
+                    model_name="gpt-4o",
                     openai_api_key=self.api_key,
                     temperature=0.7
                 )
+                print("✅ LLM initialized successfully")
             except Exception as e:
                 # Fallback or error handling
-                print(f"Error initializing LLM: {e}")
+                print(f"❌ Error initializing LLM: {e}")
                 self.llm = None
         
         self.memory = ConversationBufferMemory(return_messages=True)
