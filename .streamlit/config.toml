@@ -7,4 +7,3 @@ enableXsrfProtection = false
 
 [browser]
 gatherUsageStats = false
-"@ | Out-File -FilePath .streamlit\config.toml -Encoding UTF8
