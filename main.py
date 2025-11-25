@@ -578,56 +578,49 @@ def wizard_page():
                         st.stop()
                     
                     # Show loading overlay
-                    loading_placeholder = st.empty()
-                    loading_placeholder.markdown("""
-                    <style>
-                    .loading-overlay {
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        background: rgba(0, 0, 0, 0.8);
-                        display: flex;
-                        justify-content: center;
-                        align-items: center;
-                        z-index: 9999;
-                        color: white;
-                        font-size: 24px;
-                        font-weight: bold;
-                    }
-                    </style>
-                    <div class="loading-overlay">
-                        <div>🧠 Generando tu estrategia profesional...</div>
-                    </div>
-                    """, unsafe_allow_html=True)
-                    
+                    # Modern dynamic loading
                     try:
-                        business_info = {
-                            "rubro": rubro,
-                            "nombre": nombre,
-                            "tipo": tipo,
-                            "producto": producto,
-                            "precio": precio if precio > 0 else None,
-                            "meta": meta,
-                            "presupuesto": presupuesto,
-                            "presupuesto_diario": round(presupuesto/30, 2),
-                            "plataforma": ", ".join(plataforma),
-                            "modalidad_venta": modalidad,
-                            "buyer_persona": buyer_persona if buyer_persona else None
-                        }
-                        result = st.session_state.ai_agent.generate_strategy(business_info)
-                        st.session_state.strategy_result = result
-                        st.session_state.business_info = business_info
-                        st.session_state.step = 3
-                        
-                        # Update user session with new request count
-                        st.session_state.user['requests_today'] = user.get('requests_today', 0) + 1
-                        
-                        loading_placeholder.empty()
-                        st.rerun()
+                        with st.status("🚀 Iniciando motor de inteligencia artificial...", expanded=True) as status:
+                            st.write("🧠 Analizando perfil del negocio y mercado...")
+                            time.sleep(1)
+                            
+                            st.write("🔍 Investigando tendencias y competidores...")
+                            time.sleep(1)
+                            
+                            st.write("💡 Diseñando embudos de venta y contenido...")
+                            
+                            business_info = {
+                                "rubro": rubro,
+                                "nombre": nombre,
+                                "tipo": tipo,
+                                "producto": producto,
+                                "precio": precio if precio > 0 else None,
+                                "meta": meta,
+                                "presupuesto": presupuesto,
+                                "presupuesto_diario": round(presupuesto/30, 2),
+                                "plataforma": ", ".join(plataforma),
+                                "modalidad_venta": modalidad,
+                                "buyer_persona": buyer_persona if buyer_persona else None
+                            }
+                            
+                            # Generate strategy
+                            result = st.session_state.ai_agent.generate_strategy(business_info)
+                            
+                            st.write("✨ Optimizando detalles finales...")
+                            time.sleep(0.5)
+                            
+                            st.session_state.strategy_result = result
+                            st.session_state.business_info = business_info
+                            st.session_state.step = 3
+                            
+                            # Update user session with new request count
+                            st.session_state.user['requests_today'] = user.get('requests_today', 0) + 1
+                            
+                            status.update(label="✅ ¡Estrategia Lista!", state="complete", expanded=False)
+                            time.sleep(0.5)
+                            st.rerun()
+                            
                     except Exception as e:
-                        loading_placeholder.empty()
                         st.error(f"Ocurrió un error: {e}")
 
     elif st.session_state.step == 2:
