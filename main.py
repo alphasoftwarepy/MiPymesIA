@@ -487,22 +487,7 @@ def wizard_page():
         
         # Sidebar Navigation
         with st.sidebar:
-            # Logout button BEFORE "Resultados"
-            if st.button("🚪 SALIR", use_container_width=True):
-                st.session_state.authenticated = False
-                st.session_state.user = None
-                st.session_state.step = 1
-                st.session_state.page = 'login'
-                st.rerun()
-            
-            # Password change button
-            if st.button("🔐 Cambiar Contraseña", use_container_width=True):
-                st.session_state.page = 'change_password'
-                st.rerun()
-            
-            st.markdown("---")
-            
-            # Display subscription info
+            # Display subscription info FIRST
             user = st.session_state.user
             if user.get('expiration_date'):
                 exp_date = datetime.fromisoformat(user['expiration_date'])
@@ -534,6 +519,8 @@ def wizard_page():
             st.markdown("[💳 Pagar Suscripción](https://wa.link/qf8pf2)")
             
             st.markdown("---")
+            
+            # RESULTS NAVIGATION
             st.header("Resultados")
             selected_section = st.radio(
                 "Navegar a:",
@@ -542,9 +529,23 @@ def wizard_page():
                 label_visibility="collapsed"
             )
             
-            # Nueva Estrategia button below Results
+            # Nueva Estrategia button
             if st.button("🔄 Nueva Estrategia", use_container_width=True, type="primary"):
                 st.session_state.step = 1
+                st.rerun()
+            
+            st.markdown("---")
+            
+            # LOGOUT AND PASSWORD CHANGE AT THE END
+            if st.button("🚪 Cerrar Sesión", use_container_width=True, key="logout_results"):
+                st.session_state.authenticated = False
+                st.session_state.user = None
+                st.session_state.step = 1
+                st.session_state.page = 'login'
+                st.rerun()
+            
+            if st.button("🔐 Cambiar Contraseña", use_container_width=True, key="change_pwd_results"):
+                st.session_state.page = 'change_password'
                 st.rerun()
 
 
