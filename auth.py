@@ -125,13 +125,7 @@ def login_user(username, password):
                 "business_profile": user[11] or ""
             }
 
-def update_business_profile(username, profile_text):
-    """Updates the business profile for a user."""
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute("UPDATE users SET business_profile = ? WHERE username = ?", (profile_text, username))
-    conn.commit()
-    conn.close()
+
         else:
             # Increment failed attempts
             failed_attempts = (lockout_data[1] if lockout_data else 0) + 1
@@ -273,6 +267,14 @@ def search_users(query):
     )
     conn.close()
     return df
+
+def update_business_profile(username, profile_text):
+    """Updates the business profile for a user."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("UPDATE users SET business_profile = ? WHERE username = ?", (profile_text, username))
+    conn.commit()
+    conn.close()
 
 if __name__ == "__main__":
     init_db()
