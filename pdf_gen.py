@@ -31,11 +31,15 @@ class PDF(FPDF):
         self.cell(0, 10, f'Generado por Generador MiPymesIA - {datetime.now().strftime("%d/%m/%Y")} - Pagina {self.page_no()}', 0, 0, 'C')
 
     def section_title(self, title):
-        """Main section title with blue background"""
+        """Main section title with blue background and text wrapping"""
         self.set_fill_color(41, 128, 185)
         self.set_text_color(255, 255, 255)
         self.set_font('Arial', 'B', 14)
-        self.cell(0, 10, title, 0, 1, 'L', True)
+        
+        # Calculate height needed
+        # Standard cell height is 10, but we might need more
+        self.multi_cell(0, 10, title, 0, 'L', True)
+        
         self.set_text_color(0, 0, 0)
         self.ln(4)
     
@@ -84,23 +88,42 @@ class PDF(FPDF):
 
 def clean_text(text):
     """Cleans text for PDF compatibility"""
+    if not text:
+        return ""
+        
     # Remove markdown
     text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
     text = re.sub(r'\*(.+?)\*', r'\1', text)
     text = text.replace('**', '').replace('__', '')
     
-    # Special characters
+    # Special characters replacements
     replacements = {
         '"': '"', '"': '"', ''': "'", ''': "'",
         '—': '-', '–': '-', '…': '...',
+        '¿': '?', '¡': '!',
+        'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
+        'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
+        'ñ': 'n', 'Ñ': 'N',
+        'ü': 'u', 'Ü': 'U'
     }
+    
+    # Try to handle encoding issues before replacement
+    try:
+        # First try to fix common encoding errors
+        text = text.encode('latin-1', 'ignore').decode('utf-8', 'ignore')
+    except:
+        pass
+
+    # Apply manual replacements for problematic chars
     for old, new in replacements.items():
         text = text.replace(old, new)
     
+    # Final safety encode
     try:
         return text.encode('latin-1', 'replace').decode('latin-1')
     except:
-        return text
+        # Fallback: remove non-ascii
+        return ''.join([i if ord(i) < 128 else ' ' for i in text])
 
 def extract_bold_text(line):
     """Extract text between ** markers and return (text, is_bold)"""
@@ -161,20 +184,36 @@ def generate_pdf(strategy_text, business_info=None):
     pdf.add_page()
     pdf.section_title('Resumen Ejecutivo')
     
-    summary_text = f"""Esta estrategia de marketing ha sido disenada especificamente para {business_info.get('nombre', 'su negocio') if business_info else 'su negocio'}, con el objetivo de {business_info.get('meta', 'alcanzar sus metas comerciales').lower() if business_info else 'alcanzar sus metas comerciales'}.
-
-El plan incluye:"""
+    summary_intro = f"""Esta estrategia de marketing ha sido disenada especificamente para {business_info.get('nombre', 'su negocio') if business_info else 'su negocio'}, con el objetivo de {business_info.get('meta', 'alcanzar sus metas comerciales').lower() if business_info else 'alcanzar sus metas comerciales'}."""
     
-    pdf.body_text(clean_text(summary_text))
-    pdf.bullet_item('Definicion del cliente ideal (Avatar)')
-    pdf.bullet_item('Estrategia de contenido organico (Embudo TOFU/MOFU/BOFU)')
-    pdf.bullet_item('Campanas de publicidad pagada segmentadas')
-    pdf.bullet_item('Flujo de cierre por WhatsApp de 7 dias')
-    pdf.bullet_item('Manejo profesional de objeciones')
-    pdf.bullet_item('Rutina diaria de acciones de alto rendimiento')
-    pdf.bullet_item('Metricas clave para optimizacion continua')
+    pdf.body_text(clean_text(summary_intro))
+    pdf.ln(5)
     
-    pdf.ln(3)
+    pdf.subsection_title("El Plan Incluye:")
+    
+    # Detailed breakdown instead of simple list
+    pdf.subsubsection_title("1. Definicion del Cliente Ideal (Avatar)")
+    pdf.body_text("Analisis detallado de quien es su cliente, sus dolores, deseos y objeciones para comunicar el mensaje correcto.")
+    
+    pdf.subsubsection_title("2. Estrategia de Contenido (Embudo)")
+    pdf.body_text("Plan de contenidos semanal dividido en Atraccion (TOFU), Consideracion (MOFU) y Venta (BOFU).")
+    
+    pdf.subsubsection_title("3. Publicidad Pagada (Ads)")
+    pdf.body_text("Estructura de campanas segmentadas para trafico frio, tibio y caliente, optimizando su presupuesto.")
+    
+    pdf.subsubsection_title("4. Flujo de Cierre por WhatsApp")
+    pdf.body_text("Guiones y pasos exactos para convertir interesados en clientes en un periodo de 7 dias.")
+    
+    pdf.subsubsection_title("5. Manejo de Objeciones")
+    pdf.body_text("Respuestas preparadas para las principales barreras de compra de sus clientes.")
+    
+    pdf.subsubsection_title("6. Rutina de Alto Rendimiento")
+    pdf.body_text("Checklist de acciones diarias para mantener la constancia y el crecimiento.")
+    
+    pdf.subsubsection_title("7. Metricas y Optimizacion")
+    pdf.body_text("Indicadores clave de rendimiento (KPIs) para medir y mejorar los resultados mes a mes.")
+    
+    pdf.ln(5)
     pdf.body_text("Este documento es su guia paso a paso para implementar una estrategia de marketing profesional que genere resultados medibles.")
     
     # === DETAILED STRATEGY ===

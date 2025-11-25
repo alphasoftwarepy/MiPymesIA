@@ -1,11 +1,11 @@
 
 ## 1. Aceptación de los Términos
 
-Al acceder y utilizar SG MiPymes IA, usted acepta estar sujeto a estos Términos de Uso. Si no está de acuerdo con alguna parte de estos términos, no debe utilizar nuestro servicio.
+Al acceder y utilizar Generador MiPymesIA, usted acepta estar sujeto a estos Términos de Uso. Si no está de acuerdo con alguna parte de estos términos, no debe utilizar nuestro servicio.
 
 ## 2. Descripción del Servicio
 
-SG MiPymes IA es una plataforma de generación de estrategias de marketing y publicidad impulsada por inteligencia artificial, diseñada para pequeñas y medianas empresas.
+Generador MiPymesIA es una plataforma de generación de estrategias de marketing y publicidad impulsada por inteligencia artificial, diseñada para pequeñas y medianas empresas.
 
 ## 3. Registro y Cuenta de Usuario
 
@@ -30,12 +30,12 @@ Usted se compromete a:
 ## 6. Propiedad Intelectual
 
 - El contenido generado por la IA es de su propiedad para uso comercial
-- La plataforma y su tecnología son propiedad de SG MiPymes IA
+- La plataforma y su tecnología son propiedad de Generador MiPymesIA
 - No puede reproducir, modificar o distribuir la plataforma sin autorización
 
 ## 7. Limitación de Responsabilidad
 
-SG MiPymes IA proporciona el servicio "tal cual" sin garantías de ningún tipo. No somos responsables de:
+Generador MiPymesIA proporciona el servicio "tal cual" sin garantías de ningún tipo. No somos responsables de:
 - Resultados comerciales obtenidos al implementar las estrategias
 - Pérdidas financieras derivadas del uso del servicio
 - Interrupciones temporales del servicio

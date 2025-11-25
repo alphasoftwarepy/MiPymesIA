@@ -207,7 +207,6 @@ def login_page():
     st.divider()
     
     # Video Section
-    st.markdown("## 🎥 Video Tutorial")
     col_video_left, col_video, col_video_right = st.columns([1, 2, 1])
     with col_video:
         st.markdown("""
@@ -949,7 +948,6 @@ def pricing_page():
     with col5:
         st.markdown("""
         <div style='background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px; border: 3px solid gold;'>
-            <div style='background: gold; color: #330867; padding: 5px 15px; border-radius: 20px; display: inline-block; margin-bottom: 10px; font-weight: bold;'>⭐ MÁS POPULAR</div>
             <h3 style='font-size: 1.5em; margin-bottom: 10px;'>👑 Plan Empresarial</h3>
             <h1 style='font-size: 3em; margin: 20px 0;'>$84</h1>
             <p style='font-size: 1.1em; margin-bottom: 20px;'>360 días • 25 solicitudes/día</p>
