@@ -265,6 +265,11 @@ def login_form_page():
                         st.error(f"🔒 Cuenta bloqueada por intentos fallidos. Intenta de nuevo en {minutes}m {seconds}s.")
                     elif not user.get('is_active'):
                         st.error("❌ Tu cuenta no está activa. Contacta a soporte.")
+                        admin_phone = "595994209224"
+                        message = f"🔑 Solicitud de activación de cuenta\n\nUsuario: {username}"
+                        whatsapp_url = f"https://wa.me/{admin_phone}?text={urllib.parse.quote(message)}"
+                        st.info(f"📱 Puedes contactar directamente por WhatsApp:")
+                        st.markdown(f"[Abrir WhatsApp]({whatsapp_url})")
                     else:
                         st.session_state.authenticated = True
                         st.session_state.user = user
