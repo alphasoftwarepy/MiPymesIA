@@ -839,19 +839,19 @@ def wizard_page():
         st.divider()
         col1, col2 = st.columns([1, 1])
         with col1:
-            # PDF Download Button
-            if st.button("📄 Descargar PDF", use_container_width=True):
-                try:
-                    pdf_bytes = generate_pdf(st.session_state.strategy_result, st.session_state.business_info)
-                    st.download_button(
-                        label="💾 Guardar PDF",
-                        data=pdf_bytes,
-                        file_name=f"estrategia_{st.session_state.business_info.get('nombre', 'negocio').replace(' ', '_')}.pdf",
-                        mime="application/pdf",
-                        use_container_width=True
-                    )
-                except Exception as e:
-                    st.error(f"Error al generar PDF: {e}")
+            # Single PDF Download Button
+            try:
+                pdf_bytes = generate_pdf(st.session_state.strategy_result, st.session_state.business_info)
+                st.download_button(
+                    label="📄 Descargar PDF",
+                    data=pdf_bytes,
+                    file_name=f"estrategia_{st.session_state.business_info.get('nombre', 'negocio').replace(' ', '_')}.pdf",
+                    mime="application/pdf",
+                    use_container_width=True,
+                    type="primary"
+                )
+            except Exception as e:
+                st.error(f"Error al generar PDF: {e}")
         with col2:
             if st.button("🔄 Nueva Estrategia", use_container_width=True):
                 st.session_state.step = 1
