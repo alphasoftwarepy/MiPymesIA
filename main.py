@@ -578,7 +578,7 @@ def wizard_page():
                         st.stop()
                     
                     # Show loading overlay
-                    # Modern dynamic loading
+                    # Modern dynamic loading overlay
                     try:
                         # Load custom loader image
                         import base64
@@ -588,10 +588,39 @@ def wizard_page():
                         
                         loader_b64 = get_base64_image("assets/loader.png")
                         
-                        with st.status("🚀 Iniciando motor de IA...", expanded=True) as status:
-                            # Custom CSS for rotating loader
-                            st.markdown(f"""
+                        overlay_placeholder = st.empty()
+                        
+                        def update_loader(text, step):
+                            overlay_placeholder.markdown(f"""
                             <style>
+                            .loading-overlay {{
+                                position: fixed;
+                                top: 0;
+                                left: 0;
+                                width: 100%;
+                                height: 100%;
+                                background: rgba(0, 0, 0, 0.4);
+                                display: flex;
+                                flex-direction: column;
+                                justify-content: center;
+                                align-items: center;
+                                z-index: 999999;
+                                backdrop-filter: blur(4px);
+                            }}
+                            .loader-card {{
+                                background: white;
+                                padding: 40px;
+                                border-radius: 20px;
+                                box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+                                text-align: center;
+                                max-width: 400px;
+                                width: 90%;
+                                animation: popIn 0.3s ease-out;
+                            }}
+                            @keyframes popIn {{
+                                0% {{ transform: scale(0.8); opacity: 0; }}
+                                100% {{ transform: scale(1); opacity: 1; }}
+                            }}
                             @keyframes spin {{
                                 0% {{ transform: rotate(0deg); }}
                                 100% {{ transform: rotate(360deg); }}
@@ -601,50 +630,85 @@ def wizard_page():
                                 width: 80px;
                                 height: 80px;
                                 display: block;
-                                margin: 20px auto;
+                                margin: 0 auto 20px auto;
                             }}
                             .loading-text {{
-                                text-align: center;
-                                font-size: 1.2em;
+                                font-size: 1.3em;
                                 color: #2c3e50;
+                                font-weight: 600;
+                                margin-bottom: 8px;
+                            }}
+                            .step-text {{
+                                font-size: 0.9em;
+                                color: #7f8c8d;
                                 font-weight: 500;
-                                margin-top: 10px;
+                                letter-spacing: 1px;
+                                text-transform: uppercase;
                             }}
                             </style>
-                            <img src="data:image/png;base64,{loader_b64}" class="custom-loader">
+                            <div class="loading-overlay">
+                                <div class="loader-card">
+                                    <img src="data:image/png;base64,{loader_b64}" class="custom-loader">
+                                    <div class="loading-text">{text}</div>
+                                    <div class="step-text">PASO {step} DE 6</div>
+                                </div>
+                            </div>
                             """, unsafe_allow_html=True)
-                            
-                            msg_placeholder = st.empty()
-                            
-                            msg_placeholder.markdown('<p class="loading-text">🧠 Analizando perfil del negocio...</p>', unsafe_allow_html=True)
-                            time.sleep(1.5)
-                            
-                            msg_placeholder.markdown('<p class="loading-text">🔍 Investigando tendencias...</p>', unsafe_allow_html=True)
-                            time.sleep(1.5)
-                            
-                            msg_placeholder.markdown('<p class="loading-text">💡 Diseñando estrategia...</p>', unsafe_allow_html=True)
-                            
-                            business_info = {
-                                "rubro": rubro,
-                                "nombre": nombre,
-                                "tipo": tipo,
-                                "producto": producto,
-                                "precio": precio if precio > 0 else None,
-                                "meta": meta,
-                                "presupuesto": presupuesto,
-                                "presupuesto_diario": round(presupuesto/30, 2),
-                                "plataforma": ", ".join(plataforma),
-                                "modalidad_venta": modalidad,
-                                "buyer_persona": buyer_persona if buyer_persona else None
-                            }
-                            
-                            # Generate strategy
-                            result = st.session_state.ai_agent.generate_strategy(business_info)
-                            
-                            msg_placeholder.markdown('<p class="loading-text">✨ Finalizando detalles...</p>', unsafe_allow_html=True)
-                            time.sleep(1)
-                            
-                            st.session_state.strategy_result = result
+
+                        # Step 1
+                        update_loader("🚀 Iniciando motor de IA...", 1)
+                        time.sleep(1)
+                        
+                        # Step 2
+                        update_loader("🔌 Conectando con base de conocimientos...", 2)
+                        time.sleep(1)
+                        
+                        # Step 3
+                        update_loader("🧠 Analizando perfil del negocio...", 3)
+                        time.sleep(1.5)
+                        
+                        # Step 4
+                        update_loader("🔍 Investigando tendencias del mercado...", 4)
+                        time.sleep(1.5)
+                        
+                        # Step 5
+                        update_loader("💡 Diseñando estrategia personalizada...", 5)
+                        
+                        business_info = {
+                            "rubro": rubro,
+                            "nombre": nombre,
+                            "tipo": tipo,
+                            "producto": producto,
+                            "precio": precio if precio > 0 else None,
+                            "meta": meta,
+                            "presupuesto": presupuesto,
+                            "presupuesto_diario": round(presupuesto/30, 2),
+                            "plataforma": ", ".join(plataforma),
+                            "modalidad_venta": modalidad,
+                            "buyer_persona": buyer_persona if buyer_persona else None
+                        }
+                        
+                        # Generate strategy
+                        result = st.session_state.ai_agent.generate_strategy(business_info)
+                        
+                        # Step 6
+                        update_loader("✨ Finalizando detalles...", 6)
+                        time.sleep(1)
+                        
+                        st.session_state.strategy_result = result
+                        st.session_state.business_info = business_info
+                        st.session_state.step = 3
+                        
+                        # Update user session with new request count
+                        st.session_state.user['requests_today'] = user.get('requests_today', 0) + 1
+                        
+                        overlay_placeholder.empty()
+                        st.rerun()
+                        
+                    except Exception as e:
+                        if 'overlay_placeholder' in locals():
+                            overlay_placeholder.empty()
+                        st.error(f"Ocurrió un error: {e}")
                             st.session_state.business_info = business_info
                             st.session_state.step = 3
                             
