@@ -709,18 +709,7 @@ def wizard_page():
                         if 'overlay_placeholder' in locals():
                             overlay_placeholder.empty()
                         st.error(f"Ocurrió un error: {e}")
-                            st.session_state.business_info = business_info
-                            st.session_state.step = 3
-                            
-                            # Update user session with new request count
-                            st.session_state.user['requests_today'] = user.get('requests_today', 0) + 1
-                            
-                            status.update(label="✅ ¡Estrategia Lista!", state="complete", expanded=False)
-                            time.sleep(0.5)
-                            st.rerun()
-                            
-                    except Exception as e:
-                        st.error(f"Ocurrió un error: {e}")
+
 
     elif st.session_state.step == 2:
         st.session_state.step = 3
