@@ -129,12 +129,8 @@ def show_static_page(title, filepath):
     
     st.markdown("<br><br>", unsafe_allow_html=True)
     
-    # Modern footer with gradient background
-    st.markdown("""
-    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; border-radius: 15px; margin-top: 40px;'>
-        <h3 style='color: white; text-align: center; margin-bottom: 25px;'>📚 Explorar Más</h3>
-    </div>
-    """, unsafe_allow_html=True)
+    # Modern footer navigation
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Footer navigation buttons
     col_a, col_b, col_c, col_d = st.columns(4)
@@ -221,7 +217,6 @@ def login_page():
 
     
     # Footer Links
-    st.markdown("### 📚 Más Información")
     col_a, col_b, col_c, col_d = st.columns(4)
     with col_a:
         if st.button("📋 Términos de Uso", use_container_width=True):
@@ -889,8 +884,200 @@ if not st.session_state.authenticated:
         show_static_page("📋 Términos de Uso", "content/terms_of_service.md")
     elif st.session_state.page == 'privacy':
         show_static_page("🔒 Política de Privacidad", "content/privacy_policy.md")
+def pricing_page():
+    """Professional pricing page with attractive card design"""
+    # Top navigation bar
+    col_logo, col_spacer, col_login = st.columns([2, 6, 2])
+    with col_logo:
+        st.markdown("### 🚀 Generador MiPymesIA")
+    with col_login:
+        if st.button("🔐 Iniciar Sesión", use_container_width=True, type="primary", key="login_pricing"):
+            st.session_state.page = 'login_form'
+            st.rerun()
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # Hero section
+    st.markdown("""
+    <div style='text-align: center; padding: 30px 0;'>
+        <h1 style='font-size: 2.8em; color: #1a5276; margin-bottom: 10px;'>💎 Planes y Precios</h1>
+        <div style='width: 80px; height: 4px; background: linear-gradient(90deg, #3498db, #9b59b6); margin: 0 auto; border-radius: 2px;'></div>
+        <p style='font-size: 1.2em; color: #5d6d7e; margin-top: 20px;'>Elige el plan perfecto para tu negocio</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    # First row - 3 cards
+    col1, col2, col3 = st.columns(3)
+    
+    with col1:
+        st.markdown("""
+        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 450px;'>
+            <h3 style='font-size: 1.5em; margin-bottom: 10px;'>🆓 Prueba Gratuita</h3>
+            <h1 style='font-size: 3em; margin: 20px 0;'>$0</h1>
+            <p style='font-size: 1.1em; margin-bottom: 20px;'>7 días • 5 solicitudes/día</p>
+            <hr style='border: 1px solid rgba(255,255,255,0.3); margin: 20px 0;'>
+            <p style='text-align: left; line-height: 1.8;'>
+                ✓ Todas las funcionalidades<br>
+                ✓ PDFs profesionales<br>
+                ✓ Chat con IA<br>
+                ✓ Sin tarjeta requerida
+            </p>
+            <p style='margin-top: 20px; font-style: italic; font-size: 0.9em;'>Ideal para probar la plataforma</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col2:
+        st.markdown("""
+        <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 450px;'>
+            <h3 style='font-size: 1.5em; margin-bottom: 10px;'>💼 Plan Básico</h3>
+            <h1 style='font-size: 3em; margin: 20px 0;'>$7</h1>
+            <p style='font-size: 1.1em; margin-bottom: 20px;'>30 días • 10 solicitudes/día</p>
+            <hr style='border: 1px solid rgba(255,255,255,0.3); margin: 20px 0;'>
+            <p style='text-align: left; line-height: 1.8;'>
+                ✓ Todo del plan gratuito<br>
+                ✓ Soporte prioritario<br>
+                ✓ Actualizaciones incluidas<br>
+                ✓ Sin límites de PDFs
+            </p>
+            <p style='margin-top: 20px; font-style: italic; font-size: 0.9em;'>Ideal para emprendedores</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col3:
+        st.markdown("""
+        <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 450px;'>
+            <h3 style='font-size: 1.5em; margin-bottom: 10px;'>🚀 Plan Estándar</h3>
+            <h1 style='font-size: 3em; margin: 20px 0;'>$21</h1>
+            <p style='font-size: 1.1em; margin-bottom: 20px;'>90 días • 15 solicitudes/día</p>
+            <hr style='border: 1px solid rgba(255,255,255,0.3); margin: 20px 0;'>
+            <p style='text-align: left; line-height: 1.8;'>
+                ✓ Todo del plan básico<br>
+                ✓ Ahorro del 25%<br>
+                ✓ Soporte prioritario<br>
+                ✓ Estrategias ilimitadas
+            </p>
+            <p style='margin-top: 20px; font-style: italic; font-size: 0.9em;'>Ideal para negocios en crecimiento</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
+    # Second row - 2 cards centered
+    col_left, col4, col5, col_right = st.columns([0.5, 1, 1, 0.5])
+    
+    with col4:
+        st.markdown("""
+        <div style='background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 450px;'>
+            <h3 style='font-size: 1.5em; margin-bottom: 10px;'>💎 Plan Profesional</h3>
+            <h1 style='font-size: 3em; margin: 20px 0;'>$42</h1>
+            <p style='font-size: 1.1em; margin-bottom: 20px;'>180 días • 20 solicitudes/día</p>
+            <hr style='border: 1px solid rgba(255,255,255,0.3); margin: 20px 0;'>
+            <p style='text-align: left; line-height: 1.8;'>
+                ✓ Todo del plan estándar<br>
+                ✓ Ahorro del 33%<br>
+                ✓ Soporte VIP<br>
+                ✓ Prioridad en actualizaciones
+            </p>
+            <p style='margin-top: 20px; font-style: italic; font-size: 0.9em;'>Ideal para PYMEs establecidas</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col5:
+        st.markdown("""
+        <div style='background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 450px; border: 3px solid gold;'>
+            <div style='background: gold; color: #330867; padding: 5px 15px; border-radius: 20px; display: inline-block; margin-bottom: 10px; font-weight: bold;'>⭐ MÁS POPULAR</div>
+            <h3 style='font-size: 1.5em; margin-bottom: 10px;'>👑 Plan Empresarial</h3>
+            <h1 style='font-size: 3em; margin: 20px 0;'>$84</h1>
+            <p style='font-size: 1.1em; margin-bottom: 20px;'>360 días • 25 solicitudes/día</p>
+            <hr style='border: 1px solid rgba(255,255,255,0.3); margin: 20px 0;'>
+            <p style='text-align: left; line-height: 1.8;'>
+                ✓ Todo del plan profesional<br>
+                ✓ Ahorro del 50%<br>
+                ✓ Soporte VIP 24/7<br>
+                ✓ Consultoría personalizada
+            </p>
+            <p style='margin-top: 20px; font-style: italic; font-size: 0.9em;'>Ideal para empresas grandes</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
+    # What's included section
+    st.markdown("""
+    <div style='background: #f8f9fa; padding: 40px; border-radius: 15px; margin: 40px 0;'>
+        <h2 style='text-align: center; color: #1a5276; margin-bottom: 30px;'>🎁 ¿Qué Incluyen Todos los Planes?</h2>
+        <div style='max-width: 800px; margin: 0 auto;'>
+    """, unsafe_allow_html=True)
+    
+    col_inc1, col_inc2 = st.columns(2)
+    with col_inc1:
+        st.markdown("""
+        - ✨ Avatar de cliente ideal
+        - 📢 Embudo de contenido semanal
+        - 💰 Estrategia de publicidad pagada
+        - 💬 Flujo de cierre por WhatsApp
+        """)
+    with col_inc2:
+        st.markdown("""
+        - 🛡️ Manejo de objeciones
+        - ✅ Checklist de acciones diarias
+        - 📈 Métricas y optimización
+        - 📄 Exportación a PDF profesional
+        """)
+    
+    st.markdown("</div></div>", unsafe_allow_html=True)
+    
+    # Payment methods
+    st.markdown("""
+    <div style='text-align: center; padding: 30px; background: white; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.1);'>
+        <h3 style='color: #1a5276; margin-bottom: 20px;'>💳 Métodos de Pago</h3>
+        <p style='font-size: 1.1em; color: #5d6d7e;'>Transferencia bancaria • Tarjetas de crédito/débito</p>
+        <br>
+        <a href='https://wa.link/qf8pf2' target='_blank' style='background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: white; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 1.1em; display: inline-block;'>
+            📱 Contactar por WhatsApp
+        </a>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
+    # Footer navigation
+    col_a, col_b, col_c, col_d = st.columns(4)
+    with col_a:
+        if st.button("📋 Términos", use_container_width=True, key="terms_pricing"):
+            st.session_state.page = 'terms'
+            st.rerun()
+    with col_b:
+        if st.button("🔒 Privacidad", use_container_width=True, key="privacy_pricing"):
+            st.session_state.page = 'privacy'
+            st.rerun()
+    with col_c:
+        if st.button("✨ Registrarme", use_container_width=True, type="primary", key="register_pricing"):
+            st.session_state.page = 'register'
+            st.rerun()
+    with col_d:
+        if st.button("⬅️ Inicio", use_container_width=True, key="back_pricing"):
+            st.session_state.page = 'login'
+            st.rerun()
+
+if not st.session_state.authenticated:
+    # Route to different pages
+    if st.session_state.page == 'login':
+        login_page()
+    elif st.session_state.page == 'login_form':
+        login_form_page()
+    elif st.session_state.page == 'register':
+        registration_page()
+    elif st.session_state.page == 'forgot_password':
+        forgot_password_page()
+    elif st.session_state.page == 'terms':
+        show_static_page("📋 Términos de Uso", "content/terms_of_service.md")
+    elif st.session_state.page == 'privacy':
+        show_static_page("🔒 Política de Privacidad", "content/privacy_policy.md")
     elif st.session_state.page == 'pricing':
-        show_static_page("💎 Planes y Precios", "content/pricing.md")
+        pricing_page()
 else:
     # Authenticated users
     if st.session_state.page == 'change_password':
@@ -899,18 +1086,6 @@ else:
         # Sidebar Header (Always visible)
         with st.sidebar:
             st.title("Generador MiPymesIA")
-            st.caption("Estrategias de Marketing y de Publicidad")
-            st.write(f"Hola, **{st.session_state.user['username']}**")
-            
-
-        
-        # Page Routing
-        if st.session_state.user['is_admin']:
-            with st.sidebar:
-                 page = st.radio("Modo", ["Generador", "Admin Panel"])
-        else:
-            page = "Generador"
-
         if page == "Generador":
             wizard_page()
         elif page == "Admin Panel":
