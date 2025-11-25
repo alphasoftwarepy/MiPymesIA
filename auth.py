@@ -285,6 +285,10 @@ def update_business_profile(username, profile_text):
     conn.commit()
     conn.close()
 
-if __name__ == "__main__":
+# Auto-initialize database when module is imported
+# This ensures the database and table exist before any operations
+try:
     init_db()
     create_default_admin()
+except Exception as e:
+    print(f"Warning: Database initialization error: {e}")

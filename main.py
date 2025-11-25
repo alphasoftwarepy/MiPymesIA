@@ -6,10 +6,6 @@ import time
 from datetime import datetime, timedelta
 import urllib.parse
 
-# Initialize database on startup
-auth.init_db()
-auth.create_default_admin()
-
 # Page Config
 st.set_page_config(page_title="Generador MiPymesIA", page_icon="🚀", layout="wide")
 
