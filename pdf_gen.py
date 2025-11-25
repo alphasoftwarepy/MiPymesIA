@@ -184,7 +184,7 @@ def generate_pdf(strategy_text, business_info=None):
     pdf.add_page()
     pdf.section_title('Resumen Ejecutivo')
     
-    summary_intro = f"""Esta estrategia de marketing ha sido disenada especificamente para {business_info.get('nombre', 'su negocio') if business_info else 'su negocio'}, con el objetivo de {business_info.get('meta', 'alcanzar sus metas comerciales').lower() if business_info else 'alcanzar sus metas comerciales'}."""
+    summary_intro = f"""Esta estrategia de marketing ha sido diseñada específicamente para {business_info.get('nombre', 'su negocio') if business_info else 'su negocio'}, con el objetivo de {business_info.get('meta', 'alcanzar sus metas comerciales').lower() if business_info else 'alcanzar sus metas comerciales'}."""
     
     pdf.body_text(clean_text(summary_intro))
     pdf.ln(5)
@@ -192,17 +192,17 @@ def generate_pdf(strategy_text, business_info=None):
     pdf.subsection_title("El Plan Incluye:")
     
     # Detailed breakdown instead of simple list
-    pdf.subsubsection_title("1. Definicion del Cliente Ideal (Avatar)")
-    pdf.body_text("Analisis detallado de quien es su cliente, sus dolores, deseos y objeciones para comunicar el mensaje correcto.")
+    pdf.subsubsection_title("1. Definición del Cliente Ideal (Avatar)")
+    pdf.body_text("Análisis detallado de quién es su cliente, sus dolores, deseos y objeciones para comunicar el mensaje correcto.")
     
     pdf.subsubsection_title("2. Estrategia de Contenido (Embudo)")
-    pdf.body_text("Plan de contenidos semanal dividido en Atraccion (TOFU), Consideracion (MOFU) y Venta (BOFU).")
+    pdf.body_text("Plan de contenidos semanal dividido en Atracción (TOFU), Consideración (MOFU) y Venta (BOFU).")
     
     pdf.subsubsection_title("3. Publicidad Pagada (Ads)")
-    pdf.body_text("Estructura de campanas segmentadas para trafico frio, tibio y caliente, optimizando su presupuesto.")
+    pdf.body_text("Estructura de campañas segmentadas para tráfico frío, tibio y caliente, optimizando su presupuesto.")
     
     pdf.subsubsection_title("4. Flujo de Cierre por WhatsApp")
-    pdf.body_text("Guiones y pasos exactos para convertir interesados en clientes en un periodo de 7 dias.")
+    pdf.body_text("Guiones y pasos exactos para convertir interesados en clientes en un periodo de 7 días.")
     
     pdf.subsubsection_title("5. Manejo de Objeciones")
     pdf.body_text("Respuestas preparadas para las principales barreras de compra de sus clientes.")
@@ -210,11 +210,11 @@ def generate_pdf(strategy_text, business_info=None):
     pdf.subsubsection_title("6. Rutina de Alto Rendimiento")
     pdf.body_text("Checklist de acciones diarias para mantener la constancia y el crecimiento.")
     
-    pdf.subsubsection_title("7. Metricas y Optimizacion")
+    pdf.subsubsection_title("7. Métricas y Optimización")
     pdf.body_text("Indicadores clave de rendimiento (KPIs) para medir y mejorar los resultados mes a mes.")
     
     pdf.ln(5)
-    pdf.body_text("Este documento es su guia paso a paso para implementar una estrategia de marketing profesional que genere resultados medibles.")
+    pdf.body_text("Este documento es su guía paso a paso para implementar una estrategia de marketing profesional que genere resultados medibles.")
     
     # === DETAILED STRATEGY ===
     pdf.add_page()

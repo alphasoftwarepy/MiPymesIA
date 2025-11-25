@@ -34,12 +34,15 @@ class MarketingStrategist:
         self.memory = ConversationBufferMemory(return_messages=True)
         self.setup_chain()
 
-    def setup_chain(self):
+    def setup_chain(self, business_context=""):
         # Initialize a default generic chain for general chat
         if not self.llm:
             return
 
         system_prompt = "Eres un asistente experto en marketing digital. Ayuda al usuario con sus dudas sobre marketing y ventas."
+        
+        if business_context:
+            system_prompt += f"\n\nCONTEXTO DEL NEGOCIO:\n{business_context}\n\nUsa este contexto para dar respuestas personalizadas y específicas para este negocio."
         
         prompt = ChatPromptTemplate.from_messages([
             SystemMessagePromptTemplate.from_template(system_prompt),

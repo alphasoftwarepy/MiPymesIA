@@ -90,12 +90,12 @@ def login_user(username, password):
             conn.commit()
     
     c.execute("""SELECT username, password, business_name, is_active, is_admin, start_date, expiration_date, 
-                        requests_today, last_request_date, email, daily_request_limit 
+                        requests_today, last_request_date, email, daily_request_limit, business_profile 
                  FROM users WHERE username = ?""", (username,))
     user = c.fetchone()
 
     if user:
-        # user structure: (username, password_hash, business_name, is_active, is_admin, start_date, expiration_date, requests_today, last_request_date, email, daily_request_limit)
+        # user structure: (username, password_hash, business_name, is_active, is_admin, start_date, expiration_date, requests_today, last_request_date, email, daily_request_limit, business_profile)
         if verify_password(password, user[1]):
             # Reset failed attempts on successful login
             c.execute("UPDATE users SET failed_login_attempts = 0, lockout_until = NULL WHERE username = ?", (username,))
@@ -121,8 +121,17 @@ def login_user(username, password):
                 "requests_today": user[7] or 0,
                 "last_request_date": user[8],
                 "email": user[9] or "",
-                "daily_request_limit": user[10] or 20
+                "daily_request_limit": user[10] or 20,
+                "business_profile": user[11] or ""
             }
+
+def update_business_profile(username, profile_text):
+    """Updates the business profile for a user."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("UPDATE users SET business_profile = ? WHERE username = ?", (profile_text, username))
+    conn.commit()
+    conn.close()
         else:
             # Increment failed attempts
             failed_attempts = (lockout_data[1] if lockout_data else 0) + 1

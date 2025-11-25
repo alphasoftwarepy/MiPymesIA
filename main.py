@@ -272,7 +272,7 @@ def login_form_page():
                     else:
                         st.session_state.authenticated = True
                         st.session_state.user = user
-                        st.session_state.ai_agent = MarketingStrategist()
+                        st.session_state.ai_agent = MarketingStrategist(business_context=user.get('business_profile', ''))
                         st.success("✅ Inicio de sesión exitoso!")
                         time.sleep(0.5)
                         st.rerun()
@@ -1067,18 +1067,6 @@ if not st.session_state.authenticated:
     elif st.session_state.page == 'register':
         registration_page()
     elif st.session_state.page == 'forgot_password':
-        forgot_password_page()
-    elif st.session_state.page == 'terms':
-        show_static_page("📋 Términos de Uso", "content/terms_of_service.md")
-    elif st.session_state.page == 'privacy':
-        show_static_page("🔒 Política de Privacidad", "content/privacy_policy.md")
-    elif st.session_state.page == 'pricing':
-        pricing_page()
-else:
-    # Authenticated users
-    if st.session_state.page == 'change_password':
-        change_password_page()
-    else:
         # Sidebar Header (Always visible)
         with st.sidebar:
             st.title("Generador MiPymesIA")
@@ -1086,10 +1074,14 @@ else:
         # Page Routing
         if st.session_state.user.get('is_admin', False):
             with st.sidebar:
-                 page = st.radio("Modo", ["Generador", "Admin Panel"])
+                 page = st.radio("Modo", ["Generador", "Cerebro del Negocio", "Admin Panel"])
         else:
-            page = "Generador"
+            with st.sidebar:
+                page = st.radio("Menú", ["Generador", "Cerebro del Negocio"])
+        
         if page == "Generador":
             wizard_page()
+        elif page == "Cerebro del Negocio":
+            business_brain_page()
         elif page == "Admin Panel":
             admin_panel()
