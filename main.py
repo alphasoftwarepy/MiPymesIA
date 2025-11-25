@@ -1071,6 +1071,13 @@ else:
         # Sidebar Header (Always visible)
         with st.sidebar:
             st.title("Generador MiPymesIA")
+            
+        # Page Routing
+        if st.session_state.user.get('is_admin', False):
+            with st.sidebar:
+                 page = st.radio("Modo", ["Generador", "Admin Panel"])
+        else:
+            page = "Generador"
         if page == "Generador":
             wizard_page()
         elif page == "Admin Panel":
