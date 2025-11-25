@@ -6,7 +6,10 @@ import pandas as pd
 # Password hashing configuration
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
-DB_NAME = "users.db"
+#DB_NAME = "users.db"
+import os
+DB_PATH = os.getenv("DB_PATH", ".")
+DB_NAME = os.path.join(DB_PATH, "users.db")
 
 def init_db():
     """Initializes the SQLite database and creates the users table if it doesn't exist."""
