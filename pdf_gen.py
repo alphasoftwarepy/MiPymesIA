@@ -98,22 +98,18 @@ def clean_text(text):
     replacements = {
         '"': '"', '"': '"', ''': "'", ''': "'",
         '—': '-', '–': '-', '…': '...',
-        '¿': '?', '¡': '!',
-        'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
-        'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
-        'ñ': 'n', 'Ñ': 'N',
-        'ü': 'u', 'Ü': 'U',
-        '“': '"', '”': '"', '‘': "'", '’': "'"
+        '“': '"', '”': '"', '‘': "'", '’': "'",
+        # Remove opening marks as requested by user
+        '¿': '', '¡': ''
     }
     
     for old, new in replacements.items():
         text = text.replace(old, new)
         
     # Ensure text is latin-1 compatible
-    # We normalize to NFKD to decompose characters (e.g. é -> e + ´) then drop non-ascii
-    # But for Spanish we want to keep accents if possible in Latin-1
+    # We use 'ignore' to drop emojis and unsupported characters instead of replacing with '?'
     try:
-        return text.encode('latin-1', 'replace').decode('latin-1')
+        return text.encode('latin-1', 'ignore').decode('latin-1')
     except:
         return text
 
