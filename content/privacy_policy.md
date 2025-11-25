@@ -1,3 +1,8 @@
+## 1. Información que Recopilamos
+
+### Información de Cuenta
+- Nombre de usuario (alias)
+- Correo electrónico
 - Nombre del negocio
 - Información de suscripción
 

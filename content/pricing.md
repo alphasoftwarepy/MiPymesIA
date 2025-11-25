@@ -13,10 +13,6 @@ Elige el plan que mejor se adapte a las necesidades de tu negocio.
 
 - ✅ **Duración**: 7 días
 - ✅ **Solicitudes diarias**: 5 estrategias completas
-- ✅ Acceso a todas las funcionalidades
-- ✅ Generación de PDFs profesionales
-- ✅ Chat con asistente IA
-- ✅ Sin tarjeta de crédito requerida
 
 **Ideal para**: Probar la plataforma y ver resultados reales
 
@@ -27,9 +23,6 @@ Elige el plan que mejor se adapte a las necesidades de tu negocio.
 
 - ✅ **Duración**: 30 días
 - ✅ **Solicitudes diarias**: 10 estrategias completas
-- ✅ Todas las funcionalidades del plan gratuito
-- ✅ Soporte prioritario
-- ✅ Actualizaciones incluidas
 
 **Ideal para**: Emprendedores y pequeños negocios
 
@@ -40,9 +33,6 @@ Elige el plan que mejor se adapte a las necesidades de tu negocio.
 
 - ✅ **Duración**: 90 días (3 meses)
 - ✅ **Solicitudes diarias**: 15 estrategias completas
-- ✅ Todas las funcionalidades del plan básico
-- ✅ Ahorro del 25% vs plan mensual
-- ✅ Soporte prioritario
 
 **Ideal para**: Negocios en crecimiento
 
@@ -53,9 +43,6 @@ Elige el plan que mejor se adapte a las necesidades de tu negocio.
 
 - ✅ **Duración**: 180 días (6 meses)
 - ✅ **Solicitudes diarias**: 20 estrategias completas
-- ✅ Todas las funcionalidades del plan estándar
-- ✅ Ahorro del 33% vs plan mensual
-- ✅ Soporte VIP
 
 **Ideal para**: PYMEs establecidas
 
@@ -66,10 +53,6 @@ Elige el plan que mejor se adapte a las necesidades de tu negocio.
 
 - ✅ **Duración**: 360 días (1 año)
 - ✅ **Solicitudes diarias**: 25 estrategias completas
-- ✅ Todas las funcionalidades del plan profesional
-- ✅ Ahorro del 50% vs plan mensual
-- ✅ Soporte VIP 24/7
-- ✅ Consultoría personalizada
 
 **Ideal para**: Empresas con múltiples productos/servicios
 

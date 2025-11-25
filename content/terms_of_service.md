@@ -1,4 +1,12 @@
 
+## 1. Aceptación de los Términos
+
+Al acceder y utilizar SG MiPymes IA, usted acepta estar sujeto a estos Términos de Uso. Si no está de acuerdo con alguna parte de estos términos, no debe utilizar nuestro servicio.
+
+## 2. Descripción del Servicio
+
+SG MiPymes IA es una plataforma de generación de estrategias de marketing y publicidad impulsada por inteligencia artificial, diseñada para pequeñas y medianas empresas.
+
 ## 3. Registro y Cuenta de Usuario
 
 - Debe proporcionar información precisa y completa durante el registro

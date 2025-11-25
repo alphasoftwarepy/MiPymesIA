@@ -898,52 +898,31 @@ def pricing_page():
     
     with col1:
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 450px;'>
+        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px;'>
             <h3 style='font-size: 1.5em; margin-bottom: 10px;'>🆓 Prueba Gratuita</h3>
             <h1 style='font-size: 3em; margin: 20px 0;'>$0</h1>
             <p style='font-size: 1.1em; margin-bottom: 20px;'>7 días • 5 solicitudes/día</p>
-            <hr style='border: 1px solid rgba(255,255,255,0.3); margin: 20px 0;'>
-            <p style='text-align: left; line-height: 1.8;'>
-                ✓ Todas las funcionalidades<br>
-                ✓ PDFs profesionales<br>
-                ✓ Chat con IA<br>
-                ✓ Sin tarjeta requerida
-            </p>
-            <p style='margin-top: 20px; font-style: italic; font-size: 0.9em;'>Ideal para probar la plataforma</p>
+            <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para probar la plataforma</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 450px;'>
+        <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px;'>
             <h3 style='font-size: 1.5em; margin-bottom: 10px;'>💼 Plan Básico</h3>
             <h1 style='font-size: 3em; margin: 20px 0;'>$7</h1>
             <p style='font-size: 1.1em; margin-bottom: 20px;'>30 días • 10 solicitudes/día</p>
-            <hr style='border: 1px solid rgba(255,255,255,0.3); margin: 20px 0;'>
-            <p style='text-align: left; line-height: 1.8;'>
-                ✓ Todo del plan gratuito<br>
-                ✓ Soporte prioritario<br>
-                ✓ Actualizaciones incluidas<br>
-                ✓ Sin límites de PDFs
-            </p>
-            <p style='margin-top: 20px; font-style: italic; font-size: 0.9em;'>Ideal para emprendedores</p>
+            <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para emprendedores</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 450px;'>
+        <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px;'>
             <h3 style='font-size: 1.5em; margin-bottom: 10px;'>🚀 Plan Estándar</h3>
             <h1 style='font-size: 3em; margin: 20px 0;'>$21</h1>
             <p style='font-size: 1.1em; margin-bottom: 20px;'>90 días • 15 solicitudes/día</p>
-            <hr style='border: 1px solid rgba(255,255,255,0.3); margin: 20px 0;'>
-            <p style='text-align: left; line-height: 1.8;'>
-                ✓ Todo del plan básico<br>
-                ✓ Ahorro del 25%<br>
-                ✓ Soporte prioritario<br>
-                ✓ Estrategias ilimitadas
-            </p>
-            <p style='margin-top: 20px; font-style: italic; font-size: 0.9em;'>Ideal para negocios en crecimiento</p>
+            <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para negocios en crecimiento</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -954,63 +933,92 @@ def pricing_page():
     
     with col4:
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 450px;'>
+        <div style='background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px;'>
             <h3 style='font-size: 1.5em; margin-bottom: 10px;'>💎 Plan Profesional</h3>
             <h1 style='font-size: 3em; margin: 20px 0;'>$42</h1>
             <p style='font-size: 1.1em; margin-bottom: 20px;'>180 días • 20 solicitudes/día</p>
-            <hr style='border: 1px solid rgba(255,255,255,0.3); margin: 20px 0;'>
-            <p style='text-align: left; line-height: 1.8;'>
-                ✓ Todo del plan estándar<br>
-                ✓ Ahorro del 33%<br>
-                ✓ Soporte VIP<br>
-                ✓ Prioridad en actualizaciones
-            </p>
-            <p style='margin-top: 20px; font-style: italic; font-size: 0.9em;'>Ideal para PYMEs establecidas</p>
+            <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para PYMEs establecidas</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col5:
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 450px; border: 3px solid gold;'>
+        <div style='background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px; border: 3px solid gold;'>
             <div style='background: gold; color: #330867; padding: 5px 15px; border-radius: 20px; display: inline-block; margin-bottom: 10px; font-weight: bold;'>⭐ MÁS POPULAR</div>
             <h3 style='font-size: 1.5em; margin-bottom: 10px;'>👑 Plan Empresarial</h3>
             <h1 style='font-size: 3em; margin: 20px 0;'>$84</h1>
             <p style='font-size: 1.1em; margin-bottom: 20px;'>360 días • 25 solicitudes/día</p>
-            <hr style='border: 1px solid rgba(255,255,255,0.3); margin: 20px 0;'>
-            <p style='text-align: left; line-height: 1.8;'>
-                ✓ Todo del plan profesional<br>
-                ✓ Ahorro del 50%<br>
-                ✓ Soporte VIP 24/7<br>
-                ✓ Consultoría personalizada
-            </p>
-            <p style='margin-top: 20px; font-style: italic; font-size: 0.9em;'>Ideal para empresas grandes</p>
+            <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para empresas grandes</p>
         </div>
         """, unsafe_allow_html=True)
     
     st.markdown("<br><br>", unsafe_allow_html=True)
     
-    # What's included section
+    # What's included section - Redesigned
     st.markdown("""
     <div style='background: #f8f9fa; padding: 40px; border-radius: 15px; margin: 40px 0;'>
-        <h2 style='text-align: center; color: #1a5276; margin-bottom: 30px;'>🎁 ¿Qué Incluyen Todos los Planes?</h2>
-        <div style='max-width: 800px; margin: 0 auto;'>
+        <h2 style='text-align: center; color: #1a5276; margin-bottom: 40px;'>🎁 ¿Qué Incluyen Todos los Planes?</h2>
+        <div style='max-width: 1000px; margin: 0 auto;'>
     """, unsafe_allow_html=True)
     
-    col_inc1, col_inc2 = st.columns(2)
-    with col_inc1:
+    # Grid layout for features
+    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
+    
+    with col_f1:
         st.markdown("""
-        - ✨ Avatar de cliente ideal
-        - 📢 Embudo de contenido semanal
-        - 💰 Estrategia de publicidad pagada
-        - 💬 Flujo de cierre por WhatsApp
-        """)
-    with col_inc2:
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>👤</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Avatar IA</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Perfil de cliente ideal detallado</p>
+        </div>
+        <div style='text-align: center; padding: 10px; margin-top: 20px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>🛡️</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Objeciones</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Manejo profesional de rechazos</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col_f2:
         st.markdown("""
-        - 🛡️ Manejo de objeciones
-        - ✅ Checklist de acciones diarias
-        - 📈 Métricas y optimización
-        - 📄 Exportación a PDF profesional
-        """)
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>📢</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Contenido</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Embudo semanal completo</p>
+        </div>
+        <div style='text-align: center; padding: 10px; margin-top: 20px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>✅</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Checklist</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Acciones diarias de venta</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col_f3:
+        st.markdown("""
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>💰</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Publicidad</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Estrategia de Ads pagada</p>
+        </div>
+        <div style='text-align: center; padding: 10px; margin-top: 20px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>📈</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Métricas</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>KPIs y optimización</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+    with col_f4:
+        st.markdown("""
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>💬</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>WhatsApp</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Flujo de cierre de 7 días</p>
+        </div>
+        <div style='text-align: center; padding: 10px; margin-top: 20px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>📄</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>PDF Export</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Reportes profesionales</p>
+        </div>
+        """, unsafe_allow_html=True)
     
     st.markdown("</div></div>", unsafe_allow_html=True)
     
