@@ -691,6 +691,13 @@ def wizard_page():
                         # Generate strategy
                         result = st.session_state.ai_agent.generate_strategy(business_info)
                         
+                        # Check if result is an error message
+                        if result and result.startswith("Error:"):
+                            overlay_placeholder.empty()
+                            st.error(result)
+                            st.warning("💡 **Posible solución:** Verifica que la variable de entorno OPENAI_API_KEY esté configurada en Easypanel.")
+                            st.stop()
+                        
                         # Step 6
                         update_loader("✨ Finalizando detalles...", 6)
                         time.sleep(1)
@@ -708,7 +715,10 @@ def wizard_page():
                     except Exception as e:
                         if 'overlay_placeholder' in locals():
                             overlay_placeholder.empty()
-                        st.error(f"Ocurrió un error: {e}")
+                        st.error(f"❌ Ocurrió un error: {e}")
+                        st.warning("💡 **Posible solución:** Verifica que la variable de entorno OPENAI_API_KEY esté configurada correctamente.")
+                        import traceback
+                        st.code(traceback.format_exc())
 
 
     elif st.session_state.step == 2:
