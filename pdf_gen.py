@@ -91,12 +91,10 @@ def clean_text(text):
     if not text:
         return ""
         
-    # Remove markdown
-    text = re.sub(r'\*\*(.+?)\*\*', r'\1', text)
-    text = re.sub(r'\*(.+?)\*', r'\1', text)
+    # Remove markdown bold markers
     text = text.replace('**', '').replace('__', '')
     
-    # Special characters replacements
+    # Common replacements
     replacements = {
         '"': '"', '"': '"', ''': "'", ''': "'",
         '—': '-', '–': '-', '…': '...',
@@ -104,34 +102,87 @@ def clean_text(text):
         'Á': 'A', 'É': 'E', 'Í': 'I', 'Ó': 'O', 'Ú': 'U',
         'á': 'a', 'é': 'e', 'í': 'i', 'ó': 'o', 'ú': 'u',
         'ñ': 'n', 'Ñ': 'N',
-        'ü': 'u', 'Ü': 'U'
+        'ü': 'u', 'Ü': 'U',
+        '“': '"', '”': '"', '‘': "'", '’': "'"
     }
     
-    # Try to handle encoding issues before replacement
-    try:
-        # First try to fix common encoding errors
-        text = text.encode('latin-1', 'ignore').decode('utf-8', 'ignore')
-    except:
-        pass
-
-    # Apply manual replacements for problematic chars
     for old, new in replacements.items():
         text = text.replace(old, new)
-    
-    # Final safety encode
+        
+    # Ensure text is latin-1 compatible
+    # We normalize to NFKD to decompose characters (e.g. é -> e + ´) then drop non-ascii
+    # But for Spanish we want to keep accents if possible in Latin-1
     try:
         return text.encode('latin-1', 'replace').decode('latin-1')
     except:
-        # Fallback: remove non-ascii
-        return ''.join([i if ord(i) < 128 else ' ' for i in text])
+        return text
 
-def extract_bold_text(line):
-    """Extract text between ** markers and return (text, is_bold)"""
-    bold_pattern = r'\*\*(.+?)\*\*'
-    if '**' in line:
-        # Has bold text
-        return re.sub(bold_pattern, r'\1', line), True
-    return line, False
+def parse_sections(strategy_text):
+    """Parses the strategy text into a dictionary of sections"""
+    sections = {}
+    current_section = None
+    buffer = []
+    
+    lines = strategy_text.split('\n')
+    for line in lines:
+        if '<<<SECTION_START:' in line:
+            if current_section:
+                sections[current_section] = '\n'.join(buffer)
+            
+            current_section = line.split(':')[1].strip().replace('>>>', '')
+            buffer = []
+        else:
+            if current_section:
+                buffer.append(line)
+                
+    if current_section:
+        sections[current_section] = '\n'.join(buffer)
+        
+    return sections
+
+def render_markdown_content(pdf, text):
+    """Renders markdown-like content to PDF"""
+    lines = text.split('\n')
+    for line in lines:
+        line = line.strip()
+        if not line:
+            pdf.ln(2)
+            continue
+            
+        clean_line = clean_text(line)
+        
+        # Headers
+        if line.startswith('###') or line.startswith('##'):
+            pdf.ln(2)
+            pdf.set_font('Arial', 'B', 11)
+            pdf.set_text_color(41, 128, 185)
+            pdf.multi_cell(0, 6, clean_line.replace('#', '').strip())
+            pdf.set_text_color(0, 0, 0)
+        
+        # Bold lines (simple heuristic)
+        elif line.startswith('**') and line.endswith('**'):
+            pdf.ln(1)
+            pdf.set_font('Arial', 'B', 10)
+            pdf.multi_cell(0, 5, clean_line)
+        
+        # List items
+        elif line.startswith('-') or line.startswith('•') or (len(line) > 0 and line[0].isdigit() and line[1] == '.'):
+            pdf.set_font('Arial', '', 10)
+            pdf.multi_cell(0, 5, f"  {clean_line}")
+            
+        # Regular text
+        else:
+            # Check for inline bold (simple)
+            if ':' in clean_line and len(clean_line.split(':')[0]) < 50:
+                parts = clean_line.split(':', 1)
+                pdf.set_font('Arial', 'B', 10)
+                pdf.write(5, parts[0] + ':')
+                pdf.set_font('Arial', '', 10)
+                pdf.write(5, parts[1])
+                pdf.ln()
+            else:
+                pdf.set_font('Arial', '', 10)
+                pdf.multi_cell(0, 5, clean_line)
 
 def generate_pdf(strategy_text, business_info=None):
     pdf = PDF()
@@ -153,13 +204,13 @@ def generate_pdf(strategy_text, business_info=None):
     pdf.set_text_color(0, 0, 0)
     pdf.ln(10)
     if business_info:
-        pdf.cell(0, 10, f"Empresa: {business_info.get('nombre', '')}", 0, 1, 'C')
-        pdf.cell(0, 10, f"Rubro: {business_info.get('rubro', '')}", 0, 1, 'C')
+        pdf.cell(0, 10, f"Empresa: {clean_text(business_info.get('nombre', ''))}", 0, 1, 'C')
+        pdf.cell(0, 10, f"Rubro: {clean_text(business_info.get('rubro', ''))}", 0, 1, 'C')
     
     pdf.ln(30)
     pdf.set_font('Arial', 'I', 10)
     pdf.set_text_color(128, 128, 128)
-    pdf.cell(0, 10, f"Generado el {datetime.now().strftime('%d de %B de %Y')}", 0, 1, 'C')
+    pdf.cell(0, 10, f"Generado el {datetime.now().strftime('%d/%m/%Y')}", 0, 1, 'C')
     pdf.cell(0, 10, 'Powered by Generador MiPymesIA', 0, 1, 'C')
     
     # === PAGE 2: BUSINESS DATA ===
@@ -167,18 +218,18 @@ def generate_pdf(strategy_text, business_info=None):
     pdf.section_title('Datos del Negocio')
     
     if business_info:
-        pdf.info_card('Nombre del Negocio', business_info.get('nombre', 'N/A'))
-        pdf.info_card('Rubro', business_info.get('rubro', 'N/A'))
-        pdf.info_card('Tipo de Negocio', business_info.get('tipo', 'N/A'))
-        pdf.info_card('Producto/Servicio Estrella', business_info.get('producto', 'N/A'))
+        pdf.info_card('Nombre del Negocio', clean_text(business_info.get('nombre', 'N/A')))
+        pdf.info_card('Rubro', clean_text(business_info.get('rubro', 'N/A')))
+        pdf.info_card('Tipo de Negocio', clean_text(business_info.get('tipo', 'N/A')))
+        pdf.info_card('Producto/Servicio Estrella', clean_text(business_info.get('producto', 'N/A')))
         
         if business_info.get('precio'):
             pdf.info_card('Precio', f"${business_info.get('precio')} USD")
         
-        pdf.info_card('Meta Principal', business_info.get('meta', 'N/A'))
+        pdf.info_card('Meta Principal', clean_text(business_info.get('meta', 'N/A')))
         pdf.info_card('Presupuesto Mensual', f"${business_info.get('presupuesto', 'N/A')} USD")
-        pdf.info_card('Plataformas de Publicidad', business_info.get('plataforma', 'N/A'))
-        pdf.info_card('Modalidad de Venta', business_info.get('modalidad_venta', 'N/A'))
+        pdf.info_card('Plataformas de Publicidad', clean_text(business_info.get('plataforma', 'N/A')))
+        pdf.info_card('Modalidad de Venta', clean_text(business_info.get('modalidad_venta', 'N/A')))
     
     # === PAGE 3: EXECUTIVE SUMMARY ===
     pdf.add_page()
@@ -191,66 +242,114 @@ def generate_pdf(strategy_text, business_info=None):
     
     pdf.subsection_title("El Plan Incluye:")
     
-    # Detailed breakdown instead of simple list
-    pdf.subsubsection_title("1. Definición del Cliente Ideal (Avatar)")
-    pdf.body_text("Análisis detallado de quién es su cliente, sus dolores, deseos y objeciones para comunicar el mensaje correcto.")
+    items = [
+        ("1. Definición del Cliente Ideal (Avatar)", "Análisis detallado de quién es su cliente, sus dolores, deseos y objeciones."),
+        ("2. Estrategia de Contenido (Embudo)", "Plan de contenidos semanal dividido en Atracción, Consideración y Venta."),
+        ("3. Publicidad Pagada (Ads)", "Estructura de campañas segmentadas para tráfico frío, tibio y caliente."),
+        ("4. Flujo de Cierre por WhatsApp", "Guiones y pasos exactos para convertir interesados en clientes en 7 días."),
+        ("5. Manejo de Objeciones", "Respuestas preparadas para las principales barreras de compra."),
+        ("6. Rutina de Alto Rendimiento", "Checklist de acciones diarias para mantener la constancia."),
+        ("7. Métricas y Optimización", "Indicadores clave (KPIs) para medir y mejorar resultados.")
+    ]
     
-    pdf.subsubsection_title("2. Estrategia de Contenido (Embudo)")
-    pdf.body_text("Plan de contenidos semanal dividido en Atracción (TOFU), Consideración (MOFU) y Venta (BOFU).")
-    
-    pdf.subsubsection_title("3. Publicidad Pagada (Ads)")
-    pdf.body_text("Estructura de campañas segmentadas para tráfico frío, tibio y caliente, optimizando su presupuesto.")
-    
-    pdf.subsubsection_title("4. Flujo de Cierre por WhatsApp")
-    pdf.body_text("Guiones y pasos exactos para convertir interesados en clientes en un periodo de 7 días.")
-    
-    pdf.subsubsection_title("5. Manejo de Objeciones")
-    pdf.body_text("Respuestas preparadas para las principales barreras de compra de sus clientes.")
-    
-    pdf.subsubsection_title("6. Rutina de Alto Rendimiento")
-    pdf.body_text("Checklist de acciones diarias para mantener la constancia y el crecimiento.")
-    
-    pdf.subsubsection_title("7. Métricas y Optimización")
-    pdf.body_text("Indicadores clave de rendimiento (KPIs) para medir y mejorar los resultados mes a mes.")
-    
+    for title, desc in items:
+        pdf.set_font('Arial', 'B', 11)
+        pdf.cell(0, 6, clean_text(title), 0, 1)
+        pdf.set_font('Arial', '', 10)
+        pdf.multi_cell(0, 5, clean_text(desc))
+        pdf.ln(2)
+        
     pdf.ln(5)
-    pdf.body_text("Este documento es su guía paso a paso para implementar una estrategia de marketing profesional que genere resultados medibles.")
+    pdf.body_text(clean_text("Este documento es su guía paso a paso para implementar una estrategia de marketing profesional."))
     
-    # === DETAILED STRATEGY ===
+    # Parse the strategy text
+    sections = parse_sections(strategy_text)
+    
+    # === PAGE 4: AVATAR ===
     pdf.add_page()
-    pdf.section_title('Estrategia Detallada')
+    pdf.section_title('1. Definición del Cliente Ideal (Avatar)')
+    pdf.body_text(clean_text("Análisis detallado de quién es su cliente, sus dolores, deseos y objeciones para comunicar el mensaje correcto."))
+    pdf.ln(5)
+    render_markdown_content(pdf, sections.get('AVATAR', 'Contenido no disponible.'))
     
-    clean_strategy = clean_text(strategy_text)
-    lines = clean_strategy.split('\n')
+    # === PAGE 5: EMBUDO ===
+    pdf.add_page()
+    pdf.section_title('2. Estrategia de Contenido (Embudo)')
+    pdf.body_text(clean_text("Plan de contenidos semanal dividido en Atracción (TOFU), Consideración (MOFU) y Venta (BOFU)."))
+    pdf.ln(5)
     
-    for line in lines:
-        line = line.strip()
-        if not line or '<<<' in line:
-            continue
-        
-        # Main section (1., 2., 3. or ## )
-        if re.match(r'^\d+\.\s+[A-Z]', line) or re.match(r'^##\s', line):
-            header = re.sub(r'^\d+\.\s+', '', line)
-            header = re.sub(r'^##\s+', '', header)
-            pdf.section_title(clean_text(header))
-        
-        # Subsection (ALL CAPS: or **Bold**)
-        elif (line.isupper() and ':' in line) or (line.startswith('**') and line.endswith('**')):
-            pdf.subsection_title(clean_text(line))
-        
-        # Sub-subsection (### or bold text with :)
-        elif line.startswith('###') or (': ' in line and len(line) < 80):
-            text, is_bold = extract_bold_text(line)
-            pdf.subsubsection_title(clean_text(text))
-        
-        # List items
-        elif line.startswith('-') or line.startswith('•') or re.match(r'^\d+\.', line):
-            item = re.sub(r'^[-•\d\.]\s*', '', line).strip()
-            pdf.bullet_item(clean_text(item))
-        
-        # Regular text
-        else:
-            text, is_bold = extract_bold_text(line)
-            pdf.body_text(clean_text(text), bold=is_bold)
+    pdf.subsection_title("Atracción (TOFU)")
+    render_markdown_content(pdf, sections.get('EMBUDO_TOFU', ''))
+    pdf.ln(3)
+    
+    pdf.subsection_title("Consideración (MOFU)")
+    render_markdown_content(pdf, sections.get('EMBUDO_MOFU', ''))
+    pdf.ln(3)
+    
+    pdf.subsection_title("Venta (BOFU)")
+    render_markdown_content(pdf, sections.get('EMBUDO_BOFU', ''))
+    
+    # === PAGE 6: ADS ===
+    pdf.add_page()
+    pdf.section_title('3. Publicidad Pagada (Ads)')
+    pdf.body_text(clean_text("Estructura de campañas segmentadas para tráfico frío, tibio y caliente, optimizando su presupuesto."))
+    pdf.ln(5)
+    
+    pdf.subsection_title("Tráfico Frío")
+    render_markdown_content(pdf, sections.get('ADS_FRIO', ''))
+    pdf.ln(3)
+    
+    pdf.subsection_title("Tráfico Tibio (Retargeting)")
+    render_markdown_content(pdf, sections.get('ADS_TIBIO', ''))
+    pdf.ln(3)
+    
+    pdf.subsection_title("Tráfico Caliente (Cierre)")
+    render_markdown_content(pdf, sections.get('ADS_CALIENTE', ''))
+    
+    # === PAGE 7: WHATSAPP ===
+    pdf.add_page()
+    pdf.section_title('4. Flujo de Cierre por WhatsApp')
+    pdf.body_text(clean_text("Guiones y pasos exactos para convertir interesados en clientes en un periodo de 7 días."))
+    pdf.ln(5)
+    
+    days = ['DIA1', 'DIA2', 'DIA3', 'DIA4', 'DIA5', 'DIA6', 'DIA7']
+    for day in days:
+        content = sections.get(f'WHATSAPP_{day}', '')
+        if content:
+            # Extract title from first line if possible
+            lines = content.split('\n')
+            title = lines[0] if lines else f"Día {day[-1]}"
+            body = '\n'.join(lines[1:]) if lines else ''
+            
+            pdf.subsection_title(clean_text(title))
+            render_markdown_content(pdf, body)
+            pdf.ln(3)
+            
+    # === PAGE 8: OBJECTIONS ===
+    pdf.add_page()
+    pdf.section_title('5. Manejo de Objeciones')
+    pdf.body_text(clean_text("Respuestas preparadas para las principales barreras de compra de sus clientes."))
+    pdf.ln(5)
+    
+    objections = ['COSTO', 'TIEMPO', 'PERSONAL', 'INTEGRACION', 'MIEDO']
+    for obj in objections:
+        content = sections.get(f'OBJECION_{obj}', '')
+        if content:
+            render_markdown_content(pdf, content)
+            pdf.ln(3)
+            
+    # === PAGE 9: ROUTINE ===
+    pdf.add_page()
+    pdf.section_title('6. Rutina de Alto Rendimiento')
+    pdf.body_text(clean_text("Checklist de acciones diarias para mantener la constancia y el crecimiento."))
+    pdf.ln(5)
+    render_markdown_content(pdf, sections.get('ACCIONES_DIARIAS', ''))
+    
+    # === PAGE 10: METRICS ===
+    pdf.add_page()
+    pdf.section_title('7. Métricas y Optimización')
+    pdf.body_text(clean_text("Indicadores clave de rendimiento (KPIs) para medir y mejorar los resultados mes a mes."))
+    pdf.ln(5)
+    render_markdown_content(pdf, sections.get('METRICAS', ''))
     
     return pdf.output(dest='S').encode('latin-1')
