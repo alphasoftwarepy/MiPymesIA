@@ -4,7 +4,6 @@ from ai_logic import MarketingStrategist
 from pdf_gen import generate_pdf
 import time
 from datetime import datetime, timedelta
-import urllib.parse
 
 # Page Config
 st.set_page_config(page_title="SG MiPymes IA", page_icon="🚀", layout="wide")
@@ -22,227 +21,27 @@ if 'chat_history' not in st.session_state:
     st.session_state.chat_history = []
 if 'ai_agent' not in st.session_state:
     st.session_state.ai_agent = None
-if 'page' not in st.session_state:
-    st.session_state.page = 'login'
-
-def load_markdown_file(filepath):
-    """Load markdown content from file"""
-    try:
-        with open(filepath, 'r', encoding='utf-8') as f:
-            return f.read()
-    except:
-        return "Contenido no disponible."
-
-def show_static_page(title, filepath):
-    """Display a static markdown page"""
-    st.title(title)
-    content = load_markdown_file(filepath)
-    st.markdown(content)
-    st.divider()
-    if st.button("⬅️ Volver al Login"):
-        st.session_state.page = 'login'
-        st.rerun()
 
 def login_page():
-    col1, col2 = st.columns([1, 1])
+    st.title("🔐 SG MiPymes IA - Login")
     
-    with col1:
-        st.title("🚀 SG MiPymes IA")
-        st.subheader("Estrategias de Marketing Profesionales")
-        
-        st.markdown("""
-        ### ¿Qué es SG MiPymes IA?
-        
-        Plataforma impulsada por **Inteligencia Artificial** que genera estrategias completas de marketing y publicidad para tu negocio en minutos.
-        
-        #### ✨ Obtendrás:
-        - 👤 Avatar de cliente ideal
-        - 📢 Embudo de contenido semanal
-        - 💰 Estrategia de publicidad pagada
-        - 💬 Flujo de cierre por WhatsApp
-        - 🛡️ Manejo de objeciones
-        - ✅ Checklist de acciones diarias
-        - 📈 Métricas y optimización
-        
-        #### 🎥 Video Tutorial
-        """)
-        
-        # Embed YouTube video
-        st.video("https://www.youtube.com/watch?v=BMA7mtJe1Ug")
-        
-        st.divider()
-        
-        # Links to static pages
-        col_a, col_b, col_c = st.columns(3)
-        with col_a:
-            if st.button("📋 Términos de Uso", use_container_width=True):
-                st.session_state.page = 'terms'
-                st.rerun()
-        with col_b:
-            if st.button("🔒 Privacidad", use_container_width=True):
-                st.session_state.page = 'privacy'
-                st.rerun()
-        with col_c:
-            if st.button("💎 Precios", use_container_width=True):
-                st.session_state.page = 'pricing'
-                st.rerun()
-    
-    with col2:
-        st.markdown("### 🔐 Iniciar Sesión")
-        
-        with st.form("login_form"):
-            username = st.text_input("Usuario")
-            password = st.text_input("Contraseña", type="password")
-            submit = st.form_submit_button("Ingresar", use_container_width=True, type="primary")
-            
-            if submit:
-                if not username or not password:
-                    st.warning("Por favor completa todos los campos.")
-                else:
-                    user = auth.login_user(username, password)
-                    
-                    if user and isinstance(user, dict):
-                        if user.get('error') == 'locked':
-                            remaining = user.get('remaining_seconds', 300)
-                            minutes = remaining // 60
-                            seconds = remaining % 60
-                            st.error(f"🔒 Cuenta bloqueada por intentos fallidos. Intenta de nuevo en {minutes}m {seconds}s.")
-                        elif not user.get('is_active'):
-                            st.error("❌ Tu cuenta no está activa. Contacta a soporte.")
-                        else:
-                            st.session_state.authenticated = True
-                            st.session_state.user = user
-                            st.session_state.ai_agent = MarketingStrategist()
-                            st.success("✅ Inicio de sesión exitoso!")
-                            time.sleep(0.5)
-                            st.rerun()
-                    else:
-                        st.error("❌ Usuario o contraseña incorrectos.")
-        
-        st.divider()
-        
-        col_forgot, col_register = st.columns(2)
-        with col_forgot:
-            if st.button("🔑 Olvidé mi contraseña", use_container_width=True):
-                st.session_state.page = 'forgot_password'
-                st.rerun()
-        with col_register:
-            if st.button("✨ Quiero Suscribirme", use_container_width=True, type="primary"):
-                st.session_state.page = 'register'
-                st.rerun()
-
-def registration_page():
-    st.title("✨ Crear Cuenta - Prueba Gratuita 7 Días")
-    
-    st.info("🎁 Obtén acceso completo por 7 días con 5 solicitudes diarias. ¡Sin tarjeta de crédito!")
-    
-    with st.form("registration_form"):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            username = st.text_input("Usuario (Alias)", help="Elige un nombre de usuario único")
-            email = st.text_input("Correo Electrónico", help="Necesario para recuperación de contraseña")
-        
-        with col2:
-            password = st.text_input("Contraseña", type="password")
-            password_confirm = st.text_input("Confirmar Contraseña", type="password")
-        
-        business_name = st.text_input("Nombre del Negocio (Opcional)")
-        
-        agree = st.checkbox("Acepto los Términos de Uso y Política de Privacidad")
-        
-        submit = st.form_submit_button("🚀 Crear Cuenta Gratuita", use_container_width=True, type="primary")
+    with st.form("login_form"):
+        username = st.text_input("Usuario")
+        password = st.text_input("Contraseña", type="password")
+        submit = st.form_submit_button("Ingresar")
         
         if submit:
-            if not username or not email or not password or not password_confirm:
-                st.warning("⚠️ Por favor completa todos los campos obligatorios.")
-            elif password != password_confirm:
-                st.error("❌ Las contraseñas no coinciden.")
-            elif not agree:
-                st.warning("⚠️ Debes aceptar los términos para continuar.")
-            elif '@' not in email:
-                st.error("❌ Por favor ingresa un correo electrónico válido.")
-            else:
-                # Create user with 7-day trial
-                success = auth.create_user(username, password, email, business_name)
-                if success:
-                    st.success("✅ ¡Cuenta creada exitosamente! Ya puedes iniciar sesión.")
-                    st.balloons()
-                    time.sleep(2)
-                    st.session_state.page = 'login'
+            user = auth.login_user(username, password)
+            if user:
+                if not user['is_active']:
+                    st.error("Tu cuenta no está activa. Contacta a soporte.")
+                else:
+                    st.session_state.authenticated = True
+                    st.session_state.user = user
+                    st.session_state.ai_agent = MarketingStrategist()
                     st.rerun()
-                else:
-                    st.error("❌ El usuario ya existe. Intenta con otro nombre.")
-    
-    st.divider()
-    if st.button("⬅️ Volver al Login"):
-        st.session_state.page = 'login'
-        st.rerun()
-
-def forgot_password_page():
-    st.title("🔑 Recuperar Contraseña")
-    
-    st.info("Ingresa tu usuario y correo electrónico. Si coinciden, enviaremos una notificación al administrador para restablecer tu contraseña.")
-    
-    with st.form("forgot_password_form"):
-        username = st.text_input("Usuario (Alias)")
-        email = st.text_input("Correo Electrónico Registrado")
-        
-        submit = st.form_submit_button("Solicitar Recuperación", use_container_width=True, type="primary")
-        
-        if submit:
-            if not username or not email:
-                st.warning("⚠️ Por favor completa todos los campos.")
             else:
-                # Validate username and email combination
-                if auth.request_password_reset(username, email):
-                    # Send WhatsApp notification to admin
-                    admin_phone = "595994209224"
-                    message = f"🔑 Solicitud de cambio de contraseña\n\nUsuario: {username}\nCorreo: {email}"
-                    whatsapp_url = f"https://wa.me/{admin_phone}?text={urllib.parse.quote(message)}"
-                    
-                    st.success("✅ Solicitud enviada al administrador.")
-                    st.info(f"📱 También puedes contactar directamente por WhatsApp:")
-                    st.markdown(f"[Abrir WhatsApp]({whatsapp_url})")
-                else:
-                    st.error("❌ No se encontró la combinación de usuario/correo en el sistema.")
-    
-    st.divider()
-    if st.button("⬅️ Volver al Login"):
-        st.session_state.page = 'login'
-        st.rerun()
-
-def change_password_page():
-    st.title("🔐 Cambiar Contraseña")
-    
-    with st.form("change_password_form"):
-        old_password = st.text_input("Contraseña Actual", type="password")
-        new_password = st.text_input("Nueva Contraseña", type="password")
-        confirm_password = st.text_input("Confirmar Nueva Contraseña", type="password")
-        
-        submit = st.form_submit_button("Cambiar Contraseña", use_container_width=True, type="primary")
-        
-        if submit:
-            if not old_password or not new_password or not confirm_password:
-                st.warning("⚠️ Por favor completa todos los campos.")
-            elif new_password != confirm_password:
-                st.error("❌ Las contraseñas nuevas no coinciden.")
-            elif len(new_password) < 6:
-                st.error("❌ La contraseña debe tener al menos 6 caracteres.")
-            else:
-                username = st.session_state.user['username']
-                if auth.change_password(username, old_password, new_password):
-                    st.success("✅ Contraseña cambiada exitosamente!")
-                    time.sleep(1)
-                    st.session_state.page = 'main'
-                    st.rerun()
-                else:
-                    st.error("❌ La contraseña actual es incorrecta.")
-    
-    st.divider()
-    if st.button("⬅️ Volver"):
-        st.session_state.page = 'main'
-        st.rerun()
+                st.error("Usuario o contraseña incorrectos.")
 
 def admin_panel():
     st.title("🛠️ Panel de Administración")
@@ -252,88 +51,56 @@ def admin_panel():
         st.session_state.authenticated = False
         st.session_state.user = None
         st.session_state.step = 1
-        st.session_state.page = 'login'
         st.rerun()
     
     st.divider()
-    
-    # Search users
-    st.subheader("🔍 Buscar Usuarios")
-    search_query = st.text_input("Buscar por usuario o correo", placeholder="Ingresa usuario o email...")
-    
-    if search_query:
-        users = auth.search_users(search_query)
-    else:
-        users = auth.get_all_users()
-    
-    st.caption(f"Mostrando {len(users)} usuario(s)")
+    st.subheader("Gestión de Usuarios")
     
     # Create User
-    with st.expander("➕ Crear Nuevo Usuario"):
+    with st.expander("Crear Nuevo Usuario"):
         with st.form("create_user_form"):
-            col1, col2 = st.columns(2)
-            with col1:
-                new_user = st.text_input("Usuario")
-                new_email = st.text_input("Correo Electrónico")
-                new_business = st.text_input("Nombre del Negocio")
-            with col2:
-                new_pass = st.text_input("Contraseña", type="password")
-                daily_limit = st.selectbox("Solicitudes Diarias", [5, 10, 15, 20, 25, 30], index=3)
-            
-            create_submit = st.form_submit_button("Crear Usuario", use_container_width=True)
+            new_user = st.text_input("Nuevo Usuario")
+            new_pass = st.text_input("Contraseña", type="password")
+            new_business = st.text_input("Nombre del Negocio")
+            create_submit = st.form_submit_button("Crear Usuario")
             
             if create_submit:
-                if not new_user or not new_email or not new_pass:
-                    st.warning("⚠️ Usuario, email y contraseña son obligatorios.")
-                elif '@' not in new_email:
-                    st.error("❌ Ingresa un correo válido.")
+                if auth.create_user(new_user, new_pass, new_business, is_active=True):
+                    st.success(f"Usuario {new_user} creado exitosamente.")
+                    st.rerun()
                 else:
-                    if auth.create_user(new_user, new_pass, new_email, new_business, is_active=True, daily_request_limit=daily_limit):
-                        st.success(f"✅ Usuario {new_user} creado exitosamente.")
-                        time.sleep(1)
-                        st.rerun()
-                    else:
-                        st.error("❌ Error al crear usuario. El nombre puede ya existir.")
+                    st.error("Error al crear usuario. El nombre puede ya existir.")
     
     # List Users
-    st.divider()
-    st.subheader("👥 Gestión de Usuarios")
+    users = auth.get_all_users()
     
     for index, row in users.iterrows():
-        with st.container():
-            col1, col2, col3, col4, col5, col6 = st.columns([2, 2, 2, 1, 1, 1])
-            with col1:
-                st.write(f"**{row['username']}**")
-            with col2:
-                st.write(row['business_name'] or "-")
-            with col3:
-                st.write(row['email'] or "-")
-            with col4:
-                st.write(f"{row['daily_request_limit']}/día")
-            with col5:
-                status = "✅ Activo" if row['is_active'] else "❌ Inactivo"
-                st.write(status)
-            with col6:
-                if st.button("Cambiar", key=f"btn_{row['username']}"):
-                    auth.toggle_user_active(row['username'], row['is_active'])
-                    st.rerun()
-            st.divider()
+        col1, col2, col3, col4 = st.columns([2, 2, 1, 1])
+        with col1:
+            st.write(f"**{row['username']}**")
+        with col2:
+            st.write(row['business_name'])
+        with col3:
+            status = "Activo" if row['is_active'] else "Inactivo"
+            st.write(status)
+        with col4:
+            if st.button("Cambiar Estado", key=f"btn_{row['username']}"):
+                auth.toggle_user_active(row['username'], row['is_active'])
+                st.rerun()
     
     # Admin subscription extension controls
     st.divider()
-    st.subheader("📅 Extender Suscripción de Usuario")
+    st.subheader("Extender Suscripción de Usuario")
     
     with st.form("extend_subscription_form"):
-        all_users = auth.get_all_users()
-        usernames = all_users['username'].tolist()
+        usernames = users['username'].tolist()
         selected_user = st.selectbox("Seleccionar Usuario", usernames)
         days = st.selectbox("Días a añadir", [30, 90, 180, 360])
-        extend_submit = st.form_submit_button("Extender Suscripción", use_container_width=True)
+        extend_submit = st.form_submit_button("Extender Suscripción")
         
         if extend_submit:
             auth.extend_subscription(selected_user, days)
-            st.success(f"✅ Suscripción de {selected_user} extendida {days} días.")
-            time.sleep(1)
+            st.success(f"Suscripción de {selected_user} extendida {days} días.")
             st.rerun()
 
 def wizard_page():
@@ -342,16 +109,6 @@ def wizard_page():
     
     if st.session_state.step == 1:
         st.subheader("📋 Diagnóstico y Contexto")
-        
-        # Logout button at the top
-        if st.button("🚪 Cerrar Sesión", use_container_width=True):
-            st.session_state.authenticated = False
-            st.session_state.user = None
-            st.session_state.step = 1
-            st.session_state.page = 'login'
-            st.rerun()
-        
-        st.divider()
         
         # Add custom CSS for better styling
         st.markdown("""
@@ -384,7 +141,7 @@ def wizard_page():
                 producto = st.text_input("⭐ Producto/Servicio Estrella", placeholder="ej: Curso de Marketing Digital")
                 precio = st.number_input("💵 Precio del Producto/Servicio (USD) - Opcional", min_value=0.0, value=0.0, step=1.0)
                 meta = st.selectbox("📈 Meta Actual", ["Aumentar Ventas", "Ganar Seguidores", "Reconocimiento de Marca", "Generar Leads"])
-                presupuesto = st.slider("💰 Presupuesto Mensual (USD)", min_value=50, max_value=1000, value=150, step=50)
+                presupuesto = st.slider("💰 Presupuesto Mensual (USD)", min_value=100, max_value=1000, value=300, step=50)
                 modalidad = st.selectbox("💳 Modalidad de Venta", ["Mayoría Contado", "Mayoría Crédito", "Mensual / SaaS"])
             
             st.markdown("### 📱 Plataformas de Publicidad")
@@ -392,13 +149,6 @@ def wizard_page():
                 "¿Dónde deseas hacer publicidad?",
                 ["Facebook/Instagram", "Google Ads"],
                 default=["Facebook/Instagram"]
-            )
-            
-            st.markdown("### 👤 Buyer Persona (Opcional)")
-            buyer_persona = st.text_area(
-                "Si ya tienes un perfil de cliente ideal, descríbelo aquí. La IA lo usará como base para expandir el análisis.",
-                placeholder="Ejemplo: Mujer de 25-35 años, profesional independiente, interesada en desarrollo personal...",
-                height=100
             )
             
             generate = st.form_submit_button("🧠 Generar Estrategia Completa", use_container_width=True, type="primary")
@@ -420,7 +170,7 @@ def wizard_page():
                     # Check daily request limit
                     can_request, remaining = auth.increment_request_count(user['username'])
                     if not can_request:
-                        st.error(f"❌ Has alcanzado el límite diario de {user.get('daily_request_limit', 20)} consultas. Quedan {remaining} consultas disponibles hoy.")
+                        st.error(f"❌ Has alcanzado el límite diario de 20 consultas. Quedan {remaining} consultas disponibles hoy.")
                         st.stop()
                     
                     # Show loading overlay
@@ -460,7 +210,7 @@ def wizard_page():
                             "presupuesto_diario": round(presupuesto/30, 2),
                             "plataforma": ", ".join(plataforma),
                             "modalidad_venta": modalidad,
-                            "buyer_persona": buyer_persona if buyer_persona else None
+                            "sistema_actual": "No especificado"
                         }
                         result = st.session_state.ai_agent.generate_strategy(business_info)
                         st.session_state.strategy_result = result
@@ -502,12 +252,6 @@ def wizard_page():
                 st.session_state.authenticated = False
                 st.session_state.user = None
                 st.session_state.step = 1
-                st.session_state.page = 'login'
-                st.rerun()
-            
-            # Password change button
-            if st.button("🔐 Cambiar Contraseña", use_container_width=True):
-                st.session_state.page = 'change_password'
                 st.rerun()
             
             st.markdown("---")
@@ -530,9 +274,8 @@ def wizard_page():
             
             # Display request count
             requests_today = user.get('requests_today', 0)
-            daily_limit = user.get('daily_request_limit', 20)
-            remaining_requests = daily_limit - requests_today
-            st.markdown(f"**Consultas disponibles:** {remaining_requests}/{daily_limit}")
+            remaining_requests = 20 - requests_today
+            st.markdown(f"**Consultas disponibles:** {remaining_requests}/20")
             
             # Calculate hours until midnight (renewal time)
             now = datetime.now()
@@ -709,38 +452,22 @@ def wizard_page():
 
 # Main Logic
 if not st.session_state.authenticated:
-    # Route to different pages
-    if st.session_state.page == 'login':
-        login_page()
-    elif st.session_state.page == 'register':
-        registration_page()
-    elif st.session_state.page == 'forgot_password':
-        forgot_password_page()
-    elif st.session_state.page == 'terms':
-        show_static_page("📋 Términos de Uso", "content/terms_of_service.md")
-    elif st.session_state.page == 'privacy':
-        show_static_page("🔒 Política de Privacidad", "content/privacy_policy.md")
-    elif st.session_state.page == 'pricing':
-        show_static_page("💎 Planes y Precios", "content/pricing.md")
+    login_page()
 else:
-    # Authenticated users
-    if st.session_state.page == 'change_password':
-        change_password_page()
-    else:
-        # Sidebar Header (Always visible)
+    # Sidebar Header (Always visible)
+    with st.sidebar:
+        st.title("Generador MiPymesIA")
+        st.caption("Estrategias de Marketing y de Publicidad")
+        st.write(f"Hola, **{st.session_state.user['username']}**")
+    
+    # Page Routing
+    if st.session_state.user['is_admin']:
         with st.sidebar:
-            st.title("Generador MiPymesIA")
-            st.caption("Estrategias de Marketing y de Publicidad")
-            st.write(f"Hola, **{st.session_state.user['username']}**")
-        
-        # Page Routing
-        if st.session_state.user['is_admin']:
-            with st.sidebar:
-                 page = st.radio("Modo", ["Generador", "Admin Panel"])
-        else:
-            page = "Generador"
+             page = st.radio("Modo", ["Generador", "Admin Panel"])
+    else:
+        page = "Generador"
 
-        if page == "Generador":
-            wizard_page()
-        elif page == "Admin Panel":
-            admin_panel()
+    if page == "Generador":
+        wizard_page()
+    elif page == "Admin Panel":
+        admin_panel()

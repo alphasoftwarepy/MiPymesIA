@@ -22,7 +22,11 @@ def init_db():
             start_date TEXT,
             expiration_date TEXT,
             requests_today INTEGER DEFAULT 0,
-            last_request_date TEXT
+            last_request_date TEXT,
+            email TEXT DEFAULT '',
+            daily_request_limit INTEGER DEFAULT 20,
+            failed_login_attempts INTEGER DEFAULT 0,
+            lockout_until TEXT
         )
     ''')
     conn.commit()
@@ -36,7 +40,7 @@ def get_password_hash(password):
     """Hashes a password."""
     return pwd_context.hash(password)
 
-def create_user(username, password, business_name="", is_active=False, is_admin=False):
+def create_user(username, password, email, business_name="", is_active=False, is_admin=False, daily_request_limit=20):
     """Creates a new user in the database."""
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
@@ -44,15 +48,19 @@ def create_user(username, password, business_name="", is_active=False, is_admin=
     # Set trial period of 7 days for new users if not explicitly active
     start_date = None
     expiration_date = None
-    if not is_active:
+    if not is_active and not is_admin:
         # New user will start trial automatically
         from datetime import datetime, timedelta
         start_date = datetime.utcnow().strftime('%Y-%m-%d')
         expiration_date = (datetime.utcnow() + timedelta(days=7)).strftime('%Y-%m-%d')
         is_active = True  # trial users are active until expiration
+        daily_request_limit = 5  # Free trial gets 5 requests
     try:
-        c.execute("INSERT INTO users (username, password, business_name, is_active, is_admin, start_date, expiration_date, requests_today, last_request_date) VALUES (?, ?, ?, ?, ?, ?, ?, 0, NULL)",
-                  (username, hashed_password, business_name, is_active, is_admin, start_date, expiration_date))
+        c.execute("""INSERT INTO users 
+                     (username, password, email, business_name, is_active, is_admin, start_date, expiration_date, 
+                      requests_today, last_request_date, daily_request_limit, failed_login_attempts, lockout_until) 
+                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, ?, 0, NULL)""",
+                  (username, hashed_password, email, business_name, is_active, is_admin, start_date, expiration_date, daily_request_limit))
         conn.commit()
         return True
     except sqlite3.IntegrityError:
@@ -62,17 +70,38 @@ def create_user(username, password, business_name="", is_active=False, is_admin=
 
 def login_user(username, password):
     """Checks credentials, updates subscription status, and returns the user object if valid."""
+    from datetime import datetime
+    
+    # Check if user is locked out
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT username, password, business_name, is_active, is_admin, start_date, expiration_date, requests_today, last_request_date FROM users WHERE username = ?", (username,))
+    c.execute("SELECT lockout_until, failed_login_attempts FROM users WHERE username = ?", (username,))
+    lockout_data = c.fetchone()
+    
+    if lockout_data and lockout_data[0]:
+        lockout_until = datetime.fromisoformat(lockout_data[0])
+        if datetime.utcnow() < lockout_until:
+            conn.close()
+            remaining_seconds = int((lockout_until - datetime.utcnow()).total_seconds())
+            return {"error": "locked", "remaining_seconds": remaining_seconds}
+        else:
+            # Lockout expired, reset
+            c.execute("UPDATE users SET lockout_until = NULL, failed_login_attempts = 0 WHERE username = ?", (username,))
+            conn.commit()
+    
+    c.execute("""SELECT username, password, business_name, is_active, is_admin, start_date, expiration_date, 
+                        requests_today, last_request_date, email, daily_request_limit 
+                 FROM users WHERE username = ?""", (username,))
     user = c.fetchone()
-    conn.close()
 
     if user:
-        # user structure: (username, password_hash, business_name, is_active, is_admin, start_date, expiration_date, requests_today, last_request_date)
+        # user structure: (username, password_hash, business_name, is_active, is_admin, start_date, expiration_date, requests_today, last_request_date, email, daily_request_limit)
         if verify_password(password, user[1]):
+            # Reset failed attempts on successful login
+            c.execute("UPDATE users SET failed_login_attempts = 0, lockout_until = NULL WHERE username = ?", (username,))
+            conn.commit()
+            
             # Update subscription status based on expiration_date
-            from datetime import datetime
             is_active = bool(user[3])
             expiration = user[6]
             if expiration:
@@ -80,6 +109,8 @@ def login_user(username, password):
                     # Expired: deactivate user
                     toggle_user_active(username, False)
                     is_active = False
+            
+            conn.close()
             return {
                 "username": user[0],
                 "business_name": user[2],
@@ -88,8 +119,30 @@ def login_user(username, password):
                 "start_date": user[5],
                 "expiration_date": user[6],
                 "requests_today": user[7] or 0,
-                "last_request_date": user[8]
+                "last_request_date": user[8],
+                "email": user[9] or "",
+                "daily_request_limit": user[10] or 20
             }
+        else:
+            # Increment failed attempts
+            failed_attempts = (lockout_data[1] if lockout_data else 0) + 1
+            
+            if failed_attempts >= 3:
+                # Lock out for 5 minutes
+                from datetime import timedelta
+                lockout_until = (datetime.utcnow() + timedelta(minutes=5)).isoformat()
+                c.execute("UPDATE users SET failed_login_attempts = ?, lockout_until = ? WHERE username = ?", 
+                         (failed_attempts, lockout_until, username))
+                conn.commit()
+                conn.close()
+                return {"error": "locked", "remaining_seconds": 300}
+            else:
+                c.execute("UPDATE users SET failed_login_attempts = ? WHERE username = ?", (failed_attempts, username))
+                conn.commit()
+                conn.close()
+                return None
+    
+    conn.close()
     return None
 
 def check_subscription_status(username):
@@ -111,20 +164,22 @@ def increment_request_count(username):
     today = datetime.utcnow().strftime('%Y-%m-%d')
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
-    c.execute("SELECT requests_today, last_request_date FROM users WHERE username = ?", (username,))
+    c.execute("SELECT requests_today, last_request_date, daily_request_limit FROM users WHERE username = ?", (username,))
     row = c.fetchone()
     requests = row[0] or 0
     last_date = row[1]
+    limit = row[2] or 20
+    
     if last_date != today:
         requests = 0  # reset for new day
-    if requests >= 20:
+    if requests >= limit:
         conn.close()
         return False, 0  # No more requests allowed, 0 remaining
     requests += 1
     c.execute("UPDATE users SET requests_today = ?, last_request_date = ? WHERE username = ?", (requests, today, username))
     conn.commit()
     conn.close()
-    remaining = 20 - requests
+    remaining = limit - requests
     return True, remaining  # Request allowed, return remaining count
 
 def extend_subscription(username, days):
@@ -146,7 +201,7 @@ def extend_subscription(username, days):
 def get_all_users():
     """Returns a list of all users for the admin panel."""
     conn = sqlite3.connect(DB_NAME)
-    df = pd.read_sql_query("SELECT username, business_name, is_active, is_admin FROM users", conn)
+    df = pd.read_sql_query("SELECT username, business_name, email, is_active, is_admin, daily_request_limit FROM users", conn)
     conn.close()
     return df
 
@@ -165,11 +220,50 @@ def create_default_admin():
     c = conn.cursor()
     c.execute("SELECT count(*) FROM users WHERE is_admin = 1")
     if c.fetchone()[0] == 0:
-        # Create default admin: admin / admin123
-        # In a real app, this should be changed immediately
+        # Create default admin: rvargas91 / alphaSoftware!
         print("Creating default admin user...")
-        create_user("admin", "admin123", "System Admin", is_active=True, is_admin=True)
+        create_user("rvargas91", "alphaSoftware!", "admin@mipymesia.com", "System Admin", is_active=True, is_admin=True, daily_request_limit=30)
     conn.close()
+
+def request_password_reset(username, email):
+    """Validates username and email combination. Returns True if match found."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT email FROM users WHERE username = ?", (username,))
+    result = c.fetchone()
+    conn.close()
+    
+    if result and result[0].lower() == email.lower():
+        return True
+    return False
+
+def change_password(username, old_password, new_password):
+    """Changes user password after validating old password. Returns True if successful."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT password FROM users WHERE username = ?", (username,))
+    result = c.fetchone()
+    
+    if result and verify_password(old_password, result[0]):
+        new_hash = get_password_hash(new_password)
+        c.execute("UPDATE users SET password = ? WHERE username = ?", (new_hash, username))
+        conn.commit()
+        conn.close()
+        return True
+    
+    conn.close()
+    return False
+
+def search_users(query):
+    """Search users by username or email. Returns filtered DataFrame."""
+    conn = sqlite3.connect(DB_NAME)
+    df = pd.read_sql_query(
+        "SELECT username, business_name, email, is_active, is_admin, daily_request_limit FROM users WHERE username LIKE ? OR email LIKE ?",
+        conn,
+        params=(f"%{query}%", f"%{query}%")
+    )
+    conn.close()
+    return df
 
 if __name__ == "__main__":
     init_db()

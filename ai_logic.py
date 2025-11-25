@@ -61,6 +61,10 @@ class MarketingStrategist:
             return "Error: No se detectó la API Key de OpenAI. Por favor configura tu .env."
 
         # Format the system prompt with business info
+        buyer_persona_text = ""
+        if business_info.get('buyer_persona'):
+            buyer_persona_text = f"\n- Buyer Persona Base (expandir y profundizar): {business_info.get('buyer_persona')}"
+        
         system_prompt = f"""Eres un Estratega de Marketing Senior y Experto en Ventas B2B/B2C.
 Tu objetivo es crear un PLAN DE ACCIÓN DE VENTAS Y MARKETING de alto nivel, ultra-personalizado y orientado a resultados (Leads y Cierres).
 
@@ -74,7 +78,7 @@ INPUTS DEL CLIENTE:
 - Presupuesto: {business_info.get('presupuesto')}
 - Modalidad de Venta: {business_info.get('modalidad_venta', 'No especificado')}
 - Sistema Actual: {business_info.get('sistema_actual', 'No especificado')}
-- Plataformas: {business_info.get('plataforma')}
+- Plataformas: {business_info.get('plataforma')}{buyer_persona_text}
 
 ESTRUCTURA DE RESPUESTA OBLIGATORIA (Usa EXACTAMENTE estos delimitadores):
 
