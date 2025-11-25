@@ -44,92 +44,209 @@ def show_static_page(title, filepath):
         st.rerun()
 
 def login_page():
-    col1, col2 = st.columns([1, 1])
+    # Initialize modal state
+    if 'show_login_modal' not in st.session_state:
+        st.session_state.show_login_modal = False
+    
+    # Top navigation bar with login button
+    col_logo, col_spacer, col_login = st.columns([2, 6, 2])
+    with col_logo:
+        st.markdown("### 🚀 SG MiPymes IA")
+    with col_login:
+        if st.button("🔐 Iniciar Sesión", use_container_width=True, type="primary"):
+            st.session_state.show_login_modal = True
+            st.rerun()
+    
+    st.divider()
+    
+    # Hero Section
+    st.markdown("""
+    <div style='text-align: center; padding: 40px 0;'>
+        <h1 style='font-size: 3em; color: #1a5276;'>Estrategias de Marketing Profesionales</h1>
+        <h3 style='color: #5d6d7e;'>Impulsadas por Inteligencia Artificial</h3>
+        <p style='font-size: 1.2em; margin-top: 20px;'>Genera estrategias completas de marketing y publicidad para tu negocio en minutos</p>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Features Section
+    st.markdown("## ✨ ¿Qué Obtendrás?")
+    
+    col1, col2, col3 = st.columns(3)
     
     with col1:
-        st.title("🚀 SG MiPymes IA")
-        st.subheader("Estrategias de Marketing Profesionales")
-        
         st.markdown("""
-        ### ¿Qué es SG MiPymes IA?
+        ### 👤 Avatar de Cliente
+        Perfil detallado de tu cliente ideal con dolores, objeciones y vocabulario específico.
         
-        Plataforma impulsada por **Inteligencia Artificial** que genera estrategias completas de marketing y publicidad para tu negocio en minutos.
-        
-        #### ✨ Obtendrás:
-        - 👤 Avatar de cliente ideal
-        - 📢 Embudo de contenido semanal
-        - 💰 Estrategia de publicidad pagada
-        - 💬 Flujo de cierre por WhatsApp
-        - 🛡️ Manejo de objeciones
-        - ✅ Checklist de acciones diarias
-        - 📈 Métricas y optimización
-        
-        #### 🎥 Video Tutorial
+        ### 📢 Embudo de Contenido
+        Plan semanal de contenido TOFU, MOFU y BOFU para redes sociales.
         """)
-        
-        # Embed YouTube video
-        st.video("https://www.youtube.com/watch?v=BMA7mtJe1Ug")
-        
-        st.divider()
-        
-        # Links to static pages
-        col_a, col_b, col_c = st.columns(3)
-        with col_a:
-            if st.button("📋 Términos de Uso", use_container_width=True):
-                st.session_state.page = 'terms'
-                st.rerun()
-        with col_b:
-            if st.button("🔒 Privacidad", use_container_width=True):
-                st.session_state.page = 'privacy'
-                st.rerun()
-        with col_c:
-            if st.button("💎 Precios", use_container_width=True):
-                st.session_state.page = 'pricing'
-                st.rerun()
     
     with col2:
-        st.markdown("### 🔐 Iniciar Sesión")
+        st.markdown("""
+        ### 💰 Estrategia de Ads
+        Campañas segmentadas para tráfico frío, tibio y caliente con presupuesto optimizado.
         
-        with st.form("login_form"):
-            username = st.text_input("Usuario")
-            password = st.text_input("Contraseña", type="password")
-            submit = st.form_submit_button("Ingresar", use_container_width=True, type="primary")
+        ### 💬 Flujo de WhatsApp
+        Secuencia de 7 días para cerrar ventas por WhatsApp.
+        """)
+    
+    with col3:
+        st.markdown("""
+        ### 🛡️ Manejo de Objeciones
+        Respuestas profesionales para las 5 objeciones más comunes.
+        
+        ### 📈 Métricas Clave
+        KPIs y acciones de optimización para mejorar resultados.
+        """)
+    
+    st.divider()
+    
+    # Video Section
+    st.markdown("## 🎥 Video Tutorial")
+    col_video_left, col_video, col_video_right = st.columns([1, 2, 1])
+    with col_video:
+        st.video("https://www.youtube.com/watch?v=BMA7mtJe1Ug")
+    
+    st.divider()
+    
+    # Pricing Preview
+    st.markdown("## 💎 Planes Disponibles")
+    
+    col_p1, col_p2, col_p3 = st.columns(3)
+    
+    with col_p1:
+        st.markdown("""
+        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; text-align: center;'>
+            <h3>🆓 Prueba Gratuita</h3>
+            <h2>$0</h2>
+            <p>7 días • 5 solicitudes/día</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_p2:
+        st.markdown("""
+        <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 15px; color: white; text-align: center;'>
+            <h3>💼 Plan Básico</h3>
+            <h2>$7 USD</h2>
+            <p>30 días • 10 solicitudes/día</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    with col_p3:
+        st.markdown("""
+        <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; border-radius: 15px; color: white; text-align: center;'>
+            <h3>👑 Plan Empresarial</h3>
+            <h2>$84 USD</h2>
+            <p>360 días • 25 solicitudes/día</p>
+        </div>
+        """, unsafe_allow_html=True)
+    
+    st.divider()
+    
+    # Footer Links
+    st.markdown("### 📚 Más Información")
+    col_a, col_b, col_c, col_d = st.columns(4)
+    with col_a:
+        if st.button("📋 Términos de Uso", use_container_width=True):
+            st.session_state.page = 'terms'
+            st.rerun()
+    with col_b:
+        if st.button("🔒 Privacidad", use_container_width=True):
+            st.session_state.page = 'privacy'
+            st.rerun()
+    with col_c:
+        if st.button("💎 Ver Todos los Precios", use_container_width=True):
+            st.session_state.page = 'pricing'
+            st.rerun()
+    with col_d:
+        if st.button("✨ Quiero Suscribirme", use_container_width=True, type="primary"):
+            st.session_state.page = 'register'
+            st.rerun()
+    
+    # Login Modal
+    if st.session_state.show_login_modal:
+        st.markdown("""
+        <style>
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            z-index: 9998;
+        }
+        .modal-content {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 9999;
+            max-width: 500px;
+            width: 90%;
+        }
+        </style>
+        <div class="modal-overlay"></div>
+        """, unsafe_allow_html=True)
+        
+        # Modal content
+        with st.container():
+            col_close_left, col_close_right = st.columns([8, 2])
+            with col_close_left:
+                st.markdown("### 🔐 Iniciar Sesión")
+            with col_close_right:
+                if st.button("✖️", key="close_modal"):
+                    st.session_state.show_login_modal = False
+                    st.rerun()
             
-            if submit:
-                if not username or not password:
-                    st.warning("Por favor completa todos los campos.")
-                else:
-                    user = auth.login_user(username, password)
-                    
-                    if user and isinstance(user, dict):
-                        if user.get('error') == 'locked':
-                            remaining = user.get('remaining_seconds', 300)
-                            minutes = remaining // 60
-                            seconds = remaining % 60
-                            st.error(f"🔒 Cuenta bloqueada por intentos fallidos. Intenta de nuevo en {minutes}m {seconds}s.")
-                        elif not user.get('is_active'):
-                            st.error("❌ Tu cuenta no está activa. Contacta a soporte.")
-                        else:
-                            st.session_state.authenticated = True
-                            st.session_state.user = user
-                            st.session_state.ai_agent = MarketingStrategist()
-                            st.success("✅ Inicio de sesión exitoso!")
-                            time.sleep(0.5)
-                            st.rerun()
+            with st.form("login_form"):
+                username = st.text_input("Usuario", placeholder="Ingresa tu usuario")
+                password = st.text_input("Contraseña", type="password", placeholder="Ingresa tu contraseña")
+                submit = st.form_submit_button("Ingresar", use_container_width=True, type="primary")
+                
+                if submit:
+                    if not username or not password:
+                        st.warning("⚠️ Por favor completa todos los campos.")
                     else:
-                        st.error("❌ Usuario o contraseña incorrectos.")
-        
-        st.divider()
-        
-        col_forgot, col_register = st.columns(2)
-        with col_forgot:
-            if st.button("🔑 Olvidé mi contraseña", use_container_width=True):
-                st.session_state.page = 'forgot_password'
-                st.rerun()
-        with col_register:
-            if st.button("✨ Quiero Suscribirme", use_container_width=True, type="primary"):
-                st.session_state.page = 'register'
-                st.rerun()
+                        user = auth.login_user(username, password)
+                        
+                        if user and isinstance(user, dict):
+                            if user.get('error') == 'locked':
+                                remaining = user.get('remaining_seconds', 300)
+                                minutes = remaining // 60
+                                seconds = remaining % 60
+                                st.error(f"🔒 Cuenta bloqueada por intentos fallidos. Intenta de nuevo en {minutes}m {seconds}s.")
+                            elif not user.get('is_active'):
+                                st.error("❌ Tu cuenta no está activa. Contacta a soporte.")
+                            else:
+                                st.session_state.authenticated = True
+                                st.session_state.user = user
+                                st.session_state.ai_agent = MarketingStrategist()
+                                st.session_state.show_login_modal = False
+                                st.success("✅ Inicio de sesión exitoso!")
+                                time.sleep(0.5)
+                                st.rerun()
+                        else:
+                            st.error("❌ Usuario o contraseña incorrectos.")
+            
+            st.divider()
+            
+            col_forgot, col_register = st.columns(2)
+            with col_forgot:
+                if st.button("🔑 Olvidé mi contraseña", use_container_width=True, key="forgot_modal"):
+                    st.session_state.page = 'forgot_password'
+                    st.session_state.show_login_modal = False
+                    st.rerun()
+            with col_register:
+                if st.button("✨ Registrarme", use_container_width=True, type="secondary", key="register_modal"):
+                    st.session_state.page = 'register'
+                    st.session_state.show_login_modal = False
+                    st.rerun()
 
 def registration_page():
     st.title("✨ Crear Cuenta - Prueba Gratuita 7 Días")
