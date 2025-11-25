@@ -35,9 +35,20 @@ def init_db():
             email TEXT DEFAULT '',
             daily_request_limit INTEGER DEFAULT 20,
             failed_login_attempts INTEGER DEFAULT 0,
-            lockout_until TEXT
+            lockout_until TEXT,
+            business_profile TEXT DEFAULT ''
         )
     ''')
+    
+    # Migration: Add business_profile column if it doesn't exist
+    try:
+        c.execute("SELECT business_profile FROM users LIMIT 1")
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        print("Adding business_profile column to users table...")
+        c.execute("ALTER TABLE users ADD COLUMN business_profile TEXT DEFAULT ''")
+        print("Migration completed successfully.")
+    
     conn.commit()
     conn.close()
 
