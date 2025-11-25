@@ -8,7 +8,13 @@ pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
 #DB_NAME = "users.db"
 import os
-DB_PATH = os.getenv("DB_PATH", ".")
+
+# Use /app/data for production (Easypanel persistent volume), current dir for local dev
+DB_PATH = os.getenv("DB_PATH", "/app/data" if os.path.exists("/app/data") else ".")
+
+# Ensure the directory exists
+os.makedirs(DB_PATH, exist_ok=True)
+
 DB_NAME = os.path.join(DB_PATH, "users.db")
 
 def init_db():
