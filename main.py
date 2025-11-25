@@ -7,7 +7,7 @@ from datetime import datetime, timedelta
 import urllib.parse
 
 # Page Config
-st.set_page_config(page_title="SG MiPymes IA", page_icon="🚀", layout="wide")
+st.set_page_config(page_title="Generador MiPymesIA", page_icon="🚀", layout="wide")
 
 # Session State Initialization
 if 'authenticated' not in st.session_state:
@@ -47,7 +47,7 @@ def login_page():
     # Top navigation bar with login button
     col_logo, col_spacer, col_login = st.columns([2, 6, 2])
     with col_logo:
-        st.markdown("### 🚀 SG MiPymes IA")
+        st.markdown("### 🚀 Generador MiPymesIA")
     with col_login:
         if st.button("🔐 Iniciar Sesión", use_container_width=True, type="primary", key="open_login"):
             st.session_state.page = 'login_form'
@@ -106,39 +106,7 @@ def login_page():
     
     st.divider()
     
-    # Pricing Preview
-    st.markdown("## 💎 Planes Disponibles")
-    
-    col_p1, col_p2, col_p3 = st.columns(3)
-    
-    with col_p1:
-        st.markdown("""
-        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; text-align: center;'>
-            <h3>🆓 Prueba Gratuita</h3>
-            <h2>$0</h2>
-            <p>7 días • 5 solicitudes/día</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col_p2:
-        st.markdown("""
-        <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 15px; color: white; text-align: center;'>
-            <h3>💼 Plan Básico</h3>
-            <h2>$7 USD</h2>
-            <p>30 días • 10 solicitudes/día</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col_p3:
-        st.markdown("""
-        <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; border-radius: 15px; color: white; text-align: center;'>
-            <h3>👑 Plan Empresarial</h3>
-            <h2>$84 USD</h2>
-            <p>360 días • 25 solicitudes/día</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.divider()
+
     
     # Footer Links
     st.markdown("### 📚 Más Información")
@@ -817,15 +785,7 @@ else:
             st.caption("Estrategias de Marketing y de Publicidad")
             st.write(f"Hola, **{st.session_state.user['username']}**")
             
-            # Logout button in sidebar
-            if st.button("🚪 Cerrar Sesión", use_container_width=True, key="logout_sidebar"):
-                st.session_state.authenticated = False
-                st.session_state.user = None
-                st.session_state.step = 1
-                st.session_state.page = 'login'
-                st.rerun()
-            
-            st.divider()
+
         
         # Page Routing
         if st.session_state.user['is_admin']:

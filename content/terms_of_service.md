@@ -51,4 +51,4 @@ Podemos suspender o terminar su acceso si viola estos términos.
 
 ## 10. Contacto
 
-Para consultas sobre estos términos, contacte a: admin@mipymesia.com
+Para consultas sobre estos términos, contacte a: alphasoftpy@gmail.com

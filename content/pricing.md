@@ -97,7 +97,6 @@ Elige el plan que mejor se adapte a las necesidades de tu negocio.
 
 Aceptamos pagos a través de:
 - Transferencia bancaria
-- WhatsApp Pay
 - Tarjetas de crédito/débito
 
 **Contacto para suscripciones**: [WhatsApp](https://wa.link/qf8pf2)
@@ -123,5 +122,5 @@ No, las solicitudes son diarias y se renuevan cada 24 horas.
 ## 📞 ¿Necesitas Ayuda?
 
 Contáctanos:
-- 📧 Email: admin@mipymesia.com
+- 📧 Email: alphasoftpy@gmail.com
 - 📱 WhatsApp: +595 994 209224

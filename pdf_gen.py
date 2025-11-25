@@ -28,7 +28,7 @@ class PDF(FPDF):
         self.set_y(-15)
         self.set_font('Arial', 'I', 8)
         self.set_text_color(128, 128, 128)
-        self.cell(0, 10, f'Generado por SG MiPymes IA - {datetime.now().strftime("%d/%m/%Y")} - Pagina {self.page_no()}', 0, 0, 'C')
+        self.cell(0, 10, f'Generado por Generador MiPymesIA - {datetime.now().strftime("%d/%m/%Y")} - Pagina {self.page_no()}', 0, 0, 'C')
 
     def chapter_title(self, label, level=1):
         if level == 1:
@@ -138,7 +138,7 @@ def generate_pdf(strategy_text, business_info=None):
     pdf.set_font('Arial', 'I', 10)
     pdf.set_text_color(128, 128, 128)
     pdf.cell(0, 10, f"Generado el {datetime.now().strftime('%d de %B de %Y')}", 0, 1, 'C')
-    pdf.cell(0, 10, 'Powered by SG MiPymes IA', 0, 1, 'C')
+    pdf.cell(0, 10, 'Powered by Generador MiPymesIA', 0, 1, 'C')
     
     # === PAGE 2: USER INPUT DATA ===
     pdf.add_page()

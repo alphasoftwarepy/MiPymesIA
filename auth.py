@@ -222,7 +222,7 @@ def create_default_admin():
     if c.fetchone()[0] == 0:
         # Create default admin: rvargas91 / alphaSoftware!
         print("Creating default admin user...")
-        create_user("rvargas91", "alphaSoftware!", "admin@mipymesia.com", "System Admin", is_active=True, is_admin=True, daily_request_limit=30)
+        create_user("rvargas91", "alphaSoftware!", "alphasoftpy@gmail.com", "System Admin", is_active=True, is_admin=True, daily_request_limit=30)
     conn.close()
 
 def request_password_reset(username, email):

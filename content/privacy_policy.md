@@ -69,7 +69,7 @@ Podemos actualizar esta política periódicamente. Los cambios importantes será
 ## 9. Contacto
 
 Para consultas sobre privacidad o para ejercer sus derechos:
-- Email: admin@mipymesia.com
+- Email: alphasoftpy@gmail.com
 - WhatsApp: +595 994 209224
 
 ## 10. Consentimiento
