@@ -34,7 +34,68 @@ def load_markdown_file(filepath):
         return "Contenido no disponible."
 
 def show_static_page(title, filepath):
-    """Display a static markdown page with landing page design"""
+    """Display a static markdown page with modern, minimalist design"""
+    # Custom CSS for modern design
+    st.markdown("""
+    <style>
+    /* Modern Typography */
+    .main h1 {
+        font-size: 2.5em;
+        font-weight: 700;
+        color: #1a5276;
+        margin-bottom: 0.5em;
+        letter-spacing: -0.02em;
+    }
+    .main h2 {
+        font-size: 1.8em;
+        font-weight: 600;
+        color: #2c3e50;
+        margin-top: 1.5em;
+        margin-bottom: 0.8em;
+        border-left: 4px solid #3498db;
+        padding-left: 15px;
+    }
+    .main h3 {
+        font-size: 1.3em;
+        font-weight: 600;
+        color: #34495e;
+        margin-top: 1.2em;
+        margin-bottom: 0.6em;
+    }
+    .main p {
+        font-size: 1.05em;
+        line-height: 1.8;
+        color: #4a5568;
+        margin-bottom: 1em;
+    }
+    .main ul, .main ol {
+        font-size: 1.05em;
+        line-height: 1.8;
+        color: #4a5568;
+        margin-left: 1.5em;
+    }
+    .main li {
+        margin-bottom: 0.5em;
+    }
+    /* Card-like sections */
+    .content-card {
+        background: #f8f9fa;
+        border-radius: 12px;
+        padding: 25px;
+        margin: 20px 0;
+        border-left: 4px solid #3498db;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    /* Accent colors */
+    .highlight {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     # Top navigation bar
     col_logo, col_spacer, col_login = st.columns([2, 6, 2])
     with col_logo:
@@ -44,22 +105,41 @@ def show_static_page(title, filepath):
             st.session_state.page = 'login_form'
             st.rerun()
     
-    st.divider()
+    st.markdown("<br>", unsafe_allow_html=True)
     
-    # Page title
-    st.title(title)
+    # Page title with modern styling
+    st.markdown(f"""
+    <div style='text-align: center; padding: 30px 0;'>
+        <h1 style='font-size: 2.8em; color: #1a5276; margin-bottom: 10px;'>{title}</h1>
+        <div style='width: 80px; height: 4px; background: linear-gradient(90deg, #3498db, #9b59b6); margin: 0 auto; border-radius: 2px;'></div>
+    </div>
+    """, unsafe_allow_html=True)
     
-    # Load and display content
+    # Load and display content in a container
     content = load_markdown_file(filepath)
+    
+    # Wrap content in a max-width container for better readability
+    st.markdown("""
+    <div style='max-width: 900px; margin: 0 auto; padding: 20px;'>
+    """, unsafe_allow_html=True)
+    
     st.markdown(content)
     
-    st.divider()
+    st.markdown("</div>", unsafe_allow_html=True)
     
-    # Footer Links
-    st.markdown("### 📚 Más Información")
+    st.markdown("<br><br>", unsafe_allow_html=True)
+    
+    # Modern footer with gradient background
+    st.markdown("""
+    <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px; border-radius: 15px; margin-top: 40px;'>
+        <h3 style='color: white; text-align: center; margin-bottom: 25px;'>📚 Explorar Más</h3>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Footer navigation buttons
     col_a, col_b, col_c, col_d = st.columns(4)
     with col_a:
-        if st.button("📋 Términos de Uso", use_container_width=True, key="terms_footer"):
+        if st.button("📋 Términos", use_container_width=True, key="terms_footer"):
             st.session_state.page = 'terms'
             st.rerun()
     with col_b:
@@ -67,11 +147,11 @@ def show_static_page(title, filepath):
             st.session_state.page = 'privacy'
             st.rerun()
     with col_c:
-        if st.button("💎 Ver Todos los Precios", use_container_width=True, key="pricing_footer"):
+        if st.button("💎 Precios", use_container_width=True, key="pricing_footer"):
             st.session_state.page = 'pricing'
             st.rerun()
     with col_d:
-        if st.button("⬅️ Volver al Inicio", use_container_width=True, key="back_footer"):
+        if st.button("⬅️ Inicio", use_container_width=True, key="back_footer"):
             st.session_state.page = 'login'
             st.rerun()
 
