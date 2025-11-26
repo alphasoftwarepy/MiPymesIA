@@ -308,6 +308,17 @@ Sé CONCISO."""
 
 Genera 1 Avatar de Cliente Ideal MUY ESPECÍFICO (no genérico) para este negocio.
 Define:
+- Nombre del Avatar
+- Dolor Principal (Qué le quita el sueño)
+- Objeciones Típicas
+- Vocabulario que usa
+
+IMPORTANTE: Responde ÚNICAMENTE con la información del Avatar. NO generes embudos, ni ads, ni ninguna otra sección. SOLO EL AVATAR."""
+            },
+            {
+                "name": "Embudo de Contenido",
+                "marker": "EMBUDO",
+                "prompt": f"""Eres un Estratega de Marketing Senior.
 {base_info}
 
 Genera un EMBUDO DE CONTENIDO SEMANAL completo con 3 niveles:
