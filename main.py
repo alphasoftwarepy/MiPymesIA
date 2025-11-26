@@ -1070,23 +1070,6 @@ def wizard_page():
             if st.button("🔄 Nueva Estrategia", use_container_width=True):
                 st.session_state.step = 1
                 st.rerun()
-
-        # Chat
-        st.divider()
-        st.subheader("💬 Asistente MiPymes IA")
-        for msg in st.session_state.chat_history:
-            with st.chat_message(msg["role"]):
-                st.markdown(msg["content"])
-        
-        if prompt := st.chat_input("Pregunta sobre tu estrategia..."):
-            st.session_state.chat_history.append({"role": "user", "content": prompt})
-            with st.chat_message("user"):
-                st.markdown(prompt)
-            with st.spinner("Pensando..."):
-                response = st.session_state.ai_agent.chat(prompt)
-            st.session_state.chat_history.append({"role": "assistant", "content": response})
-            with st.chat_message("assistant"):
-                st.markdown(response)
     
     show_footer()
 
