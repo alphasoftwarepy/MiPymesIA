@@ -898,13 +898,24 @@ def wizard_page():
 
         strategy_text = st.session_state.strategy_result
         
-        # Helper function to load section on-demand
+        # Helper function to load section on-demand or show loading status
         def load_section_on_demand(section_name):
-            """Generates a section on-demand if not already generated"""
+            """Generates a section on-demand if not already generated, or shows loading status"""
             if 'sections_generated' not in st.session_state:
                 st.session_state.sections_generated = {}
             
+            if 'sections_loading' not in st.session_state:
+                st.session_state.sections_loading = set()
+            
+            # If section is currently being loaded in background
+            if section_name in st.session_state.sections_loading:
+                st.info("⏳ Esta sección se está generando en este momento. Actualiza en unos segundos...")
+                return None
+            
+            # If section is not generated yet, generate it now
             if section_name not in st.session_state.sections_generated:
+                st.session_state.sections_loading.add(section_name)
+                
                 with st.spinner(f"⏳ Generando {section_name}..."):
                     content = st.session_state.ai_agent.generate_section(section_name, st.session_state.business_info)
                     st.session_state.sections_generated[section_name] = content
@@ -914,10 +925,43 @@ def wizard_page():
                         st.session_state.strategy_result += f"<<<SECTION_START: {section_name}>>>\n{content}\n\n"
                     else:
                         st.session_state.strategy_result += content + "\n\n"
-                    
-                    st.rerun()
+                
+                st.session_state.sections_loading.discard(section_name)
+                st.rerun()
             
-            return st.session_state.sections_generated[section_name]
+            return st.session_state.sections_generated.get(section_name)
+        
+        # Auto-load sections in background after Avatar is ready
+        if 'auto_load_started' not in st.session_state:
+            st.session_state.auto_load_started = False
+        
+        if not st.session_state.auto_load_started and 'AVATAR' in st.session_state.sections_generated:
+            st.session_state.auto_load_started = True
+            
+            # Define sections to auto-load in order
+            sections_to_load = ["EMBUDO", "ADS", "WHATSAPP", "OBJECIONES", "ACCIONES_DIARIAS", "METRICAS"]
+            
+            # Load one section at a time in background
+            for section in sections_to_load:
+                if section not in st.session_state.sections_generated:
+                    # Mark as loading
+                    if 'sections_loading' not in st.session_state:
+                        st.session_state.sections_loading = set()
+                    st.session_state.sections_loading.add(section)
+                    
+                    # Generate in background
+                    try:
+                        content = st.session_state.ai_agent.generate_section(section, st.session_state.business_info)
+                        st.session_state.sections_generated[section] = content
+                        st.session_state.strategy_result += content + "\n\n"
+                    except Exception as e:
+                        st.session_state.sections_generated[section] = f"Error: {str(e)}"
+                    finally:
+                        st.session_state.sections_loading.discard(section)
+                    
+                    # Only load one section per page load, then rerun to continue
+                    st.rerun()
+                    break
         
         # Sidebar Navigation
         with st.sidebar:
@@ -1032,7 +1076,8 @@ def wizard_page():
             st.subheader("📢 2. Embudo de Contenido Semanal")
             
             # Load section on-demand
-            load_section_on_demand("EMBUDO")
+            if load_section_on_demand("EMBUDO") is None:
+                return  # Section is loading, message already shown
             
             tab1, tab2, tab3 = st.tabs(["TOFU (Descubrimiento)", "MOFU (Consideración)", "BOFU (Venta)"])
             
@@ -1056,7 +1101,8 @@ def wizard_page():
             st.info(f"Presupuesto Mensual: ${st.session_state.business_info.get('presupuesto')} USD")
             
             # Load section on-demand
-            load_section_on_demand("ADS")
+            if load_section_on_demand("ADS") is None:
+                return  # Section is loading, message already shown
             
             tab_frio, tab_tibio, tab_caliente = st.tabs(["❄️ Tráfico Frío", "🔥 Tráfico Tibio", "🌋 Tráfico Caliente"])
             
@@ -1076,7 +1122,8 @@ def wizard_page():
             st.subheader("💬 4. Flujo de Cierre por WhatsApp (7 Días)")
             
             # Load section on-demand
-            load_section_on_demand("WHATSAPP")
+            if load_section_on_demand("WHATSAPP") is None:
+                return  # Section is loading, message already shown
             
             tabs = st.tabs(["Día 1", "Día 2", "Día 3", "Día 4", "Día 5", "Día 6", "Día 7"])
             for i, tab in enumerate(tabs):
@@ -1092,7 +1139,8 @@ def wizard_page():
             st.subheader("🛡️ 5. Manejo de Objeciones")
             
             # Load section on-demand
-            load_section_on_demand("OBJECIONES")
+            if load_section_on_demand("OBJECIONES") is None:
+                return  # Section is loading, message already shown
             
             tabs = st.tabs(["Costo", "Tiempo", "Personal", "Integración", "Miedo"])
             obj_keys = ["COSTO", "TIEMPO", "PERSONAL", "INTEGRACION", "MIEDO"]
@@ -1110,7 +1158,8 @@ def wizard_page():
             st.subheader("✅ 6. Checklist de Acciones Diarias")
             
             # Load section on-demand
-            load_section_on_demand("ACCIONES_DIARIAS")
+            if load_section_on_demand("ACCIONES_DIARIAS") is None:
+                return  # Section is loading, message already shown
             
             content = get_section_content(strategy_text, "ACCIONES_DIARIAS")
             st.success("🔥 Rutina de Alto Rendimiento para vender todos los días.")
@@ -1124,7 +1173,8 @@ def wizard_page():
             st.subheader("📈 7. Métricas y Optimización")
             
             # Load section on-demand
-            load_section_on_demand("METRICAS")
+            if load_section_on_demand("METRICAS") is None:
+                return  # Section is loading, message already shown
             
             content = get_section_content(strategy_text, "METRICAS")
             
