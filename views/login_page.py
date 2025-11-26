@@ -132,11 +132,6 @@ def render():
         if st.button("🚀 Empezar Ahora (Gratis)", use_container_width=True, type="primary", key="cta_secondary"):
             st.session_state.page = 'register'
             st.rerun()
-        st.markdown("""
-        <div style='text-align: center; margin-top: 15px;'>
-            <p style='color: #666; font-size: 0.9em; margin: 0;'>✨ Sin costo por 7 días</p>
-        </div>
-        """, unsafe_allow_html=True)
     
     st.markdown("<br><br>", unsafe_allow_html=True)
     
