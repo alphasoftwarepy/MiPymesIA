@@ -29,7 +29,7 @@ class MarketingStrategist:
             try:
                 print("🔄 Initializing ChatOpenAI with gpt-4o...")
                 self.llm = ChatOpenAI(
-                    model_name="gpt-4o",
+                    model_name="gpt-4o-mini",
                     openai_api_key=self.api_key,
                     temperature=0.7
                 )
