@@ -514,6 +514,71 @@ def admin_panel():
             time.sleep(1)
             st.rerun()
 
+def section_chat(section_name, section_content, section_key):
+    """
+    Contextual chat for each strategy section.
+    Allows users to expand and discuss specific parts of their strategy.
+    """
+    st.divider()
+    
+    # Initialize section-specific chat history
+    chat_key = f"chat_{section_key}"
+    if chat_key not in st.session_state:
+        st.session_state[chat_key] = []
+    
+    # Expander for chat
+    with st.expander(f"💬 Ampliar y Profundizar en {section_name}", expanded=False):
+        st.caption("Pregunta sobre esta sección específica para obtener más detalles, ejemplos o ideas.")
+        
+        # Display chat history for this section
+        for msg in st.session_state[chat_key]:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+        
+        # Chat input
+        prompt = st.chat_input(f"Pregunta sobre {section_name}...", key=f"input_{section_key}")
+        
+        if prompt:
+            # Add user message
+            st.session_state[chat_key].append({"role": "user", "content": prompt})
+            
+            # Create context-aware prompt for AI
+            business_context = st.session_state.user.get('business_profile', '')
+            business_info = st.session_state.get('business_info', {})
+            
+            contextual_prompt = f"""
+CONTEXTO DE LA SECCIÓN: {section_name}
+
+CONTENIDO ACTUAL DE LA SECCIÓN:
+{section_content}
+
+INFORMACIÓN DEL NEGOCIO:
+- Rubro: {business_info.get('rubro', 'No especificado')}
+- Nombre: {business_info.get('nombre', 'No especificado')}
+- Producto: {business_info.get('producto', 'No especificado')}
+
+CONTEXTO DEL CEREBRO DEL NEGOCIO:
+{business_context if business_context else 'No hay contexto adicional guardado.'}
+
+PREGUNTA DEL USUARIO:
+{prompt}
+
+INSTRUCCIONES:
+- Responde ESPECÍFICAMENTE sobre la sección "{section_name}"
+- Usa el contenido actual como base para ampliar, dar ejemplos o profundizar
+- Mantén coherencia con el rubro y producto del negocio
+- Usa el contexto del Cerebro del Negocio para personalizar tu respuesta
+- Sé práctico y accionable
+"""
+            
+            # Generate response
+            with st.spinner("Pensando..."):
+                response = st.session_state.ai_agent.chat(contextual_prompt)
+            
+            # Add assistant message
+            st.session_state[chat_key].append({"role": "assistant", "content": response})
+            st.rerun()
+
 def wizard_page():
     st.title("🚀 Generador MiPymesIA")
     st.caption("Estrategias de Marketing y de Publicidad")
@@ -856,6 +921,9 @@ def wizard_page():
                     """, unsafe_allow_html=True)
             else:
                 st.markdown(content)
+            
+            # Add contextual chat for this section
+            section_chat("Avatar de Cliente", content, "avatar")
 
         # 2. EMBUDO DE CONTENIDO
         elif "Embudo" in selected_section:
@@ -872,6 +940,10 @@ def wizard_page():
             with tab3:
                 st.markdown("### 💰 BOFU: Cierre")
                 st.markdown(get_section_content(strategy_text, "EMBUDO_BOFU"))
+            
+            # Add contextual chat for this section
+            embudo_content = f"TOFU:\n{get_section_content(strategy_text, 'EMBUDO_TOFU')}\n\nMOFU:\n{get_section_content(strategy_text, 'EMBUDO_MOFU')}\n\nBOFU:\n{get_section_content(strategy_text, 'EMBUDO_BOFU')}"
+            section_chat("Embudo de Contenido", embudo_content, "embudo")
 
         # 3. ADS STRATEGY
         elif "Ads" in selected_section:
@@ -886,6 +958,10 @@ def wizard_page():
                 st.markdown(get_section_content(strategy_text, "ADS_TIBIO"))
             with tab_caliente:
                 st.markdown(get_section_content(strategy_text, "ADS_CALIENTE"))
+            
+            # Add contextual chat for this section
+            ads_content = f"FRÍO:\n{get_section_content(strategy_text, 'ADS_FRIO')}\n\nTIBIO:\n{get_section_content(strategy_text, 'ADS_TIBIO')}\n\nCALIENTE:\n{get_section_content(strategy_text, 'ADS_CALIENTE')}"
+            section_chat("Estrategia de Ads", ads_content, "ads")
 
         # 4. WHATSAPP FLOW
         elif "WhatsApp" in selected_section:
@@ -895,6 +971,10 @@ def wizard_page():
             for i, tab in enumerate(tabs):
                 with tab:
                     st.markdown(get_section_content(strategy_text, f"WHATSAPP_DIA{i+1}"))
+            
+            # Add contextual chat for this section
+            whatsapp_content = "\n\n".join([f"DÍA {i+1}:\n{get_section_content(strategy_text, f'WHATSAPP_DIA{i+1}')}" for i in range(7)])
+            section_chat("Flujo de WhatsApp", whatsapp_content, "whatsapp")
 
         # 5. OBJECIONES
         elif "Objeciones" in selected_section:
@@ -906,6 +986,10 @@ def wizard_page():
             for tab, key in zip(tabs, obj_keys):
                 with tab:
                     st.markdown(get_section_content(strategy_text, f"OBJECION_{key}"))
+            
+            # Add contextual chat for this section
+            objeciones_content = "\n\n".join([f"{key}:\n{get_section_content(strategy_text, f'OBJECION_{key}')}" for key in obj_keys])
+            section_chat("Manejo de Objeciones", objeciones_content, "objeciones")
 
         # 6. ACCIONES DIARIAS
         elif "Acciones" in selected_section:
@@ -913,6 +997,9 @@ def wizard_page():
             content = get_section_content(strategy_text, "ACCIONES_DIARIAS")
             st.success("🔥 Rutina de Alto Rendimiento para vender todos los días.")
             st.markdown(content)
+            
+            # Add contextual chat for this section
+            section_chat("Acciones Diarias", content, "acciones")
 
         # 7. METRICAS (WITHOUT DEMOS)
         elif "Métricas" in selected_section:
@@ -938,6 +1025,9 @@ def wizard_page():
             
             with st.expander("Ver Resumen Completo de Métricas"):
                 st.markdown(content)
+            
+            # Add contextual chat for this section
+            section_chat("Métricas y Optimización", content, "metricas")
 
         # Footer Actions
         st.divider()
