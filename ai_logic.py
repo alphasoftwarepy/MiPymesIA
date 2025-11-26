@@ -387,20 +387,17 @@ Genera métricas REALES y ESPECÍFICAS para {business_info.get('rubro')}."""
         
         for idx, section in enumerate(sections, 1):
             try:
-                # Create a temporary chain for this section
-                section_prompt = ChatPromptTemplate.from_messages([
-                    SystemMessagePromptTemplate.from_template(section["prompt"]),
-                    HumanMessagePromptTemplate.from_template("{input}")
-                ])
+                # Use direct LLM call instead of ConversationChain to avoid memory issues
+                from langchain.schema import HumanMessage, SystemMessage
                 
-                temp_chain = ConversationChain(
-                    llm=self.llm,
-                    memory=ConversationBufferMemory(return_messages=True),
-                    prompt=section_prompt
-                )
+                messages = [
+                    SystemMessage(content=section["prompt"]),
+                    HumanMessage(content="Genera el contenido ahora.")
+                ]
                 
                 # Generate section
-                section_content = temp_chain.predict(input="Genera el contenido ahora.")
+                response = self.llm(messages)
+                section_content = response.content
                 
                 # Add section marker for parsing
                 if section["marker"] == "AVATAR":
