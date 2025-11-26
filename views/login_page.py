@@ -30,7 +30,7 @@ def render():
     # CTA Principal centrado
     col_cta_left, col_cta_center, col_cta_right = st.columns([1, 2, 1])
     with col_cta_center:
-        if st.button("✨ Generar mi estrategia", use_container_width=True, type="primary", key="cta_hero"):
+        if st.button("✨ Comenzar Prueba Gratis", use_container_width=True, type="primary", key="cta_hero"):
             st.session_state.page = 'register'
             st.rerun()
     
@@ -129,7 +129,7 @@ def render():
     
     col_cta2_left, col_cta2_center, col_cta2_right = st.columns([1, 2, 1])
     with col_cta2_center:
-        if st.button("🚀 Crear Estrategia Ahora", use_container_width=True, type="primary", key="cta_secondary"):
+        if st.button("🚀 Empezar Ahora (Gratis)", use_container_width=True, type="primary", key="cta_secondary"):
             st.session_state.page = 'register'
             st.rerun()
         st.markdown("""

@@ -5,7 +5,7 @@ from pdf_gen import generate_pdf
 import time
 from datetime import datetime, timedelta
 import urllib.parse
-from pages import login_page as new_login_page
+from views import login_page as new_login_page
 
 # Page Config
 st.set_page_config(page_title="Generador MiPymesIA", page_icon="🚀", layout="wide")
@@ -368,7 +368,7 @@ def registration_page():
                     st.error("❌ El usuario ya existe. Intenta con otro nombre.")
     
     st.divider()
-    if st.button("⬅️ Volver al Login"):
+    if st.button("⬅️ Volver al Inicio"):
         st.session_state.page = 'login'
         st.rerun()
     

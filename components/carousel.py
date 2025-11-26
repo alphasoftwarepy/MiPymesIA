@@ -14,11 +14,7 @@ def show(num_images=5):
     slides_html = ""
     for i in range(num_images):
         active_class = "active" if i == 0 else ""
-        slides_html += f'''
-        <div class="carousel-slide {active_class}" style="background-image: url('assets/banner/banner{i+1}.jpg');">
-            <div class="carousel-overlay"></div>
-        </div>
-        '''
+        slides_html += f"""<div class="carousel-slide {active_class}" style="background-image: url('assets/banner/banner{i+1}.jpg');"><div class="carousel-overlay"></div></div>"""
     
     # Generate indicators HTML separately
     indicators_html = ""
