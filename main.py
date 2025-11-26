@@ -1352,15 +1352,51 @@ def chat_page():
             "Email marketing efectivo"
         ]
         
+        # Callback to handle suggestion click
+        def on_suggestion_click(text):
+            st.session_state.pending_suggestion = text
+
+        # Check if we are processing
+        is_processing = st.session_state.get('is_processing_chat', False)
+
         for i, suggestion in enumerate(suggestions):
             with [col1, col2, col3][i % 3]:
-                if st.button(suggestion, key=f"suggestion_{i}", use_container_width=True):
-                    # Add suggestion to chat
-                    st.session_state.chat_messages.append({"role": "user", "content": suggestion})
-                    with st.spinner("Pensando..."):
-                        response = st.session_state.ai_agent.chat(suggestion)
-                    st.session_state.chat_messages.append({"role": "assistant", "content": response})
-                    st.rerun()
+                st.button(
+                    suggestion, 
+                    key=f"suggestion_{i}", 
+                    use_container_width=True,
+                    disabled=is_processing,
+                    on_click=on_suggestion_click,
+                    args=(suggestion,)
+                )
+        
+        # Process pending suggestion
+        if 'pending_suggestion' in st.session_state and st.session_state.pending_suggestion:
+            suggestion = st.session_state.pending_suggestion
+            del st.session_state.pending_suggestion # Clear immediately
+            
+            # Set processing flag and rerun to update UI (disable buttons)
+            st.session_state.is_processing_chat = True
+            st.session_state.current_suggestion_processing = suggestion
+            st.rerun()
+
+        # If we are in processing state
+        if st.session_state.get('is_processing_chat') and 'current_suggestion_processing' in st.session_state:
+            suggestion = st.session_state.current_suggestion_processing
+            
+            # Add to chat history if not already added (check last message)
+            if not st.session_state.chat_messages or st.session_state.chat_messages[-1]['content'] != suggestion:
+                 st.session_state.chat_messages.append({"role": "user", "content": suggestion})
+            
+            with st.spinner("Pensando..."):
+                response = st.session_state.ai_agent.chat(suggestion)
+            
+            st.session_state.chat_messages.append({"role": "assistant", "content": response})
+            
+            # Clear processing state
+            st.session_state.is_processing_chat = False
+            del st.session_state.current_suggestion_processing
+            st.rerun()
     
     # Display chat messages
     for message in st.session_state.chat_messages:
