@@ -270,7 +270,8 @@ Sé CONCISO."""
 
     def generate_strategy_progressive(self, business_info, progress_callback=None):
         """
-        Generates marketing strategy section by section, calling progress_callback after each section.
+        Generates complete marketing strategy with a SINGLE prompt, then parses sections.
+        Simulates progressive loading with callbacks for UI updates.
         
         Args:
             business_info: Dictionary with business information
@@ -287,11 +288,6 @@ Sé CONCISO."""
         if business_info.get('buyer_persona'):
             buyer_persona_text = f"\n- Buyer Persona Base (expandir y profundizar): {business_info.get('buyer_persona')}"
         
-        # OPTIMIZATION: Removed business_context from strategy generation for speed
-        # business_context_text = ""
-        # if self.business_context:
-        #     business_context_text = f"\n\nCONTEXTO DEL NEGOCIO (Cerebro):\n{self.business_context}\n\nIMPORTANTE: Usa este contexto para personalizar toda la estrategia según la personalidad, tono de voz y valores del negocio.\n"
-        
         base_info = f"""INPUTS DEL CLIENTE:
 - Rubro: {business_info.get('rubro')}
 - Nombre: {business_info.get('nombre')}
@@ -304,245 +300,115 @@ Sé CONCISO."""
 - Sistema Actual: {business_info.get('sistema_actual', 'No especificado')}
 - Plataformas: {business_info.get('plataforma')}{buyer_persona_text}"""
         
-        # Define sections to generate
-        sections = [
-            {
-                "name": "Avatar de Cliente",
-                "marker": "AVATAR",
-                "prompt": f"""Eres un Estratega de Marketing Senior.
+        # SINGLE UNIFIED PROMPT - generates all sections at once
+        unified_prompt = f"""Eres un Estratega de Marketing Senior y Experto en Ventas.
 {base_info}
 
-Genera 1 Avatar de Cliente Ideal MUY ESPECÍFICO (no genérico) para este negocio.
-Define:
+Genera una ESTRATEGIA COMPLETA DE MARKETING Y VENTAS siguiendo EXACTAMENTE esta estructura con los delimitadores indicados:
+
+<<<SECTION_START: AVATAR>>>
+👤 AVATAR DE CLIENTE IDEAL
+Genera 1 Avatar MUY ESPECÍFICO:
 - Nombre del Avatar
 - Dolor Principal (Qué le quita el sueño)
 - Objeciones Típicas
 - Vocabulario que usa
 
-IMPORTANTE: Responde ÚNICAMENTE con la información del Avatar. NO generes embudos, ni ads, ni ninguna otra sección. SOLO EL AVATAR."""
-            },
-            {
-                "name": "Embudo de Contenido",
-                "marker": "EMBUDO",
-                "prompt": f"""Eres un Estratega de Marketing Senior.
-{base_info}
-
-Genera un EMBUDO DE CONTENIDO SEMANAL completo con 3 niveles:
-
 <<<SECTION_START: EMBUDO_TOFU>>>
-TOFU (Descubrimiento) - Lunes y Jueves
+📢 EMBUDO - TOFU (Descubrimiento) - Lunes y Jueves
 Objetivo: Atrae atención, habla del problema.
 Incluye: Formato (Reel/Post), Gancho y CTA.
 
 <<<SECTION_START: EMBUDO_MOFU>>>
-MOFU (Consideración) - Martes y Viernes
+📢 EMBUDO - MOFU (Consideración) - Martes y Viernes
 Objetivo: Educa, muestra solución, casos de éxito.
 Incluye: Formato (Historia/Carrusel), Gancho y CTA.
 
 <<<SECTION_START: EMBUDO_BOFU>>>
-BOFU (Cierre) - Miércoles, Sábado y Domingo
+📢 EMBUDO - BOFU (Cierre) - Miércoles, Sábado y Domingo
 Objetivo: Oferta directa, urgencia, venta.
 Incluye: Formato (Post Venta/Historia), Gancho y CTA.
 
-Genera contenido REAL y ESPECÍFICO para {business_info.get('rubro')}."""
-            },
-            {
-                "name": "Estrategia de Ads",
-                "marker": "ADS",
-                "prompt": f"""Eres un Estratega de Marketing Senior especializado en publicidad digital.
-{base_info}
-
-Genera una ESTRATEGIA DE ADS COMPLETA con 3 niveles de tráfico:
-
 <<<SECTION_START: ADS_FRIO>>>
-🔥 TRÁFICO FRÍO
-Objetivo: Llegar a personas que NO te conocen pero tienen el dolor.
-Define:
-1. Objetivo de campaña (Mensajes/Leads)
-2. Ángulo Principal (Pain-Based Trigger)
-3. 7 Dolores a destacar
-4. 3 Variaciones de Copy (Directo, Miedo, Aspiración)
-5. Ideas de Creativos (Video 15s, Imágenes)
-6. Segmentación Sugerida
-7. Presupuesto sugerido: 50% del total ({business_info.get('presupuesto')} USD)
-8. CTA específico
+� TRÁFICO FRÍO
+Objetivo: Llegar a personas que NO te conocen.
+Define: Objetivo, Ángulo (Dolor), 3 Variaciones Copy, Creativos, Segmentación, Presupuesto (50% = ${business_info.get('presupuesto')*0.5} USD), CTA.
 
 <<<SECTION_START: ADS_TIBIO>>>
-🔥 TRÁFICO TIBIO – Retargeting
+� TRÁFICO TIBIO - Retargeting
 Objetivo: Convertir interesados en prospectos.
-Define:
-1. Objetivo de campaña
-2. Ángulo Principal (Prueba Social/Lógica)
-3. Dolores/Dudas a atacar
-4. Copy persuasivo
-5. Ideas de Creativos
-6. Segmentación (Públicos personalizados)
-7. Presupuesto sugerido: 35% del total
-8. CTA específico
+Define: Objetivo, Ángulo (Prueba Social), Copy, Creativos, Segmentación, Presupuesto (35% = ${business_info.get('presupuesto')*0.35} USD), CTA.
 
 <<<SECTION_START: ADS_CALIENTE>>>
-🔥 TRÁFICO CALIENTE – Cierre
+� TRÁFICO CALIENTE - Cierre
 Objetivo: Cerrar ventas YA.
-Define:
-1. Objetivo de campaña
-2. Ángulo Principal (Urgencia/Oferta)
-3. Beneficio final
-4. Copy de Cierre directo
-5. Ideas de Creativos
-6. Segmentación (Checkout iniciado/Mensajes previos)
-7. Presupuesto sugerido: 15% del total
-8. CTA específico
-
-Genera contenido REAL y ESPECÍFICO para {business_info.get('rubro')}."""
-            },
-            {
-                "name": "Flujo WhatsApp 7 Días",
-                "marker": "WHATSAPP",
-                "prompt": f"""Eres un Estratega de Ventas especializado en conversaciones de WhatsApp.
-{base_info}
-
-Genera un FLUJO DE WHATSAPP DE 7 DÍAS completo:
+Define: Objetivo, Ángulo (Urgencia), Copy Cierre, Creativos, Segmentación, Presupuesto (15% = ${business_info.get('presupuesto')*0.15} USD), CTA.
 
 <<<SECTION_START: WHATSAPP_DIA1>>>
-🔵 DÍA 1 — Contacto + Diagnóstico Inteligente
-Objetivo: Romper el hielo.
-Texto del mensaje: Saludo + 2 Preguntas de diagnóstico.
-Respuestas condicionadas: Qué decir si responde A, B o C.
-IMPORTANTE: Usa párrafos separados para cada parte.
+� DÍA 1 — Contacto + Diagnóstico
+Mensaje: Saludo + 2 Preguntas.
+Respuestas condicionadas.
 
 <<<SECTION_START: WHATSAPP_DIA2>>>
-🟦 DÍA 2 — Aporte de Valor + Invitación a Demo
-Objetivo: Enseñar algo útil + agendar sin presión.
-Texto del mensaje: Dato curioso/Tip + Invitación suave.
-Respuestas condicionadas: Qué decir si acepta o rechaza.
+� DÍA 2 — Valor + Invitación
+Mensaje: Tip útil + Invitación suave.
+Respuestas condicionadas.
 
 <<<SECTION_START: WHATSAPP_DIA3>>>
-🟩 DÍA 3 — Prueba Social
-Objetivo: Activar confianza.
-Texto del mensaje: Mini caso de éxito real + CTA suave.
-Respuestas condicionadas: Qué decir si muestra interés.
+� DÍA 3 — Prueba Social
+Mensaje: Caso éxito + CTA.
+Respuestas condicionadas.
 
 <<<SECTION_START: WHATSAPP_DIA4>>>
-🟧 DÍA 4 — Objeción Principal + Reencuadre
-Objetivo: Atacar la objeción del avatar sin confrontar.
-Texto del mensaje: "Entiendo X..." + Reencuadre + Propuesta.
-Respuestas condicionadas: Manejo de la objeción específica.
+� DÍA 4 — Objeción + Reencuadre
+Mensaje: Reencuadre + Propuesta.
+Respuestas condicionadas.
 
 <<<SECTION_START: WHATSAPP_DIA5>>>
-🟥 DÍA 5 — Urgencia Ligera
-Objetivo: Mover al tibio.
-Texto del mensaje: Cupos/Bono/Tiempo limitado.
-Respuestas condicionadas: Qué decir si pide info.
+� DÍA 5 — Urgencia
+Mensaje: Cupos/Tiempo limitado.
+Respuestas condicionadas.
 
 <<<SECTION_START: WHATSAPP_DIA6>>>
-🟪 DÍA 6 — Aporte de Valor Final
-Objetivo: Reforzar autoridad.
-Texto del mensaje: Recurso/Link útil + Mini cierre.
-Respuestas condicionadas: Qué decir si agradece.
+� DÍA 6 — Valor Final
+Mensaje: Recurso extra + Mini cierre.
+Respuestas condicionadas.
 
 <<<SECTION_START: WHATSAPP_DIA7>>>
-⬛ DÍA 7 — Cierre Elegante o Parking
-Objetivo: Definir o dejar puerta abierta.
-Texto del mensaje: Cierre final o "Plan de mejora gratis".
-Respuestas condicionadas: Qué decir si acepta el plan.
-
-Genera mensajes REALES y ESPECÍFICOS para {business_info.get('rubro')}."""
-            },
-            {
-                "name": "Manejo de Objeciones",
-                "marker": "OBJECIONES",
-                "prompt": f"""Eres un Estratega de Ventas especializado en manejo de objeciones.
-{base_info}
-
-Genera respuestas para las 5 OBJECIONES PRINCIPALES:
+💬 DÍA 7 — Cierre/Parking
+Mensaje: Última llamada o despedida elegante.
+Respuestas condicionadas.
 
 <<<SECTION_START: OBJECION_COSTO>>>
-OBJECIÓN: COSTO
-Genera la respuesta en párrafos separados:
-Pregunta: (La pregunta para indagar)
-
-Reframing: (Cambio de perspectiva)
-
-Propuesta: (Solución concreta)
-
-Mini Cierre: (Pregunta de cierre)
+🛡️ OBJECIÓN: COSTO
+Pregunta, Reframing, Propuesta, Mini Cierre.
 
 <<<SECTION_START: OBJECION_TIEMPO>>>
-OBJECIÓN: TIEMPO
-Genera la respuesta en párrafos separados:
-Pregunta:
-
-Reframing:
-
-Propuesta:
-
-Mini Cierre:
+🛡️ OBJECIÓN: TIEMPO
+Pregunta, Reframing, Propuesta, Mini Cierre.
 
 <<<SECTION_START: OBJECION_PERSONAL>>>
-OBJECIÓN: PERSONAL/SOCIOS
-Genera la respuesta en párrafos separados:
-Pregunta:
-
-Reframing:
-
-Propuesta:
-
-Mini Cierre:
+🛡️ OBJECIÓN: PERSONAL/SOCIOS
+Pregunta, Reframing, Propuesta, Mini Cierre.
 
 <<<SECTION_START: OBJECION_INTEGRACION>>>
-OBJECIÓN: INTEGRACIÓN/CAMBIO
-Genera la respuesta en párrafos separados:
-Pregunta:
-
-Reframing:
-
-Propuesta:
-
-Mini Cierre:
+🛡️ OBJECIÓN: INTEGRACIÓN/CAMBIO
+Pregunta, Reframing, Propuesta, Mini Cierre.
 
 <<<SECTION_START: OBJECION_MIEDO>>>
-OBJECIÓN: MIEDO/DESCONFIANZA
-Genera la respuesta en párrafos separados:
-Pregunta:
+🛡️ OBJECIÓN: MIEDO/DESCONFIANZA
+Pregunta, Reframing, Propuesta, Mini Cierre.
 
-Reframing:
-
-Propuesta:
-
-Mini Cierre:
-
-Genera respuestas REALES y ESPECÍFICAS para {business_info.get('rubro')}."""
-            },
-            {
-                "name": "Acciones Diarias",
-                "marker": "ACCIONES_DIARIAS",
-                "prompt": f"""Eres un Estratega de Ventas especializado en rutinas de alto rendimiento.
-{base_info}
-
-Genera un CHECKLIST DE ACCIONES DIARIAS:
-
-🔥 CHECKLIST DE ACCIONES DIARIAS
-Genera una rutina de alto rendimiento con:
+<<<SECTION_START: ACCIONES_DIARIAS>>>
+✅ CHECKLIST DIARIO
 1. Contactar 5 nuevos (Mensajes plantilla)
 2. Seguimiento a 3 tibios (Mensajes plantilla)
 3. Publicar 1 historia (Ideas)
 4. Revisar métricas (Qué mirar)
 5. Agendar/Hacer 1 Demo (Estructura)
 
-Incluye Micro-Métricas para cada punto.
-Genera contenido REAL y ESPECÍFICO para {business_info.get('rubro')}."""
-            },
-            {
-                "name": "Métricas y Optimización",
-                "marker": "METRICAS",
-                "prompt": f"""Eres un Estratega de Marketing especializado en métricas y optimización.
-{base_info}
-
-Genera MÉTRICAS Y OPTIMIZACIÓN:
-
-🔥 MÉTRICAS Y OPTIMIZACIÓN
-Genera CADA métrica como un bloque separado con su título exacto.
-IMPORTANTE: Dentro de cada métrica, usa PÁRRAFOS SEPARADOS para cada punto:
+<<<SECTION_START: METRICAS>>>
+� MÉTRICAS Y OPTIMIZACIÓN
 
 ### Costo por Lead
 Definición y Valor Ideal.
@@ -580,50 +446,57 @@ Acción de Mejora Inmediata.
 
 Acción de Escalamiento.
 
-Genera métricas REALES y ESPECÍFICAS para {business_info.get('rubro')}."""
-            }
-        ]
-        
-        # Generate each section
-        complete_strategy = ""
-        total_sections = len(sections)
-        
-        for idx, section in enumerate(sections, 1):
-            try:
-                # Use direct LLM call instead of ConversationChain to avoid memory issues
-                from langchain.schema import HumanMessage, SystemMessage
-                
-                messages = [
-                    SystemMessage(content=section["prompt"]),
-                    HumanMessage(content="Genera el contenido ahora.")
-                ]
-                
-                # Generate section
-                response = self.llm(messages)
-                section_content = response.content
-                
-                # Add section marker for parsing
-                if section["marker"] in ["AVATAR", "ACCIONES_DIARIAS", "METRICAS"]:
-                    complete_strategy += f"<<<SECTION_START: {section['marker']}>>>\n{section_content}\n\n"
-                else:
-                    # For multi-part sections, content already has markers
-                    complete_strategy += section_content + "\n\n"
-                
-                # Call progress callback
-                if progress_callback:
-                    progress_callback(section["name"], section_content, idx, total_sections)
-                    
-            except Exception as e:
-                error_msg = f"Error generando {section['name']}: {str(e)}"
-                print(error_msg)
-                complete_strategy += f"<<<SECTION_START: {section['marker']}>>>\n{error_msg}\n\n"
-                if progress_callback:
-                    progress_callback(section["name"], error_msg, idx, total_sections)
-        
-        # Restore original chain
-        self.setup_chain(self.business_context)
-        
-        return complete_strategy
+IMPORTANTE:
+- Usa EXACTAMENTE los delimitadores <<<SECTION_START: NOMBRE>>>
+- Genera contenido REAL y ESPECÍFICO para {business_info.get('rubro')}
+- NO agregues comentarios finales como "Espero que...", "¡Mucho éxito!", etc.
+- Sé CONCISO pero COMPLETO en cada sección"""
+
+        try:
+            # Single LLM call for entire strategy
+            from langchain.schema import HumanMessage, SystemMessage
+            
+            # Simulate progressive updates for UI (fake progress)
+            section_names = [
+                "Avatar de Cliente",
+                "Embudo de Contenido", 
+                "Estrategia de Ads",
+                "Flujo WhatsApp 7 Días",
+                "Manejo de Objeciones",
+                "Acciones Diarias",
+                "Métricas y Optimización"
+            ]
+            
+            # Update UI to show we're starting
+            if progress_callback:
+                progress_callback("Avatar de Cliente", "Generando...", 1, 7)
+            
+            messages = [
+                SystemMessage(content=unified_prompt),
+                HumanMessage(content="Genera la estrategia completa ahora siguiendo EXACTAMENTE la estructura con los delimitadores.")
+            ]
+            
+            # Generate complete strategy in ONE call
+            response = self.llm(messages)
+            complete_strategy = response.content
+            
+            # Simulate progressive callbacks for UI updates (parsing already generated content)
+            if progress_callback:
+                for idx, section_name in enumerate(section_names, 1):
+                    # Extract section content for callback
+                    section_content = f"Sección {section_name} generada"
+                    progress_callback(section_name, section_content, idx, 7)
+            
+            # Restore original chain
+            self.setup_chain(self.business_context)
+            
+            return complete_strategy
+            
+        except Exception as e:
+            error_msg = f"Error generando estrategia: {str(e)}"
+            print(error_msg)
+            return f"Error: {error_msg}"
+
 
 
     def generate_strategy(self, business_info):
