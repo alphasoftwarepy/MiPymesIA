@@ -856,16 +856,6 @@ def wizard_page():
                             """Callback called after each section is generated"""
                             # Update loader with current section and step count
                             update_loader(f"✅ Generando {section_name}...", section_num)
-                            
-                            # Show preview of completed sections
-                            with progress_container.container():
-                                st.markdown(f"### 🎯 Progreso: {section_num}/{total} secciones completadas")
-                                st.progress(section_num / total)
-                                
-                                # Show last completed section preview
-                                with st.expander(f"✅ {section_name} - Completado", expanded=False):
-                                    preview = section_content[:500] + "..." if len(section_content) > 500 else section_content
-                                    st.markdown(preview)
                         
                         # Generate strategy progressively
                         result = st.session_state.ai_agent.generate_strategy_progressive(
