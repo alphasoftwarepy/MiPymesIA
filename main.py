@@ -164,6 +164,16 @@ def show_static_page(title, filepath):
         if st.button("⬅️ Inicio", use_container_width=True, key="back_footer"):
             st.session_state.page = 'login'
             st.rerun()
+    
+    show_footer()
+
+def show_footer():
+    """Display minimalist footer"""
+    st.markdown("""
+    <div style='text-align: center; padding: 20px; color: #666; font-size: 0.8em; margin-top: 50px; border-top: 1px solid #eee;'>
+        Generador MiPymes I.A. Todos los derechos © 2025 | By <a href="https://www.alphasoft.com.py/" target="_blank" style="color: #666; text-decoration: none;">Alpha Software</a>
+    </div>
+    """, unsafe_allow_html=True)
 
 def login_page():
     # Top navigation bar with login button
@@ -177,12 +187,12 @@ def login_page():
     
     st.divider()
     
-    # Hero Section
+    # Hero Section - Compact version
     st.markdown("""
-    <div style='text-align: center; padding: 40px 0;'>
-        <h1 style='font-size: 3em; color: #1a5276;'>Estrategias de Marketing Profesionales</h1>
-        <h3 style='color: #5d6d7e;'>Impulsadas por Inteligencia Artificial</h3>
-        <p style='font-size: 1.2em; margin-top: 20px;'>Genera estrategias completas de marketing y publicidad para tu negocio en minutos</p>
+    <div style='text-align: center; padding: 20px 0 15px 0;'>
+        <h1 style='font-size: 2.2em; color: #1a5276; margin-bottom: 8px;'>Estrategias de Marketing Profesionales</h1>
+        <h3 style='color: #5d6d7e; font-size: 1.1em; margin-bottom: 8px;'>Impulsadas por Inteligencia Artificial</h3>
+        <p style='font-size: 1em; margin-top: 10px;'>Genera estrategias completas de marketing y publicidad para tu negocio en minutos</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -252,6 +262,8 @@ def login_page():
         if st.button("✨ Quiero Suscribirme", use_container_width=True, type="primary"):
             st.session_state.page = 'register'
             st.rerun()
+    
+    show_footer()
 
 def login_form_page():
     """Clean login page similar to registration"""
@@ -308,6 +320,8 @@ def login_form_page():
         if st.button("⬅️ Volver al Inicio", use_container_width=True):
             st.session_state.page = 'login'
             st.rerun()
+    
+    show_footer()
 
 def registration_page():
     st.title("✨ Crear Cuenta - Prueba Gratuita 7 Días")
@@ -356,6 +370,8 @@ def registration_page():
     if st.button("⬅️ Volver al Login"):
         st.session_state.page = 'login'
         st.rerun()
+    
+    show_footer()
 
 def forgot_password_page():
     st.title("🔑 Recuperar Contraseña")
@@ -389,6 +405,8 @@ def forgot_password_page():
     if st.button("⬅️ Volver al Login"):
         st.session_state.page = 'login'
         st.rerun()
+    
+    show_footer()
 
 def change_password_page():
     st.title("🔐 Cambiar Contraseña")
@@ -421,6 +439,8 @@ def change_password_page():
     if st.button("⬅️ Volver"):
         st.session_state.page = 'main'
         st.rerun()
+    
+    show_footer()
 
 def admin_panel():
     st.title("🛠️ Panel de Administración")
@@ -1067,6 +1087,8 @@ def wizard_page():
             st.session_state.chat_history.append({"role": "assistant", "content": response})
             with st.chat_message("assistant"):
                 st.markdown(response)
+    
+    show_footer()
 
 def business_brain_page():
     st.title("🧠 Cerebro del Negocio")
@@ -1095,6 +1117,8 @@ def business_brain_page():
             st.success("✅ Cerebro actualizado correctamente!")
             time.sleep(1)
             st.rerun()
+    
+    show_footer()
 
 def chat_page():
     """Modern Claude-style chat interface"""
@@ -1273,6 +1297,8 @@ def chat_page():
         if st.button("🗑️ Limpiar Conversación", use_container_width=True):
             st.session_state.chat_messages = []
             st.rerun()
+    
+    show_footer()
 
 
 def pricing_page():
@@ -1459,6 +1485,8 @@ def pricing_page():
         if st.button("⬅️ Inicio", use_container_width=True, key="back_pricing"):
             st.session_state.page = 'login'
             st.rerun()
+    
+    show_footer()
 
 if not st.session_state.authenticated:
     # Route to different pages
