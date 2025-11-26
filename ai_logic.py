@@ -113,7 +113,11 @@ Define:
 - Objeciones Típicas
 - Vocabulario que usa
 
-IMPORTANTE: Responde ÚNICAMENTE con la información del Avatar. NO generes embudos, ni ads, ni ninguna otra sección. SOLO EL AVATAR.""",
+IMPORTANTE: 
+- Responde ÚNICAMENTE con la información del Avatar
+- NO menciones "EMBUDO DE CONTENIDO" ni ninguna otra sección
+- NO generes títulos de otras secciones
+- TERMINA tu respuesta después del Avatar""",
             
             "EMBUDO": f"""Eres un Estratega de Marketing Senior.
 {base_info}
@@ -214,7 +218,8 @@ OBJECIÓN: INTEGRACIÓN/CAMBIO
 <<<SECTION_START: OBJECION_MIEDO>>>
 OBJECIÓN: MIEDO/DESCONFIANZA
 
-Sé CONCISO y PERSUASIVO.""",
+Sé CONCISO y PERSUASIVO.
+NO agregues comentarios finales como 'Espero que estas respuestas sean útiles'.""",
             
             "ACCIONES_DIARIAS": f"""Eres un Estratega de Productividad.
 {base_info}
@@ -226,7 +231,8 @@ Genera CHECKLIST DIARIO DE VENTAS:
 4. Métricas
 5. Cierres
 
-Incluye micro-métricas. Sé BREVE y ACCIONABLE.""",
+Incluye micro-métricas. Sé BREVE y ACCIONABLE.
+NO agregues comentarios finales como 'Con esta rutina, Rodrigo podrá...'.""",
             
             "METRICAS": f"""Eres un Analista de Marketing.
 {base_info}

@@ -600,12 +600,73 @@ INSTRUCCIONES:
             st.rerun()
 
 # Helper to parse sections
+def clean_section_content(content, section_name):
+    """
+    Cleans AI-generated content by removing unwanted text that leaks from other sections.
+    """
+    if not content or content == "Contenido no disponible.":
+        return content
+    
+    # Patterns to remove based on section
+    unwanted_patterns = {
+        "AVATAR": [
+            r"\*\*EMBUDO DE CONTENIDO.*",
+            r"Aquí tienes.*embudo.*",
+            r"A continuación.*embudo.*"
+        ],
+        "EMBUDO_BOFU": [
+            r"\*\*Aquí tienes la estrategia de ads.*",
+            r"Aquí tienes.*ads.*completa.*",
+            r"A continuación.*publicidad.*"
+        ],
+        "ADS_CALIENTE": [
+            r"Claro, aquí tienes un flujo de WhatsApp.*",
+            r"DÍA 1.*Contacto.*Diagnóstico.*",
+            r"Espero que este flujo.*"
+        ],
+        "WHATSAPP_DIA7": [
+            r"Claro, aquí tienes las respuestas para.*",
+            r"Espero que este flujo.*",
+            r"Espero que estas.*sean útiles.*"
+        ],
+        "OBJECION_MIEDO": [
+            r"Espero que estas respuestas sean útiles.*",
+            r"Espero que.*ayude.*aumentar las ventas.*"
+        ],
+        "ACCIONES_DIARIAS": [
+            r"Con esta rutina.*podrá enfocar.*",
+            r"Con esta rutina.*maximizar.*resultados.*"
+        ]
+    }
+    
+    # Apply cleaning for specific section
+    if section_name in unwanted_patterns:
+        import re
+        for pattern in unwanted_patterns[section_name]:
+            content = re.sub(pattern, "", content, flags=re.IGNORECASE | re.DOTALL)
+    
+    # General cleanup: remove common AI closing remarks
+    general_patterns = [
+        r"Espero que.*sea.*útil.*",
+        r"Espero que.*ayude.*",
+        r"¡Mucho éxito!.*",
+        r"¡Éxito!.*"
+    ]
+    
+    import re
+    for pattern in general_patterns:
+        content = re.sub(pattern, "", content, flags=re.IGNORECASE | re.DOTALL)
+    
+    return content.strip()
+
 def get_section_content(text, section_name):
     try:
         start_marker = f"<<<SECTION_START: {section_name}>>>"
         parts = text.split(start_marker)
         if len(parts) > 1:
             content = parts[1].split("<<<SECTION_START:")[0].strip()
+            # Clean unwanted content
+            content = clean_section_content(content, section_name)
             return content
         return "Contenido no disponible."
     except Exception:
@@ -1142,9 +1203,6 @@ def wizard_page():
                             found = True
                     if not found:
                         st.write("Información detallada en el resumen general.")
-            
-            with st.expander("Ver Resumen Completo de Métricas"):
-                st.markdown(content)
             
             # Add contextual chat for this section
             section_chat("Métricas y Optimización", content, "metricas")
