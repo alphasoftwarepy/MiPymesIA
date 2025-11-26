@@ -756,19 +756,19 @@ def wizard_page():
 
                         # Step 1
                         update_loader("🚀 Iniciando motor de IA...", 1)
-                        time.sleep(1)
+                        time.sleep(0.5)
                         
                         # Step 2
                         update_loader("🔌 Conectando con base de conocimientos...", 2)
-                        time.sleep(1)
+                        time.sleep(0.5)
                         
                         # Step 3
                         update_loader("🧠 Analizando perfil del negocio...", 3)
-                        time.sleep(1.5)
+                        time.sleep(0.5)
                         
                         # Step 4
                         update_loader("🔍 Investigando tendencias del mercado...", 4)
-                        time.sleep(1.5)
+                        time.sleep(0.5)
                         
                         # Step 5
                         update_loader("💡 Diseñando estrategia personalizada...", 5)
