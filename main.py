@@ -141,10 +141,10 @@ def show_static_page(title, filepath):
     
     st.markdown("</div>", unsafe_allow_html=True)
     
-    st.markdown("<br><br>", unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
     
     # Modern footer navigation
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("<div style='margin-top: 20px;'></div>", unsafe_allow_html=True)
     
     # Footer navigation buttons
     col_a, col_b, col_c, col_d = st.columns(4)
@@ -170,7 +170,7 @@ def show_static_page(title, filepath):
 def show_footer():
     """Display minimalist footer"""
     st.markdown("""
-    <div style='text-align: center; padding: 20px; color: #666; font-size: 0.8em; margin-top: 50px; border-top: 1px solid #eee;'>
+    <div style='text-align: center; padding: 10px; color: #666; font-size: 0.75em; margin-top: 20px; border-top: 1px solid #eee;'>
         Generador MiPymes I.A. Todos los derechos © 2025 | By <a href="https://www.alphasoft.com.py/" target="_blank" style="color: #666; text-decoration: none;">Alpha Software</a>
     </div>
     """, unsafe_allow_html=True)
@@ -189,10 +189,10 @@ def login_page():
     
     # Hero Section - Compact version
     st.markdown("""
-    <div style='text-align: center; padding: 20px 0 15px 0;'>
-        <h1 style='font-size: 2.2em; color: #1a5276; margin-bottom: 8px;'>Estrategias de Marketing Profesionales</h1>
-        <h3 style='color: #5d6d7e; font-size: 1.1em; margin-bottom: 8px;'>Impulsadas por Inteligencia Artificial</h3>
-        <p style='font-size: 1em; margin-top: 10px;'>Genera estrategias completas de marketing y publicidad para tu negocio en minutos</p>
+    <div style='text-align: center; padding: 10px 0 5px 0;'>
+        <h1 style='font-size: 2em; color: #1a5276; margin-bottom: 5px;'>Estrategias de Marketing Profesionales</h1>
+        <h3 style='color: #5d6d7e; font-size: 1em; margin-bottom: 5px;'>Impulsadas por Inteligencia Artificial</h3>
+        <p style='font-size: 0.9em; margin-top: 5px;'>Genera estrategias completas de marketing y publicidad para tu negocio en minutos</p>
     </div>
     """, unsafe_allow_html=True)
     
@@ -237,18 +237,6 @@ def login_page():
         <div style="padding:56.25% 0 0 0;position:relative;">
         <iframe src="https://player.vimeo.com/video/1140470002?badge=0&amp;autopause=0&amp;player_id=0&amp;app_id=58479&amp;title=0&amp;byline=0&amp;portrait=0" frameborder="0" allow="autoplay; fullscreen; picture-in-picture; clipboard-write" style="position:absolute;top:0;left:0;width:100%;height:100%;" title="Video Tutorial"></iframe>
         </div>
-        <script src="https://player.vimeo.com/api/player.js"></script>
-        """, unsafe_allow_html=True)
-    
-    st.divider()
-    
-
-    
-    # Footer Links
-    col_a, col_b, col_c, col_d = st.columns(4)
-    with col_a:
-        if st.button("📋 Términos de Uso", use_container_width=True):
-            st.session_state.page = 'terms'
             st.rerun()
     with col_b:
         if st.button("🔒 Privacidad", use_container_width=True):
