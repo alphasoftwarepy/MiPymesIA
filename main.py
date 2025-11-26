@@ -821,8 +821,7 @@ def wizard_page():
                             """, unsafe_allow_html=True)
 
                         # Step 1
-                        update_loader("🚀 Iniciando motor de IA...", 1)
-                        time.sleep(0.3)
+                        update_loader("⏳ Generando Avatar de Cliente... (1/7)", 1)
                         
                         business_info = {
                             "rubro": rubro,
