@@ -587,6 +587,23 @@ INSTRUCCIONES:
             st.session_state[chat_key].append({"role": "assistant", "content": response})
             st.rerun()
 
+WIZARD_CSS = '''
+<style>
+/* Custom Button Styling */
+.stButton>button {
+    border-radius: 10px;
+    font-weight: bold;
+}
+.section-card {
+    background-color: #f8f9fa;
+    padding: 20px;
+    border-radius: 15px;
+    border-left: 5px solid #3498db;
+    margin: 10px 0;
+}
+</style>
+'''
+
 def wizard_page():
     st.title("🚀 Generador MiPymesIA")
     st.caption("Estrategias de Marketing y de Publicidad")
@@ -595,22 +612,7 @@ def wizard_page():
         st.subheader("📋 Diagnóstico y Contexto")
         
         # Add custom CSS for better styling
-        st.markdown("""
-        <style>
-        /* Custom Button Styling */
-        .stButton>button {
-            border-radius: 10px;
-            font-weight: bold;
-        }
-        .section-card {
-            background-color: #f8f9fa;
-            padding: 20px;
-            border-radius: 15px;
-            border-left: 5px solid #3498db;
-            margin: 10px 0;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+        st.markdown(WIZARD_CSS, unsafe_allow_html=True)
         
         with st.form("diagnosis_form"):
             col1, col2 = st.columns(2)
