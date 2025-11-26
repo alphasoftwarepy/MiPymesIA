@@ -10,6 +10,22 @@ def show(num_images=5):
     Args:
         num_images: Number of images in carousel (default: 5)
     """
+    # Generate slides HTML separately to avoid f-string nesting issues
+    slides_html = ""
+    for i in range(num_images):
+        active_class = "active" if i == 0 else ""
+        slides_html += f'''
+        <div class="carousel-slide {active_class}" style="background-image: url('assets/banner/banner{i+1}.jpg');">
+            <div class="carousel-overlay"></div>
+        </div>
+        '''
+    
+    # Generate indicators HTML separately
+    indicators_html = ""
+    for i in range(num_images):
+        active_class = "active" if i == 0 else ""
+        indicators_html += f'<div class="carousel-dot {active_class}"></div>'
+
     st.markdown(f"""
     <style>
     .carousel-container {{
@@ -78,14 +94,10 @@ def show(num_images=5):
     </style>
     
     <div class="carousel-container">
-        {''.join([f'''
-        <div class="carousel-slide {'active' if i == 0 else ''}" style="background-image: url('assets/banner/banner{i+1}.jpg');">
-            <div class="carousel-overlay"></div>
-        </div>
-        ''' for i in range(num_images)])}
+        {slides_html}
         
         <div class="carousel-indicators">
-            {''.join([f'<div class="carousel-dot {'active' if i == 0 else ''}"></div>' for i in range(num_images)])}
+            {indicators_html}
         </div>
     </div>
     
