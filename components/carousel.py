@@ -3,6 +3,7 @@ Carousel component - Auto-rotating image carousel
 """
 import base64
 import os
+import streamlit as st
 
 def get_img_as_base64(file_path):
     """Read image file and convert to base64 string"""
