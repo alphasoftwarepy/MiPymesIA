@@ -1,0 +1,361 @@
+import os
+from dotenv import load_dotenv
+from langchain_openai import ChatOpenAI
+from langchain.chains import ConversationChain
+from langchain.memory import ConversationBufferMemory
+from langchain.prompts import (
+    ChatPromptTemplate,
+    MessagesPlaceholder,
+    SystemMessagePromptTemplate,
+    HumanMessagePromptTemplate,
+)
+
+load_dotenv()
+
+class MarketingStrategist:
+    def __init__(self, business_context=""):
+        self.api_key = os.getenv("OPENAI_API_KEY")
+        self.llm = None
+        self.memory = None
+        self.chain = None
+        
+        # Debug logging
+        if self.api_key:
+            print(f"✅ API Key found: {self.api_key[:10]}...{self.api_key[-4:]}")
+        else:
+            print("❌ API Key NOT found in environment variables")
+        
+        if self.api_key:
+            try:
+                print("🔄 Initializing ChatOpenAI with gpt-4o...")
+                self.llm = ChatOpenAI(
+                    model_name="gpt-4o-mini",
+                    openai_api_key=self.api_key,
+                    temperature=0.7
+                )
+                print("✅ LLM initialized successfully")
+            except Exception as e:
+                # Fallback or error handling
+                print(f"❌ Error initializing LLM: {e}")
+                self.llm = None
+        
+        self.memory = ConversationBufferMemory(return_messages=True)
+        self.business_context = business_context  # Store for later use
+        self.setup_chain(business_context)
+
+    def setup_chain(self, business_context=""):
+        # Initialize a default generic chain for general chat
+        if not self.llm:
+            return
+
+        system_prompt = "Eres un asistente experto en marketing digital. Ayuda al usuario con sus dudas sobre marketing y ventas."
+        
+        if business_context:
+            system_prompt += f"\n\nCONTEXTO DEL NEGOCIO:\n{business_context}\n\nUsa este contexto para dar respuestas personalizadas y específicas para este negocio."
+        
+        prompt = ChatPromptTemplate.from_messages([
+            SystemMessagePromptTemplate.from_template(system_prompt),
+            MessagesPlaceholder(variable_name="history"),
+            HumanMessagePromptTemplate.from_template("{input}")
+        ])
+
+        self.chain = ConversationChain(
+            llm=self.llm,
+            memory=self.memory,
+            prompt=prompt
+        )
+
+    def generate_strategy(self, business_info):
+        """
+        Generates the initial marketing strategy based on business info.
+        """
+        if not self.llm:
+            return "Error: No se detectó la API Key de OpenAI. Por favor configura tu .env."
+
+        # Format the system prompt with business info
+        buyer_persona_text = ""
+        if business_info.get('buyer_persona'):
+            buyer_persona_text = f"\n- Buyer Persona Base (expandir y profundizar): {business_info.get('buyer_persona')}"
+        
+        # Add business context if available
+        business_context_text = ""
+        if self.business_context:
+            business_context_text = f"\n\nCONTEXTO DEL NEGOCIO (Cerebro):\n{self.business_context}\n\nIMPORTANTE: Usa este contexto para personalizar toda la estrategia según la personalidad, tono de voz y valores del negocio.\n"
+        
+        system_prompt = f"""Eres un Estratega de Marketing Senior y Experto en Ventas B2B/B2C.
+Tu objetivo es crear un PLAN DE ACCIÓN DE VENTAS Y MARKETING de alto nivel, ultra-personalizado y orientado a resultados (Leads y Cierres).
+{business_context_text}
+INPUTS DEL CLIENTE:
+- Rubro: {business_info.get('rubro')}
+- Nombre: {business_info.get('nombre')}
+- Tipo: {business_info.get('tipo')}
+- Producto Estrella: {business_info.get('producto')}
+- Precio: {business_info.get('precio', 'No especificado')}
+- Meta: {business_info.get('meta')}
+- Presupuesto: {business_info.get('presupuesto')}
+- Modalidad de Venta: {business_info.get('modalidad_venta', 'No especificado')}
+- Sistema Actual: {business_info.get('sistema_actual', 'No especificado')}
+- Plataformas: {business_info.get('plataforma')}{buyer_persona_text}
+
+ESTRUCTURA DE RESPUESTA OBLIGATORIA (Usa EXACTAMENTE estos delimitadores):
+
+<<<SECTION_START: AVATAR>>>
+Genera 1 Avatar de Cliente Ideal MUY ESPECÍFICO (no genérico).
+Define: Nombre, Dolor Principal (Qué le quita el sueño), Objeciones Típicas y Vocabulario.
+Toda la estrategia siguiente debe basarse en ESTE avatar.
+
+<<<SECTION_START: EMBUDO_TOFU>>>
+Genera contenido TOFU (Descubrimiento) para Lunes y Jueves.
+Objetivo: Atrae atención, habla del problema.
+Incluye: Formato (Reel/Post), Gancho y CTA.
+
+<<<SECTION_START: EMBUDO_MOFU>>>
+Genera contenido MOFU (Consideración) para Martes y Viernes.
+Objetivo: Educa, muestra solución, casos de éxito.
+Incluye: Formato (Historia/Carrusel), Gancho y CTA.
+
+<<<SECTION_START: EMBUDO_BOFU>>>
+Genera contenido BOFU (Cierre) para Miércoles, Sábado y Domingo.
+Objetivo: Oferta directa, urgencia, venta.
+Incluye: Formato (Post Venta/Historia), Gancho y CTA.
+
+<<<SECTION_START: ADS_FRIO>>>
+🔥 TRÁFICO FRÍO
+Objetivo: Llegar a personas que NO te conocen pero tienen el dolor.
+Define:
+1. Objetivo de campaña (Mensajes/Leads).
+2. Ángulo Principal (Pain-Based Trigger).
+3. 7 Dolores a destacar.
+4. 3 Variaciones de Copy (Directo, Miedo, Aspiración).
+5. Ideas de Creativos (Video 15s, Imágenes).
+6. Segmentación Sugerida.
+7. Presupuesto sugerido: 50% del total ({business_info.get('presupuesto')} USD).
+8. CTA específico.
+
+<<<SECTION_START: ADS_TIBIO>>>
+🔥 TRÁFICO TIBIO – Retargeting
+Objetivo: Convertir interesados en prospectos.
+Define:
+1. Objetivo de campaña.
+2. Ángulo Principal (Prueba Social/Lógica).
+3. Dolores/Dudas a atacar.
+4. Copy persuasivo.
+5. Ideas de Creativos.
+6. Segmentación (Públicos personalizados).
+7. Presupuesto sugerido: 35% del total.
+8. CTA específico.
+
+<<<SECTION_START: ADS_CALIENTE>>>
+🔥 TRÁFICO CALIENTE – Cierre
+Objetivo: Cerrar ventas YA.
+Define:
+1. Objetivo de campaña.
+2. Ángulo Principal (Urgencia/Oferta).
+3. Beneficio final.
+4. Copy de Cierre directo.
+5. Ideas de Creativos.
+6. Segmentación (Checkout iniciado/Mensajes previos).
+7. Presupuesto sugerido: 15% del total.
+8. CTA específico.
+
+<<<SECTION_START: WHATSAPP_DIA1>>>
+🔵 DÍA 1 — Contacto + Diagnóstico Inteligente
+Objetivo: Romper el hielo.
+Texto del mensaje: Saludo + 2 Preguntas de diagnóstico.
+Respuestas condicionadas: Qué decir si responde A, B o C.
+IMPORTANTE: Usa párrafos separados para cada parte.
+
+<<<SECTION_START: WHATSAPP_DIA2>>>
+🟦 DÍA 2 — Aporte de Valor + Invitación a Demo
+Objetivo: Enseñar algo útil + agendar sin presión.
+Texto del mensaje: Dato curioso/Tip + Invitación suave.
+Respuestas condicionadas: Qué decir si acepta o rechaza.
+IMPORTANTE: Usa párrafos separados.
+
+<<<SECTION_START: WHATSAPP_DIA3>>>
+🟩 DÍA 3 — Prueba Social
+Objetivo: Activar confianza.
+Texto del mensaje: Mini caso de éxito real + CTA suave.
+Respuestas condicionadas: Qué decir si muestra interés.
+IMPORTANTE: Usa párrafos separados.
+
+<<<SECTION_START: WHATSAPP_DIA4>>>
+🟧 DÍA 4 — Objeción Principal + Reencuadre
+Objetivo: Atacar la objeción del avatar sin confrontar.
+Texto del mensaje: "Entiendo X..." + Reencuadre + Propuesta.
+Respuestas condicionadas: Manejo de la objeción específica.
+IMPORTANTE: Usa párrafos separados.
+
+<<<SECTION_START: WHATSAPP_DIA5>>>
+🟥 DÍA 5 — Urgencia Ligera
+Objetivo: Mover al tibio.
+Texto del mensaje: Cupos/Bono/Tiempo limitado.
+Respuestas condicionadas: Qué decir si pide info.
+IMPORTANTE: Usa párrafos separados.
+
+<<<SECTION_START: WHATSAPP_DIA6>>>
+🟪 DÍA 6 — Aporte de Valor Final
+Objetivo: Reforzar autoridad.
+Texto del mensaje: Recurso/Link útil + Mini cierre.
+Respuestas condicionadas: Qué decir si agradece.
+IMPORTANTE: Usa párrafos separados.
+
+<<<SECTION_START: WHATSAPP_DIA7>>>
+⬛ DÍA 7 — Cierre Elegante o Parking
+Objetivo: Definir o dejar puerta abierta.
+Texto del mensaje: Cierre final o "Plan de mejora gratis".
+Respuestas condicionadas: Qué decir si acepta el plan.
+IMPORTANTE: Usa párrafos separados.
+
+<<<SECTION_START: OBJECION_COSTO>>>
+OBJECIÓN: COSTO
+Genera la respuesta en párrafos separados:
+Pregunta: (La pregunta para indagar)
+
+Reframing: (Cambio de perspectiva)
+
+Propuesta: (Solución concreta)
+
+Mini Cierre: (Pregunta de cierre)
+
+<<<SECTION_START: OBJECION_TIEMPO>>>
+OBJECIÓN: TIEMPO
+Genera la respuesta en párrafos separados:
+Pregunta:
+
+Reframing:
+
+Propuesta:
+
+Mini Cierre:
+
+<<<SECTION_START: OBJECION_PERSONAL>>>
+OBJECIÓN: PERSONAL/SOCIOS
+Genera la respuesta en párrafos separados:
+Pregunta:
+
+Reframing:
+
+Propuesta:
+
+Mini Cierre:
+
+<<<SECTION_START: OBJECION_INTEGRACION>>>
+OBJECIÓN: INTEGRACIÓN/CAMBIO
+Genera la respuesta en párrafos separados:
+Pregunta:
+
+Reframing:
+
+Propuesta:
+
+Mini Cierre:
+
+<<<SECTION_START: OBJECION_MIEDO>>>
+OBJECIÓN: MIEDO/DESCONFIANZA
+Genera la respuesta en párrafos separados:
+Pregunta:
+
+Reframing:
+
+Propuesta:
+
+Mini Cierre:
+
+<<<SECTION_START: ACCIONES_DIARIAS>>>
+🔥 CHECKLIST DE ACCIONES DIARIAS
+Genera una rutina de alto rendimiento con:
+1. Contactar 5 nuevos (Mensajes plantilla).
+2. Seguimiento a 3 tibios (Mensajes plantilla).
+3. Publicar 1 historia (Ideas).
+4. Revisar métricas (Qué mirar).
+5. Agendar/Hacer 1 Demo (Estructura).
+Incluye Micro-Métricas para cada punto.
+
+<<<SECTION_START: METRICAS>>>
+🔥 MÉTRICAS Y OPTIMIZACIÓN
+Genera CADA métrica como un bloque separado con su título exacto.
+IMPORTANTE: Dentro de cada métrica, usa PÁRRAFOS SEPARADOS para cada punto:
+
+### Costo por Lead
+Definición y Valor Ideal.
+
+Umbral de Alerta.
+
+Acción de Mejora Inmediata.
+
+Acción de Escalamiento.
+
+### Tasa de Cierre
+Definición y Valor Ideal.
+
+Umbral de Alerta.
+
+Acción de Mejora Inmediata.
+
+Acción de Escalamiento.
+
+### Tasa de Conversión
+Definición y Valor Ideal.
+
+Umbral de Alerta.
+
+Acción de Mejora Inmediata.
+
+Acción de Escalamiento.
+
+### Engagement
+Definición y Valor Ideal.
+
+Umbral de Alerta.
+
+Acción de Mejora Inmediata.
+
+Acción de Escalamiento.
+
+
+REGLAS DE ORO:
+- NUNCA uses placeholders. Genera contenido REAL y ESPECÍFICO para el rubro {business_info.get('rubro')}.
+- Habla con autoridad pero empatía.
+- Enfócate en VENTAS y RESULTADOS ($$$).
+- Adapta todo al Sistema Actual ({business_info.get('sistema_actual')}) y Modalidad ({business_info.get('modalidad_venta')}).
+"""
+        
+        prompt = ChatPromptTemplate.from_messages([
+            SystemMessagePromptTemplate.from_template(system_prompt),
+            MessagesPlaceholder(variable_name="history"),
+            HumanMessagePromptTemplate.from_template("{input}")
+        ])
+
+        # Re-initialize chain with the specific system prompt for this strategy
+        self.chain = ConversationChain(
+            llm=self.llm,
+            memory=self.memory,
+            prompt=prompt
+        )
+
+        input_text = "Genera la estrategia completa ahora."
+        
+        try:
+            response = self.chain.predict(input=input_text)
+            
+            # After generating strategy, restore the original chat chain with business context
+            # This ensures subsequent chat interactions have the business context
+            self.setup_chain(self.business_context)
+            
+            return response
+        except Exception as e:
+            return f"Ocurrió un error al generar la estrategia: {str(e)}"
+
+    def chat(self, user_input):
+        """
+        Continues the conversation with the user.
+        """
+        if not self.llm:
+            return "Error: No se detectó la API Key de OpenAI."
+        
+        try:
+            response = self.chain.predict(input=user_input)
+            return response
+        except Exception as e:
+            return f"Ocurrió un error en el chat: {str(e)}"

@@ -5,6 +5,7 @@ from pdf_gen import generate_pdf
 import time
 from datetime import datetime, timedelta
 import urllib.parse
+from pages import login_page as new_login_page
 
 # Page Config
 st.set_page_config(page_title="Generador MiPymesIA", page_icon="🚀", layout="wide")
@@ -1668,7 +1669,7 @@ def pricing_page():
 if not st.session_state.authenticated:
     # Route to different pages
     if st.session_state.page == 'login':
-        login_page()
+        new_login_page.render()
     elif st.session_state.page == 'login_form':
         login_form_page()
     elif st.session_state.page == 'register':
