@@ -599,6 +599,18 @@ INSTRUCCIONES:
             st.session_state[chat_key].append({"role": "assistant", "content": response})
             st.rerun()
 
+# Helper to parse sections
+def get_section_content(text, section_name):
+    try:
+        start_marker = f"<<<SECTION_START: {section_name}>>>"
+        parts = text.split(start_marker)
+        if len(parts) > 1:
+            content = parts[1].split("<<<SECTION_START:")[0].strip()
+            return content
+        return "Contenido no disponible."
+    except Exception:
+        return "Error al cargar contenido."
+
 def wizard_page():
     st.title("🚀 Generador MiPymesIA")
     st.caption("Estrategias de Marketing y de Publicidad")
@@ -843,7 +855,7 @@ def wizard_page():
                         def on_section_complete(section_name, section_content, section_num, total):
                             """Callback called after each section is generated"""
                             # Update loader with current section and step count
-                            update_loader(f"✅ {section_name} (PASO {section_num} DE {total})", section_num)
+                            update_loader(f"✅ Generando {section_name}...", section_num)
                             
                             # Show preview of completed sections
                             with progress_container.container():
@@ -909,17 +921,7 @@ def wizard_page():
         st.rerun()
 
     elif st.session_state.step == 3:
-        # Helper to parse sections
-        def get_section_content(text, section_name):
-            try:
-                start_marker = f"<<<SECTION_START: {section_name}>>>"
-                parts = text.split(start_marker)
-                if len(parts) > 1:
-                    content = parts[1].split("<<<SECTION_START:")[0].strip()
-                    return content
-                return "Contenido no disponible."
-            except Exception:
-                return "Error al cargar contenido."
+
 
         strategy_text = st.session_state.strategy_result
         
