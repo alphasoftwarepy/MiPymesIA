@@ -992,6 +992,181 @@ def business_brain_page():
             time.sleep(1)
             st.rerun()
 
+def chat_page():
+    """Modern Claude-style chat interface"""
+    
+    # Custom CSS for modern chat design
+    st.markdown("""
+    <style>
+    /* Main chat container */
+    .main .block-container {
+        max-width: 900px;
+        padding-top: 2rem;
+        padding-bottom: 2rem;
+    }
+    
+    /* Chat messages */
+    .stChatMessage {
+        background-color: transparent;
+        border-radius: 12px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
+    }
+    
+    /* User messages */
+    [data-testid="stChatMessageContent"] {
+        background-color: #f8f9fa;
+        border-radius: 12px;
+        padding: 1rem 1.5rem;
+    }
+    
+    /* Assistant messages */
+    .stChatMessage[data-testid="assistant"] {
+        background-color: transparent;
+    }
+    
+    /* Input area */
+    .stChatInputContainer {
+        border-top: 1px solid #e0e0e0;
+        padding-top: 1rem;
+        background-color: white;
+    }
+    
+    /* Scrollbar */
+    ::-webkit-scrollbar {
+        width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+        background: #f1f1f1;
+    }
+    
+    ::-webkit-scrollbar-thumb {
+        background: #888;
+        border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+        background: #555;
+    }
+    
+    /* Header styling */
+    h1 {
+        color: #1a5276;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+    }
+    
+    /* Welcome message */
+    .welcome-card {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem;
+        border-radius: 16px;
+        margin-bottom: 2rem;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    .welcome-card h2 {
+        color: white;
+        margin-bottom: 0.5rem;
+    }
+    
+    .welcome-card p {
+        color: rgba(255,255,255,0.9);
+        font-size: 1.05rem;
+    }
+    
+    /* Suggestion chips */
+    .suggestion-chip {
+        display: inline-block;
+        background-color: #f0f2f6;
+        border: 1px solid #e0e0e0;
+        border-radius: 20px;
+        padding: 0.5rem 1rem;
+        margin: 0.25rem;
+        font-size: 0.9rem;
+        color: #333;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+    
+    .suggestion-chip:hover {
+        background-color: #e0e0e0;
+        border-color: #3498db;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
+    # Header
+    st.title("💬 MiPymes IA")
+    st.caption("Tu asistente de marketing inteligente")
+    
+    # Initialize chat history if not exists
+    if 'chat_messages' not in st.session_state:
+        st.session_state.chat_messages = []
+    
+    # Welcome message if no chat history
+    if len(st.session_state.chat_messages) == 0:
+        st.markdown("""
+        <div class="welcome-card">
+            <h2>👋 ¡Hola! Soy tu asistente de marketing</h2>
+            <p>Estoy aquí para ayudarte con estrategias de marketing, publicidad, ventas y todo lo relacionado con hacer crecer tu negocio.</p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Suggestion chips
+        st.markdown("**💡 Prueba preguntarme sobre:**")
+        col1, col2, col3 = st.columns(3)
+        
+        suggestions = [
+            "¿Cómo mejorar mis ventas?",
+            "Ideas para redes sociales",
+            "Estrategia de contenido",
+            "Campañas de Facebook Ads",
+            "Embudos de venta",
+            "Email marketing efectivo"
+        ]
+        
+        for i, suggestion in enumerate(suggestions):
+            with [col1, col2, col3][i % 3]:
+                if st.button(suggestion, key=f"suggestion_{i}", use_container_width=True):
+                    # Add suggestion to chat
+                    st.session_state.chat_messages.append({"role": "user", "content": suggestion})
+                    with st.spinner("Pensando..."):
+                        response = st.session_state.ai_agent.chat(suggestion)
+                    st.session_state.chat_messages.append({"role": "assistant", "content": response})
+                    st.rerun()
+    
+    # Display chat messages
+    for message in st.session_state.chat_messages:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+    
+    # Chat input
+    if prompt := st.chat_input("Escribe tu pregunta aquí..."):
+        # Add user message
+        st.session_state.chat_messages.append({"role": "user", "content": prompt})
+        with st.chat_message("user"):
+            st.markdown(prompt)
+        
+        # Generate response
+        with st.chat_message("assistant"):
+            with st.spinner("Pensando..."):
+                response = st.session_state.ai_agent.chat(prompt)
+            st.markdown(response)
+        
+        # Add assistant message
+        st.session_state.chat_messages.append({"role": "assistant", "content": response})
+    
+    # Clear chat button in sidebar
+    with st.sidebar:
+        st.divider()
+        if st.button("🗑️ Limpiar Conversación", use_container_width=True):
+            st.session_state.chat_messages = []
+            st.rerun()
+
+
 def pricing_page():
     """Professional pricing page with attractive card design"""
     # Top navigation bar
@@ -1205,14 +1380,16 @@ else:
         # Page Routing
         if st.session_state.user.get('is_admin', False):
             with st.sidebar:
-                 page = st.radio("Modo", ["Generador", "Cerebro del Negocio", "Admin Panel"])
+                 page = st.radio("Modo", ["Generador", "Cerebro del Negocio", "MiPymes IA", "Admin Panel"])
         else:
             with st.sidebar:
-                page = st.radio("Menú", ["Generador", "Cerebro del Negocio"])
+                page = st.radio("Menú", ["Generador", "Cerebro del Negocio", "MiPymes IA"])
         
         if page == "Generador":
             wizard_page()
         elif page == "Cerebro del Negocio":
             business_brain_page()
+        elif page == "MiPymes IA":
+            chat_page()
         elif page == "Admin Panel":
             admin_panel()
