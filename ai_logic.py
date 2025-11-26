@@ -84,9 +84,10 @@ class MarketingStrategist:
         if business_info.get('buyer_persona'):
             buyer_persona_text = f"\n- Buyer Persona Base (expandir y profundizar): {business_info.get('buyer_persona')}"
         
-        business_context_text = ""
-        if self.business_context:
-            business_context_text = f"\n\nCONTEXTO DEL NEGOCIO (Cerebro):\n{self.business_context}\n\nIMPORTANTE: Usa este contexto para personalizar toda la estrategia según la personalidad, tono de voz y valores del negocio.\n"
+        # OPTIMIZATION: Removed business_context from strategy generation for speed
+        # business_context_text = ""
+        # if self.business_context:
+        #     business_context_text = f"\n\nCONTEXTO DEL NEGOCIO (Cerebro):\n{self.business_context}\n\nIMPORTANTE: Usa este contexto para personalizar toda la estrategia según la personalidad, tono de voz y valores del negocio.\n"
         
         base_info = f"""INPUTS DEL CLIENTE:
 - Rubro: {business_info.get('rubro')}
@@ -98,8 +99,7 @@ class MarketingStrategist:
 - Presupuesto: {business_info.get('presupuesto')}
 - Modalidad de Venta: {business_info.get('modalidad_venta', 'No especificado')}
 - Sistema Actual: {business_info.get('sistema_actual', 'No especificado')}
-- Plataformas: {business_info.get('plataforma')}{buyer_persona_text}
-{business_context_text}"""
+- Plataformas: {business_info.get('plataforma')}{buyer_persona_text}"""
         
         # Define section prompts
         section_prompts = {
@@ -281,9 +281,10 @@ Sé CONCISO."""
         if business_info.get('buyer_persona'):
             buyer_persona_text = f"\n- Buyer Persona Base (expandir y profundizar): {business_info.get('buyer_persona')}"
         
-        business_context_text = ""
-        if self.business_context:
-            business_context_text = f"\n\nCONTEXTO DEL NEGOCIO (Cerebro):\n{self.business_context}\n\nIMPORTANTE: Usa este contexto para personalizar toda la estrategia según la personalidad, tono de voz y valores del negocio.\n"
+        # OPTIMIZATION: Removed business_context from strategy generation for speed
+        # business_context_text = ""
+        # if self.business_context:
+        #     business_context_text = f"\n\nCONTEXTO DEL NEGOCIO (Cerebro):\n{self.business_context}\n\nIMPORTANTE: Usa este contexto para personalizar toda la estrategia según la personalidad, tono de voz y valores del negocio.\n"
         
         base_info = f"""INPUTS DEL CLIENTE:
 - Rubro: {business_info.get('rubro')}
@@ -295,8 +296,7 @@ Sé CONCISO."""
 - Presupuesto: {business_info.get('presupuesto')}
 - Modalidad de Venta: {business_info.get('modalidad_venta', 'No especificado')}
 - Sistema Actual: {business_info.get('sistema_actual', 'No especificado')}
-- Plataformas: {business_info.get('plataforma')}{buyer_persona_text}
-{business_context_text}"""
+- Plataformas: {business_info.get('plataforma')}{buyer_persona_text}"""
         
         # Define sections to generate
         sections = [
