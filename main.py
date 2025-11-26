@@ -597,6 +597,7 @@ def wizard_page():
         # Add custom CSS for better styling
         st.markdown("""
         <style>
+        /* Custom Button Styling */
         .stButton>button {
             border-radius: 10px;
             font-weight: bold;
