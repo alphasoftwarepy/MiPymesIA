@@ -822,22 +822,7 @@ def wizard_page():
 
                         # Step 1
                         update_loader("🚀 Iniciando motor de IA...", 1)
-                        time.sleep(0.5)
-                        
-                        # Step 2
-                        update_loader("🔌 Conectando con base de conocimientos...", 2)
-                        time.sleep(0.5)
-                        
-                        # Step 3
-                        update_loader("🧠 Analizando perfil del negocio...", 3)
-                        time.sleep(0.5)
-                        
-                        # Step 4
-                        update_loader("🔍 Investigando tendencias del mercado...", 4)
-                        time.sleep(0.5)
-                        
-                        # Step 5
-                        update_loader("💡 Diseñando estrategia personalizada...", 5)
+                        time.sleep(0.3)
                         
                         business_info = {
                             "rubro": rubro,
@@ -853,19 +838,44 @@ def wizard_page():
                             "buyer_persona": buyer_persona if buyer_persona else None
                         }
                         
-                        # Generate strategy
-                        result = st.session_state.ai_agent.generate_strategy(business_info)
+                        # Create progress container
+                        progress_container = st.empty()
+                        sections_completed = []
+                        
+                        def on_section_complete(section_name, section_content, section_num, total):
+                            """Callback called after each section is generated"""
+                            sections_completed.append((section_name, section_content))
+                            
+                            # Update loader with current section
+                            update_loader(f"✅ {section_name}", section_num)
+                            
+                            # Show preview of completed sections
+                            with progress_container.container():
+                                st.markdown(f"### 🎯 Progreso: {section_num}/{total} secciones completadas")
+                                st.progress(section_num / total)
+                                
+                                # Show last completed section preview
+                                with st.expander(f"✅ {section_name} - Completado", expanded=False):
+                                    preview = section_content[:500] + "..." if len(section_content) > 500 else section_content
+                                    st.markdown(preview)
+                        
+                        # Generate strategy progressively
+                        result = st.session_state.ai_agent.generate_strategy_progressive(
+                            business_info, 
+                            on_section_complete
+                        )
                         
                         # Check if result is an error message
                         if result and result.startswith("Error:"):
                             overlay_placeholder.empty()
+                            progress_container.empty()
                             st.error(result)
                             st.warning("💡 **Posible solución:** Verifica que la variable de entorno OPENAI_API_KEY esté configurada en Easypanel.")
                             st.stop()
                         
-                        # Step 6
-                        update_loader("✨ Finalizando detalles...", 6)
-                        time.sleep(1)
+                        # Final step
+                        update_loader("✨ Finalizando detalles...", 7)
+                        time.sleep(0.5)
                         
                         st.session_state.strategy_result = result
                         st.session_state.business_info = business_info
@@ -875,6 +885,7 @@ def wizard_page():
                         st.session_state.user['requests_today'] = user.get('requests_today', 0) + 1
                         
                         overlay_placeholder.empty()
+                        progress_container.empty()
                         st.rerun()
                         
                     except Exception as e:
