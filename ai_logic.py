@@ -308,17 +308,6 @@ Sé CONCISO."""
 
 Genera 1 Avatar de Cliente Ideal MUY ESPECÍFICO (no genérico) para este negocio.
 Define:
-- Nombre del Avatar
-- Dolor Principal (Qué le quita el sueño)
-- Objeciones Típicas
-- Vocabulario que usa
-
-Responde SOLO con el contenido del avatar, sin delimitadores."""
-            },
-            {
-                "name": "Embudo de Contenido",
-                "marker": "EMBUDO",
-                "prompt": f"""Eres un Estratega de Marketing Senior.
 {base_info}
 
 Genera un EMBUDO DE CONTENIDO SEMANAL completo con 3 niveles:
@@ -597,7 +586,7 @@ Genera métricas REALES y ESPECÍFICAS para {business_info.get('rubro')}."""
                 section_content = response.content
                 
                 # Add section marker for parsing
-                if section["marker"] == "AVATAR":
+                if section["marker"] in ["AVATAR", "ACCIONES_DIARIAS", "METRICAS"]:
                     complete_strategy += f"<<<SECTION_START: {section['marker']}>>>\n{section_content}\n\n"
                 else:
                     # For multi-part sections, content already has markers

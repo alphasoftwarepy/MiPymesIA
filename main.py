@@ -827,13 +827,13 @@ def wizard_page():
                                 <div class="loader-card">
                                     <img src="data:image/png;base64,{loader_b64}" class="custom-loader">
                                     <div class="loading-text">{text}</div>
-                                    <div class="step-text">PASO {step} DE 6</div>
+                                    <div class="step-text">PASO {step} DE 7</div>
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)
 
                         # Step 1
-                        update_loader("⏳ Generando Avatar de Cliente... (1/7)", 1)
+                        update_loader("⏳ Generando Avatar de Cliente...", 1)
                         
                         business_info = {
                             "rubro": rubro,
