@@ -898,69 +898,52 @@ def wizard_page():
 
         strategy_text = st.session_state.strategy_result
         
-        # Helper function to load section on-demand or show loading status
+        # Helper function to load section on-demand
         def load_section_on_demand(section_name):
-            """Generates a section on-demand if not already generated, or shows loading status"""
+            """Generates a section on-demand if not already generated"""
             if 'sections_generated' not in st.session_state:
                 st.session_state.sections_generated = {}
             
-            if 'sections_loading' not in st.session_state:
-                st.session_state.sections_loading = set()
-            
-            # If section is currently being loaded in background
-            if section_name in st.session_state.sections_loading:
-                st.info("⏳ Esta sección se está generando en este momento. Actualiza en unos segundos...")
-                return None
-            
             # If section is not generated yet, generate it now
             if section_name not in st.session_state.sections_generated:
-                st.session_state.sections_loading.add(section_name)
-                
                 with st.spinner(f"⏳ Generando {section_name}..."):
-                    content = st.session_state.ai_agent.generate_section(section_name, st.session_state.business_info)
-                    st.session_state.sections_generated[section_name] = content
-                    
-                    # Update strategy_result to include this section
-                    if section_name == "AVATAR":
-                        st.session_state.strategy_result += f"<<<SECTION_START: {section_name}>>>\n{content}\n\n"
-                    else:
-                        st.session_state.strategy_result += content + "\n\n"
-                
-                st.session_state.sections_loading.discard(section_name)
-                st.rerun()
+                    try:
+                        content = st.session_state.ai_agent.generate_section(section_name, st.session_state.business_info)
+                        st.session_state.sections_generated[section_name] = content
+                        
+                        # Update strategy_result to include this section
+                        if section_name == "AVATAR":
+                            st.session_state.strategy_result += f"<<<SECTION_START: {section_name}>>>\n{content}\n\n"
+                        else:
+                            st.session_state.strategy_result += content + "\n\n"
+                            
+                        st.rerun()
+                    except Exception as e:
+                        st.error(f"Error generando {section_name}: {str(e)}")
+                        return None
             
             return st.session_state.sections_generated.get(section_name)
         
         # Auto-load sections in background after Avatar is ready
-        if 'auto_load_started' not in st.session_state:
-            st.session_state.auto_load_started = False
-        
-        if not st.session_state.auto_load_started and 'AVATAR' in st.session_state.sections_generated:
-            st.session_state.auto_load_started = True
-            
+        # This runs sequentially: Load one -> Rerun -> Load next -> Rerun
+        if 'AVATAR' in st.session_state.sections_generated:
             # Define sections to auto-load in order
             sections_to_load = ["EMBUDO", "ADS", "WHATSAPP", "OBJECIONES", "ACCIONES_DIARIAS", "METRICAS"]
             
-            # Load one section at a time in background
             for section in sections_to_load:
                 if section not in st.session_state.sections_generated:
-                    # Mark as loading
-                    if 'sections_loading' not in st.session_state:
-                        st.session_state.sections_loading = set()
-                    st.session_state.sections_loading.add(section)
-                    
-                    # Generate in background
-                    try:
-                        content = st.session_state.ai_agent.generate_section(section, st.session_state.business_info)
-                        st.session_state.sections_generated[section] = content
-                        st.session_state.strategy_result += content + "\n\n"
-                    except Exception as e:
-                        st.session_state.sections_generated[section] = f"Error: {str(e)}"
-                    finally:
-                        st.session_state.sections_loading.discard(section)
-                    
-                    # Only load one section per page load, then rerun to continue
-                    st.rerun()
+                    # We found a missing section. Generate it immediately.
+                    # This effectively blocks the UI for this generation, then reruns.
+                    # The user sees the page, then the spinner appears for the next section.
+                    with st.spinner(f"⚡ Generando automáticamente: {section}..."):
+                        try:
+                            content = st.session_state.ai_agent.generate_section(section, st.session_state.business_info)
+                            st.session_state.sections_generated[section] = content
+                            st.session_state.strategy_result += content + "\n\n"
+                            st.rerun()
+                        except Exception as e:
+                            # If error, mark as error so we don't retry infinitely
+                            st.session_state.sections_generated[section] = f"Error: {str(e)}"
                     break
         
         # Sidebar Navigation

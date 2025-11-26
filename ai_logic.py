@@ -113,249 +113,135 @@ Define:
 - Objeciones Típicas
 - Vocabulario que usa
 
-Responde SOLO con el contenido del avatar, sin delimitadores.""",
+IMPORTANTE: Responde ÚNICAMENTE con la información del Avatar. NO generes embudos, ni ads, ni ninguna otra sección. SOLO EL AVATAR.""",
             
             "EMBUDO": f"""Eres un Estratega de Marketing Senior.
 {base_info}
 
-Genera un EMBUDO DE CONTENIDO SEMANAL completo con 3 niveles:
+Genera un EMBUDO DE CONTENIDO SEMANAL (3 niveles):
 
 <<<SECTION_START: EMBUDO_TOFU>>>
 TOFU (Descubrimiento) - Lunes y Jueves
-Objetivo: Atrae atención, habla del problema.
-Incluye: Formato (Reel/Post), Gancho y CTA.
+Objetivo: Atrae atención.
+Incluye: Formato, Gancho y CTA.
 
 <<<SECTION_START: EMBUDO_MOFU>>>
 MOFU (Consideración) - Martes y Viernes
-Objetivo: Educa, muestra solución, casos de éxito.
-Incluye: Formato (Historia/Carrusel), Gancho y CTA.
+Objetivo: Educa y muestra solución.
+Incluye: Formato, Gancho y CTA.
 
 <<<SECTION_START: EMBUDO_BOFU>>>
 BOFU (Cierre) - Miércoles, Sábado y Domingo
-Objetivo: Oferta directa, urgencia, venta.
-Incluye: Formato (Post Venta/Historia), Gancho y CTA.
+Objetivo: Venta directa.
+Incluye: Formato, Gancho y CTA.
 
-Genera contenido REAL y ESPECÍFICO para {business_info.get('rubro')}.""",
+Sé CONCISO y DIRECTO. Contenido específico para {business_info.get('rubro')}.""",
             
-            "ADS": f"""Eres un Estratega de Marketing Senior especializado en publicidad digital.
+            "ADS": f"""Eres un Estratega de Ads.
 {base_info}
 
-Genera una ESTRATEGIA DE ADS COMPLETA con 3 niveles de tráfico:
+Genera ESTRATEGIA DE ADS (3 niveles):
 
 <<<SECTION_START: ADS_FRIO>>>
 🔥 TRÁFICO FRÍO
-Objetivo: Llegar a personas que NO te conocen pero tienen el dolor.
-Define:
-1. Objetivo de campaña (Mensajes/Leads)
-2. Ángulo Principal (Pain-Based Trigger)
-3. 7 Dolores a destacar
-4. 3 Variaciones de Copy (Directo, Miedo, Aspiración)
-5. Ideas de Creativos (Video 15s, Imágenes)
-6. Segmentación Sugerida
-7. Presupuesto sugerido: 50% del total ({business_info.get('presupuesto')} USD)
-8. CTA específico
+Objetivo: Atraer desconocidos.
+Define: Objetivo, Ángulo (Dolor), 3 Variaciones Copy, Creativos, Segmentación, Presupuesto (50%).
 
 <<<SECTION_START: ADS_TIBIO>>>
-🔥 TRÁFICO TIBIO – Retargeting
-Objetivo: Convertir interesados en prospectos.
-Define:
-1. Objetivo de campaña
-2. Ángulo Principal (Prueba Social/Lógica)
-3. Dolores/Dudas a atacar
-4. Copy persuasivo
-5. Ideas de Creativos
-6. Segmentación (Públicos personalizados)
-7. Presupuesto sugerido: 35% del total
-8. CTA específico
+🔥 TRÁFICO TIBIO
+Objetivo: Retargeting.
+Define: Objetivo, Ángulo (Prueba Social), Copy, Creativos, Segmentación, Presupuesto (35%).
 
 <<<SECTION_START: ADS_CALIENTE>>>
-🔥 TRÁFICO CALIENTE – Cierre
-Objetivo: Cerrar ventas YA.
-Define:
-1. Objetivo de campaña
-2. Ángulo Principal (Urgencia/Oferta)
-3. Beneficio final
-4. Copy de Cierre directo
-5. Ideas de Creativos
-6. Segmentación (Checkout iniciado/Mensajes previos)
-7. Presupuesto sugerido: 15% del total
-8. CTA específico
+🔥 TRÁFICO CALIENTE
+Objetivo: Cierre.
+Define: Objetivo, Ángulo (Urgencia), Copy Cierre, Creativos, Segmentación, Presupuesto (15%).
 
-Genera contenido REAL y ESPECÍFICO para {business_info.get('rubro')}.""",
+Sé CONCISO. Contenido específico para {business_info.get('rubro')}.""",
             
-            "WHATSAPP": f"""Eres un Estratega de Ventas especializado en conversaciones de WhatsApp.
+            "WHATSAPP": f"""Eres un Estratega de Ventas.
 {base_info}
 
-Genera un FLUJO DE WHATSAPP DE 7 DÍAS completo:
+Genera FLUJO WHATSAPP 7 DÍAS:
 
 <<<SECTION_START: WHATSAPP_DIA1>>>
-🔵 DÍA 1 — Contacto + Diagnóstico Inteligente
-Objetivo: Romper el hielo.
-Texto del mensaje: Saludo + 2 Preguntas de diagnóstico.
-Respuestas condicionadas: Qué decir si responde A, B o C.
+🔵 DÍA 1: Contacto + Diagnóstico.
+Mensaje: Saludo + 2 preguntas clave.
 
 <<<SECTION_START: WHATSAPP_DIA2>>>
-🟦 DÍA 2 — Aporte de Valor + Invitación a Demo
-Objetivo: Enseñar algo útil + agendar sin presión.
-Texto del mensaje: Dato curioso/Tip + Invitación suave.
-Respuestas condicionadas: Qué decir si acepta o rechaza.
+🟦 DÍA 2: Valor + Invitación.
+Mensaje: Tip útil + invitación suave.
 
 <<<SECTION_START: WHATSAPP_DIA3>>>
-🟩 DÍA 3 — Prueba Social
-Objetivo: Activar confianza.
-Texto del mensaje: Mini caso de éxito real + CTA suave.
-Respuestas condicionadas: Qué decir si muestra interés.
+🟩 DÍA 3: Prueba Social.
+Mensaje: Caso éxito breve + CTA.
 
 <<<SECTION_START: WHATSAPP_DIA4>>>
-🟧 DÍA 4 — Objeción Principal + Reencuadre
-Objetivo: Atacar la objeción del avatar sin confrontar.
-Texto del mensaje: "Entiendo X..." + Reencuadre + Propuesta.
-Respuestas condicionadas: Manejo de la objeción específica.
+🟧 DÍA 4: Objeción.
+Mensaje: Reencuadre de objeción principal.
 
 <<<SECTION_START: WHATSAPP_DIA5>>>
-🟥 DÍA 5 — Urgencia Ligera
-Objetivo: Mover al tibio.
-Texto del mensaje: Cupos/Bono/Tiempo limitado.
-Respuestas condicionadas: Qué decir si pide info.
+🟥 DÍA 5: Urgencia.
+Mensaje: Cupos/Tiempo limitado.
 
 <<<SECTION_START: WHATSAPP_DIA6>>>
-🟪 DÍA 6 — Aporte de Valor Final
-Objetivo: Reforzar autoridad.
-Texto del mensaje: Recurso/Link útil + Mini cierre.
-Respuestas condicionadas: Qué decir si agradece.
+🟪 DÍA 6: Valor Final.
+Mensaje: Recurso extra + mini cierre.
 
 <<<SECTION_START: WHATSAPP_DIA7>>>
-⬛ DÍA 7 — Cierre Elegante o Parking
-Objetivo: Definir o dejar puerta abierta.
-Texto del mensaje: Cierre final o "Plan de mejora gratis".
-Respuestas condicionadas: Qué decir si acepta el plan.
+⬛ DÍA 7: Cierre/Parking.
+Mensaje: Última llamada o despedida elegante.
 
-Genera mensajes REALES y ESPECÍFICOS para {business_info.get('rubro')}.""",
+Sé CONCISO. Mensajes listos para copiar y pegar.""",
             
-            "OBJECIONES": f"""Eres un Estratega de Ventas especializado en manejo de objeciones.
+            "OBJECIONES": f"""Eres un Estratega de Ventas.
 {base_info}
 
-Genera respuestas para las 5 OBJECIONES PRINCIPALES:
+Responde a 5 OBJECIONES (Pregunta, Reframing, Propuesta, Cierre):
 
 <<<SECTION_START: OBJECION_COSTO>>>
 OBJECIÓN: COSTO
-Genera la respuesta en párrafos separados:
-Pregunta: (La pregunta para indagar)
-
-Reframing: (Cambio de perspectiva)
-
-Propuesta: (Solución concreta)
-
-Mini Cierre: (Pregunta de cierre)
 
 <<<SECTION_START: OBJECION_TIEMPO>>>
 OBJECIÓN: TIEMPO
-Genera la respuesta en párrafos separados:
-Pregunta:
-
-Reframing:
-
-Propuesta:
-
-Mini Cierre:
 
 <<<SECTION_START: OBJECION_PERSONAL>>>
 OBJECIÓN: PERSONAL/SOCIOS
-Genera la respuesta en párrafos separados:
-Pregunta:
-
-Reframing:
-
-Propuesta:
-
-Mini Cierre:
 
 <<<SECTION_START: OBJECION_INTEGRACION>>>
 OBJECIÓN: INTEGRACIÓN/CAMBIO
-Genera la respuesta en párrafos separados:
-Pregunta:
-
-Reframing:
-
-Propuesta:
-
-Mini Cierre:
 
 <<<SECTION_START: OBJECION_MIEDO>>>
 OBJECIÓN: MIEDO/DESCONFIANZA
-Genera la respuesta en párrafos separados:
-Pregunta:
 
-Reframing:
-
-Propuesta:
-
-Mini Cierre:
-
-Genera respuestas REALES y ESPECÍFICAS para {business_info.get('rubro')}.""",
+Sé CONCISO y PERSUASIVO.""",
             
-            "ACCIONES_DIARIAS": f"""Eres un Estratega de Ventas especializado en rutinas de alto rendimiento.
+            "ACCIONES_DIARIAS": f"""Eres un Estratega de Productividad.
 {base_info}
 
-Genera un CHECKLIST DE ACCIONES DIARIAS:
+Genera CHECKLIST DIARIO DE VENTAS:
+1. Prospección (Nuevos)
+2. Seguimiento (Tibios)
+3. Contenido (Historia)
+4. Métricas
+5. Cierres
 
-🔥 CHECKLIST DE ACCIONES DIARIAS
-Genera una rutina de alto rendimiento con:
-1. Contactar 5 nuevos (Mensajes plantilla)
-2. Seguimiento a 3 tibios (Mensajes plantilla)
-3. Publicar 1 historia (Ideas)
-4. Revisar métricas (Qué mirar)
-5. Agendar/Hacer 1 Demo (Estructura)
-
-Incluye Micro-Métricas para cada punto.
-Genera contenido REAL y ESPECÍFICO para {business_info.get('rubro')}.""",
+Incluye micro-métricas. Sé BREVE y ACCIONABLE.""",
             
-            "METRICAS": f"""Eres un Estratega de Marketing especializado en métricas y optimización.
+            "METRICAS": f"""Eres un Analista de Marketing.
 {base_info}
 
-Genera MÉTRICAS Y OPTIMIZACIÓN:
-
-🔥 MÉTRICAS Y OPTIMIZACIÓN
-Genera CADA métrica como un bloque separado con su título exacto.
-IMPORTANTE: Dentro de cada métrica, usa PÁRRAFOS SEPARADOS para cada punto:
+Genera MÉTRICAS CLAVE (Definición, Meta, Acción Mejora):
 
 ### Costo por Lead
-Definición y Valor Ideal.
-
-Umbral de Alerta.
-
-Acción de Mejora Inmediata.
-
-Acción de Escalamiento.
 
 ### Tasa de Cierre
-Definición y Valor Ideal.
-
-Umbral de Alerta.
-
-Acción de Mejora Inmediata.
-
-Acción de Escalamiento.
 
 ### Tasa de Conversión
-Definición y Valor Ideal.
-
-Umbral de Alerta.
-
-Acción de Mejora Inmediata.
-
-Acción de Escalamiento.
 
 ### Engagement
-Definición y Valor Ideal.
 
-Umbral de Alerta.
-
-Acción de Mejora Inmediata.
-
-Acción de Escalamiento.
-
-Genera métricas REALES y ESPECÍFICAS para {business_info.get('rubro')}."""
+Sé CONCISO."""
         }
         
         if section_name not in section_prompts:
