@@ -40,6 +40,7 @@ class MarketingStrategist:
                 self.llm = None
         
         self.memory = ConversationBufferMemory(return_messages=True)
+        self.business_context = business_context  # Store for later use
         self.setup_chain(business_context)
 
     def setup_chain(self, business_context=""):
@@ -76,9 +77,14 @@ class MarketingStrategist:
         if business_info.get('buyer_persona'):
             buyer_persona_text = f"\n- Buyer Persona Base (expandir y profundizar): {business_info.get('buyer_persona')}"
         
+        # Add business context if available
+        business_context_text = ""
+        if self.business_context:
+            business_context_text = f"\n\nCONTEXTO DEL NEGOCIO (Cerebro):\n{self.business_context}\n\nIMPORTANTE: Usa este contexto para personalizar toda la estrategia según la personalidad, tono de voz y valores del negocio.\n"
+        
         system_prompt = f"""Eres un Estratega de Marketing Senior y Experto en Ventas B2B/B2C.
 Tu objetivo es crear un PLAN DE ACCIÓN DE VENTAS Y MARKETING de alto nivel, ultra-personalizado y orientado a resultados (Leads y Cierres).
-
+{business_context_text}
 INPUTS DEL CLIENTE:
 - Rubro: {business_info.get('rubro')}
 - Nombre: {business_info.get('nombre')}
@@ -332,6 +338,11 @@ REGLAS DE ORO:
         
         try:
             response = self.chain.predict(input=input_text)
+            
+            # After generating strategy, restore the original chat chain with business context
+            # This ensures subsequent chat interactions have the business context
+            self.setup_chain(self.business_context)
+            
             return response
         except Exception as e:
             return f"Ocurrió un error al generar la estrategia: {str(e)}"
