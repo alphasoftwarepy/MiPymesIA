@@ -606,6 +606,19 @@ def wizard_page():
     if st.session_state.step == 1:
         st.subheader("📋 Diagnóstico y Contexto")
         
+        # Load saved form data if available
+        saved_data = {}
+        user = st.session_state.user
+        if user and user.get('last_form_data'):
+            try:
+                import json
+                if isinstance(user['last_form_data'], str):
+                    saved_data = json.loads(user['last_form_data'])
+                else:
+                    saved_data = user['last_form_data']
+            except:
+                saved_data = {}
+        
         # Add custom CSS for better styling
         st.markdown("""
         <style>
@@ -623,33 +636,71 @@ def wizard_page():
         </style>
         """, unsafe_allow_html=True)
         
+        # Clear form button
+        if saved_data:
+            col_clear = st.columns([6, 1])[1]
+            with col_clear:
+                if st.button("🗑️ Limpiar", help="Borrar datos guardados"):
+                    auth.save_last_form_data(user['username'], {})
+                    user['last_form_data'] = ""
+                    st.rerun()
+        
         with st.form("diagnosis_form"):
             col1, col2 = st.columns(2)
             
             with col1:
                 st.markdown("### 🏢 Información del Negocio")
-                rubro = st.text_input("📌 Rubro del Negocio", placeholder="ej: Gastronomía, Moda, Tecnología")
-                nombre = st.text_input("✨ Nombre del Negocio", placeholder="ej: Mi Empresa")
-                tipo = st.selectbox("🏪 Tipo de Negocio", ["Físico", "Tienda Online", "Dropshipping", "Productos Digitales", "Servicios"])
+                rubro = st.text_input("📌 Rubro del Negocio", value=saved_data.get('rubro', ''), placeholder="ej: Gastronomía, Moda, Tecnología")
+                nombre = st.text_input("✨ Nombre del Negocio", value=saved_data.get('nombre', ''), placeholder="ej: Mi Empresa")
+                
+                tipo_options = ["Físico", "Tienda Online", "Dropshipping", "Productos Digitales", "Servicios"]
+                tipo_idx = 0
+                if saved_data.get('tipo') in tipo_options:
+                    tipo_idx = tipo_options.index(saved_data.get('tipo'))
+                tipo = st.selectbox("🏪 Tipo de Negocio", tipo_options, index=tipo_idx)
             
             with col2:
                 st.markdown("### 🎯 Objetivos y Presupuesto")
-                producto = st.text_input("⭐ Producto/Servicio Estrella", placeholder="ej: Curso de Marketing Digital")
-                precio = st.number_input("💵 Precio del Producto/Servicio (USD) - Opcional", min_value=0.0, value=0.0, step=1.0)
-                meta = st.selectbox("📈 Meta Actual", ["Aumentar Ventas", "Ganar Seguidores", "Reconocimiento de Marca", "Generar Leads"])
-                presupuesto = st.slider("💰 Presupuesto Mensual (USD)", min_value=50, max_value=1000, value=150, step=50)
-                modalidad = st.selectbox("💳 Modalidad de Venta", ["Mayoría Contado", "Mayoría Crédito", "Mensual / SaaS"])
+                producto = st.text_input("⭐ Producto/Servicio Estrella", value=saved_data.get('producto', ''), placeholder="ej: Curso de Marketing Digital")
+                precio = st.number_input("💵 Precio del Producto/Servicio (USD) - Opcional", min_value=0.0, value=float(saved_data.get('precio', 0.0)) if saved_data.get('precio') else 0.0, step=1.0)
+                
+                meta_options = ["Aumentar Ventas", "Ganar Seguidores", "Reconocimiento de Marca", "Generar Leads"]
+                meta_idx = 0
+                if saved_data.get('meta') in meta_options:
+                    meta_idx = meta_options.index(saved_data.get('meta'))
+                meta = st.selectbox("📈 Meta Actual", meta_options, index=meta_idx)
+                
+                presupuesto = st.slider("💰 Presupuesto Mensual (USD)", min_value=50, max_value=1000, value=int(saved_data.get('presupuesto', 150)), step=50)
+                
+                mod_options = ["Mayoría Contado", "Mayoría Crédito", "Mensual / SaaS"]
+                mod_idx = 0
+                if saved_data.get('modalidad_venta') in mod_options:
+                    mod_idx = mod_options.index(saved_data.get('modalidad_venta'))
+                modalidad = st.selectbox("💳 Modalidad de Venta", mod_options, index=mod_idx)
             
             st.markdown("### 📱 Plataformas de Publicidad")
+            
+            plat_default = ["Facebook/Instagram"]
+            if saved_data.get('plataforma'):
+                saved_plat = saved_data.get('plataforma')
+                if isinstance(saved_plat, str):
+                    plat_default = [p.strip() for p in saved_plat.split(',')]
+                elif isinstance(saved_plat, list):
+                    plat_default = saved_plat
+            
+            valid_options = ["Facebook/Instagram", "Google Ads"]
+            plat_default = [p for p in plat_default if p in valid_options]
+            
             plataforma = st.multiselect(
                 "¿Dónde deseas hacer publicidad?",
-                ["Facebook/Instagram", "Google Ads"],
-                default=["Facebook/Instagram"]
+                valid_options,
+                default=plat_default
             )
             
             st.markdown("### 👤 Buyer Persona (Opcional)")
             buyer_persona = st.text_area(
                 "Si ya tienes un perfil de cliente ideal, descríbelo aquí. La IA lo usará como base para expandir el análisis.",
+                value=saved_data.get('buyer_persona', ''),
                 placeholder="Ejemplo: Mujer de 25-35 años, profesional independiente, interesada en desarrollo personal...",
                 height=100
             )
@@ -676,10 +727,25 @@ def wizard_page():
                         st.error(f"❌ Has alcanzado el límite diario de {user.get('daily_request_limit', 20)} consultas. Quedan {remaining} consultas disponibles hoy.")
                         st.stop()
                     
+                    # Save form data
+                    business_info_save = {
+                        "rubro": rubro,
+                        "nombre": nombre,
+                        "tipo": tipo,
+                        "producto": producto,
+                        "precio": precio,
+                        "meta": meta,
+                        "presupuesto": presupuesto,
+                        "modalidad_venta": modalidad,
+                        "plataforma": plataforma,
+                        "buyer_persona": buyer_persona
+                    }
+                    auth.save_last_form_data(user['username'], business_info_save)
+                    import json
+                    st.session_state.user['last_form_data'] = json.dumps(business_info_save)
+                    
                     # Show loading overlay
-                    # Modern dynamic loading overlay
                     try:
-                        # Load custom loader image
                         import base64
                         def get_base64_image(image_path):
                             with open(image_path, "rb") as img_file:

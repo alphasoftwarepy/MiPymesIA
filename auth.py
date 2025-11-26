@@ -49,6 +49,15 @@ def init_db():
         c.execute("ALTER TABLE users ADD COLUMN business_profile TEXT DEFAULT ''")
         print("Migration completed successfully.")
     
+    # Migration: Add last_form_data column if it doesn't exist
+    try:
+        c.execute("SELECT last_form_data FROM users LIMIT 1")
+    except sqlite3.OperationalError:
+        # Column doesn't exist, add it
+        print("Adding last_form_data column to users table...")
+        c.execute("ALTER TABLE users ADD COLUMN last_form_data TEXT DEFAULT ''")
+        print("Migration completed successfully.")
+    
     conn.commit()
     conn.close()
 
@@ -110,12 +119,12 @@ def login_user(username, password):
             conn.commit()
     
     c.execute("""SELECT username, password, business_name, is_active, is_admin, start_date, expiration_date, 
-                        requests_today, last_request_date, email, daily_request_limit, business_profile 
+                        requests_today, last_request_date, email, daily_request_limit, business_profile, last_form_data 
                  FROM users WHERE username = ?""", (username,))
     user = c.fetchone()
 
     if user:
-        # user structure: (username, password_hash, business_name, is_active, is_admin, start_date, expiration_date, requests_today, last_request_date, email, daily_request_limit, business_profile)
+        # user structure: (username, password_hash, business_name, is_active, is_admin, start_date, expiration_date, requests_today, last_request_date, email, daily_request_limit, business_profile, last_form_data)
         if verify_password(password, user[1]):
             # Reset failed attempts on successful login
             c.execute("UPDATE users SET failed_login_attempts = 0, lockout_until = NULL WHERE username = ?", (username,))
@@ -142,7 +151,8 @@ def login_user(username, password):
                 "last_request_date": user[8],
                 "email": user[9] or "",
                 "daily_request_limit": user[10] or 20,
-                "business_profile": user[11] or ""
+                "business_profile": user[11] or "",
+                "last_form_data": user[12] or ""
             }
 
 
@@ -295,6 +305,32 @@ def update_business_profile(username, profile_text):
     c.execute("UPDATE users SET business_profile = ? WHERE username = ?", (profile_text, username))
     conn.commit()
     conn.close()
+
+def save_last_form_data(username, form_data):
+    """Saves the last form data for a user as JSON."""
+    import json
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    form_json = json.dumps(form_data)
+    c.execute("UPDATE users SET last_form_data = ? WHERE username = ?", (form_json, username))
+    conn.commit()
+    conn.close()
+
+def get_last_form_data(username):
+    """Retrieves the last form data for a user."""
+    import json
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT last_form_data FROM users WHERE username = ?", (username,))
+    result = c.fetchone()
+    conn.close()
+    
+    if result and result[0]:
+        try:
+            return json.loads(result[0])
+        except:
+            return None
+    return None
 
 # Auto-initialize database when module is imported
 # This ensures the database and table exist before any operations
