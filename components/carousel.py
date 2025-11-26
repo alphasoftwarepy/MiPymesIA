@@ -1,7 +1,18 @@
 """
 Carousel component - Auto-rotating image carousel
 """
-import streamlit as st
+import base64
+import os
+
+def get_img_as_base64(file_path):
+    """Read image file and convert to base64 string"""
+    try:
+        with open(file_path, "rb") as f:
+            data = f.read()
+        return base64.b64encode(data).decode()
+    except Exception as e:
+        print(f"Error loading image {file_path}: {e}")
+        return ""
 
 def show(num_images=5):
     """
@@ -10,12 +21,27 @@ def show(num_images=5):
     Args:
         num_images: Number of images in carousel (default: 5)
     """
-    # Generate HTML strings
+    # Generate HTML strings with Base64 images
     slides_html = ""
     for i in range(num_images):
+        img_path = f"assets/banner/banner{i+1}.jpg"
+        # Check if file exists before trying to load
+        if os.path.exists(img_path):
+            img_b64 = get_img_as_base64(img_path)
+            img_src = f"data:image/jpeg;base64,{img_b64}"
+        else:
+            # Fallback color if image missing
+            img_src = "" 
+            
         active_class = "active" if i == 0 else ""
-        # Use single line for HTML to avoid indentation issues
-        slides_html += f'<div class="carousel-slide {active_class}" style="background-image: url(\'assets/banner/banner{i+1}.jpg\');"><div class="carousel-overlay"></div></div>'
+        
+        # Use inline style for background image with base64
+        if img_src:
+            style = f"background-image: url('{img_src}');"
+        else:
+            style = "background-color: #ddd;" # Fallback gray
+            
+        slides_html += f'<div class="carousel-slide {active_class}" style="{style}"><div class="carousel-overlay"></div></div>'
     
     indicators_html = ""
     for i in range(num_images):
