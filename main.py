@@ -9,6 +9,20 @@ import urllib.parse
 # Page Config
 st.set_page_config(page_title="Generador MiPymesIA", page_icon="🚀", layout="wide")
 
+# Prevent accidental page refresh - show warning
+st.markdown("""
+<script>
+window.addEventListener('beforeunload', function (e) {
+    // Only show warning if user is authenticated
+    if (window.location.pathname !== '/') {
+        e.preventDefault();
+        e.returnValue = '';
+        return '¿Estás seguro de que quieres salir? Se perderá el historial de chat.';
+    }
+});
+</script>
+""", unsafe_allow_html=True)
+
 # Session State Initialization
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
@@ -1101,6 +1115,10 @@ def chat_page():
     # Header
     st.title("💬 MiPymes IA")
     st.caption("Tu asistente de marketing inteligente")
+    
+    # Warning about refresh
+    if len(st.session_state.get('chat_messages', [])) > 0:
+        st.info("💡 **Tip:** Evita recargar la página (F5) para no perder tu historial de conversación.")
     
     # Initialize chat history if not exists
     if 'chat_messages' not in st.session_state:
