@@ -1073,7 +1073,6 @@ def wizard_page():
         # 1. AVATARS
         if "Avatars" in selected_section:
             st.subheader("👤 1. Avatar de Cliente Ideal")
-            st.caption("🎯 Perfil detallado de tu cliente ideal con dolores, objeciones y vocabulario específico.")
             st.success("🎯 Conoce a fondo a tu cliente ideal para crear mensajes que realmente conecten.")
             
             # Avatar is already loaded, just display it
@@ -1119,7 +1118,6 @@ def wizard_page():
         # 2. EMBUDO DE CONTENIDO
         elif "Embudo" in selected_section:
             st.subheader("📢 2. Embudo de Contenido Semanal")
-            st.caption("📝 Plan semanal de contenido TOFU, MOFU y BOFU para redes sociales.")
             st.success("📝 Contenido estratégico para atraer, educar y convertir a tu audiencia.")
             
             # Load section on-demand
@@ -1144,7 +1142,6 @@ def wizard_page():
         # 3. ADS STRATEGY
         elif "Ads" in selected_section:
             st.subheader("💰 3. Estrategia de Publicidad Pagada")
-            st.caption("📈 Campañas segmentadas para tráfico frío, tibio y caliente con presupuesto optimizado.")
             st.success("📈 Invierte tu presupuesto de forma inteligente para maximizar resultados.")
             st.info(f"Presupuesto Mensual: ${st.session_state.business_info.get('presupuesto')} USD")
             
@@ -1167,7 +1164,6 @@ def wizard_page():
         # 4. WHATSAPP FLOW
         elif "WhatsApp" in selected_section:
             st.subheader("💬 4. Flujo de WhatsApp para Ventas")
-            st.caption("🔥 Secuencia de 7 días para convertir conversaciones en clientes.")
             st.success("🔥 Mensajes probados para cerrar ventas por WhatsApp día a día.")
             
             # Load section on-demand
@@ -1185,7 +1181,6 @@ def wizard_page():
         # 5. OBJECIONES
         elif "Objeciones" in selected_section:
             st.subheader("🛡️ 5. Manejo de Objeciones")
-            st.caption("💬 Respuestas profesionales para las 5 objeciones más comunes de tus clientes.")
             st.success("💬 Convierte objeciones en oportunidades de venta con respuestas efectivas.")
             
             # Load section on-demand
@@ -1219,7 +1214,6 @@ def wizard_page():
         # 7. METRICAS (WITHOUT DEMOS)
         elif "Métricas" in selected_section:
             st.subheader("📈 7. Métricas y Optimización")
-            st.caption("📊 KPIs y acciones de optimización para mejorar resultados semana a semana.")
             st.success("📊 Mide, analiza y optimiza para escalar tu negocio de forma sostenible.")
             
             # Load section on-demand
