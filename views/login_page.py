@@ -45,8 +45,8 @@ def render():
     </div>
     """, unsafe_allow_html=True)
     
-    # 3️⃣ BANNER / CARRUSEL (5 imágenes)
-    carousel.show(num_images=5)
+    # 3️⃣ BANNER (1 imagen)
+    carousel.show(num_images=1)
     
     # 📄 SECCIÓN DE DESCARGA DE PDF DE EJEMPLO
     st.markdown("""

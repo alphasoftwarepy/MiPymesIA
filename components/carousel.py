@@ -128,9 +128,7 @@ def show(num_images=5, height=500):
     
     <div id="{carousel_id}" class="carousel-container">
         {slides_html}
-        <div class="carousel-indicators">
-            {indicators_html}
-        </div>
+        {"" if num_images <= 1 else f'<div class="carousel-indicators">{indicators_html}</div>'}
     </div>
     
     <script>
