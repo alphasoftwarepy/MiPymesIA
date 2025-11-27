@@ -480,13 +480,16 @@ IMPORTANTE:
                 "Métricas y Optimización" # Step 7
             ]
             
-            # Show progressive steps 2-7 BEFORE calling the AI (3s each)
+            # Show progressive steps 2-7 BEFORE calling the AI (3.5s each)
             if progress_callback:
                 for idx, section_name in enumerate(section_names, 2):  # Start from step 2
                     progress_callback(section_name, "Preparando...", idx, 8)
-                    time.sleep(3)  # 3 second delay for each step
+                    time.sleep(3.5)  # 3.5 second delay for each step
+                
+                # Force Step 8 display BEFORE the real AI call starts
+                # This ensures the "long wait" happens on Step 8, not Step 7
+                progress_callback("Finalizando ajustes", "Procesando...", 8, 8)
             
-            # Now prepare the AI call (Step 8 is already showing in main.py)
             messages = [
                 SystemMessage(content=unified_prompt),
                 HumanMessage(content="Genera la estrategia completa ahora siguiendo EXACTAMENTE la estructura con los delimitadores.")

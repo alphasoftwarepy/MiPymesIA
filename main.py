@@ -921,9 +921,9 @@ def wizard_page():
                             </div>
                             """, unsafe_allow_html=True)
 
-                        # Step 1 - Show initial loader with 3 second delay
+                        # Step 1 - Show initial loader with 3.5 second delay
                         update_loader("⏳ Generando Avatar de Cliente...", 1)
-                        time.sleep(3)  # 3 second delay for user to see progress start
+                        time.sleep(3.5)  # 3.5 second delay for user to see progress start
                         
                         business_info = {
                             "rubro": rubro,
