@@ -330,47 +330,47 @@ Objetivo: Oferta directa, urgencia, venta.
 Incluye: Formato (Post Venta/Historia), Gancho y CTA.
 
 <<<SECTION_START: ADS_FRIO>>>
-� TRÁFICO FRÍO
+❄️ TRÁFICO FRÍO
 Objetivo: Llegar a personas que NO te conocen.
 Define: Objetivo, Ángulo (Dolor), 3 Variaciones Copy, Creativos, Segmentación, Presupuesto (50% = ${business_info.get('presupuesto')*0.5} USD), CTA.
 
 <<<SECTION_START: ADS_TIBIO>>>
-� TRÁFICO TIBIO - Retargeting
+🔥 TRÁFICO TIBIO - Retargeting
 Objetivo: Convertir interesados en prospectos.
 Define: Objetivo, Ángulo (Prueba Social), Copy, Creativos, Segmentación, Presupuesto (35% = ${business_info.get('presupuesto')*0.35} USD), CTA.
 
 <<<SECTION_START: ADS_CALIENTE>>>
-� TRÁFICO CALIENTE - Cierre
+🌡️ TRÁFICO CALIENTE - Cierre
 Objetivo: Cerrar ventas YA.
 Define: Objetivo, Ángulo (Urgencia), Copy Cierre, Creativos, Segmentación, Presupuesto (15% = ${business_info.get('presupuesto')*0.15} USD), CTA.
 
 <<<SECTION_START: WHATSAPP_DIA1>>>
-� DÍA 1 — Contacto + Diagnóstico
+💬 DÍA 1 — Contacto + Diagnóstico
 Mensaje: Saludo + 2 Preguntas.
 Respuestas condicionadas.
 
 <<<SECTION_START: WHATSAPP_DIA2>>>
-� DÍA 2 — Valor + Invitación
+💬 DÍA 2 — Valor + Invitación
 Mensaje: Tip útil + Invitación suave.
 Respuestas condicionadas.
 
 <<<SECTION_START: WHATSAPP_DIA3>>>
-� DÍA 3 — Prueba Social
+💬 DÍA 3 — Prueba Social
 Mensaje: Caso éxito + CTA.
 Respuestas condicionadas.
 
 <<<SECTION_START: WHATSAPP_DIA4>>>
-� DÍA 4 — Objeción + Reencuadre
+💬 DÍA 4 — Objeción + Reencuadre
 Mensaje: Reencuadre + Propuesta.
 Respuestas condicionadas.
 
 <<<SECTION_START: WHATSAPP_DIA5>>>
-� DÍA 5 — Urgencia
+💬 DÍA 5 — Urgencia
 Mensaje: Cupos/Tiempo limitado.
 Respuestas condicionadas.
 
 <<<SECTION_START: WHATSAPP_DIA6>>>
-� DÍA 6 — Valor Final
+💬 DÍA 6 — Valor Final
 Mensaje: Recurso extra + Mini cierre.
 Respuestas condicionadas.
 
