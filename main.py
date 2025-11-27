@@ -1073,6 +1073,7 @@ def wizard_page():
         # 1. AVATARS
         if "Avatars" in selected_section:
             st.subheader("👤 1. Avatar de Cliente Ideal")
+            st.caption("🎯 Perfil detallado de tu cliente ideal con dolores, objeciones y vocabulario específico.")
             
             # Avatar is already loaded, just display it
             content = get_section_content(strategy_text, "AVATAR")
@@ -1117,6 +1118,7 @@ def wizard_page():
         # 2. EMBUDO DE CONTENIDO
         elif "Embudo" in selected_section:
             st.subheader("📢 2. Embudo de Contenido Semanal")
+            st.caption("📝 Plan semanal de contenido TOFU, MOFU y BOFU para redes sociales.")
             
             # Load section on-demand
             # load_section_on_demand("EMBUDO")
@@ -1140,6 +1142,7 @@ def wizard_page():
         # 3. ADS STRATEGY
         elif "Ads" in selected_section:
             st.subheader("💰 3. Estrategia de Publicidad Pagada")
+            st.caption("📈 Campañas segmentadas para tráfico frío, tibio y caliente con presupuesto optimizado.")
             st.info(f"Presupuesto Mensual: ${st.session_state.business_info.get('presupuesto')} USD")
             
             # Load section on-demand
@@ -1160,7 +1163,8 @@ def wizard_page():
 
         # 4. WHATSAPP FLOW
         elif "WhatsApp" in selected_section:
-            st.subheader("💬 4. Flujo de Cierre por WhatsApp (7 Días)")
+            st.subheader("💬 4. Flujo de WhatsApp para Ventas")
+            st.caption("🔥 Secuencia de 7 días para convertir conversaciones en clientes.")
             
             # Load section on-demand
             # load_section_on_demand("WHATSAPP")
@@ -1177,6 +1181,7 @@ def wizard_page():
         # 5. OBJECIONES
         elif "Objeciones" in selected_section:
             st.subheader("🛡️ 5. Manejo de Objeciones")
+            st.caption("💬 Respuestas profesionales para las 5 objeciones más comunes de tus clientes.")
             
             # Load section on-demand
             # load_section_on_demand("OBJECIONES")
