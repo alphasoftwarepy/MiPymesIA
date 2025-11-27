@@ -480,11 +480,16 @@ IMPORTANTE:
                 "Métricas y Optimización" # Step 7
             ]
             
-            # Show progressive steps 2-7 BEFORE calling the AI (3.5s each)
+            # Show progressive steps 2-7 BEFORE calling the AI
+            # Timing: Step 2-3 (4s), Step 4-7 (4.5s)
             if progress_callback:
                 for idx, section_name in enumerate(section_names, 2):  # Start from step 2
                     progress_callback(section_name, "Preparando...", idx, 8)
-                    time.sleep(3.5)  # 3.5 second delay for each step
+                    
+                    if idx <= 3:
+                        time.sleep(4)  # 4 seconds for steps 2-3
+                    else:
+                        time.sleep(4.5)  # 4.5 seconds for steps 4-7
                 
                 # Force Step 8 display BEFORE the real AI call starts
                 # This ensures the "long wait" happens on Step 8, not Step 7

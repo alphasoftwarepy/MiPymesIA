@@ -945,7 +945,10 @@ def wizard_page():
                         def on_section_complete(section_name, section_content, section_num, total):
                             """Callback called after each section is generated"""
                             # Update loader with current section and step count
-                            update_loader(f"✅ Generando {section_name}...", section_num)
+                            if "Finalizando" in section_name:
+                                update_loader(f"✨ {section_name}...", section_num)
+                            else:
+                                update_loader(f"✅ Generando {section_name}...", section_num)
                         
                         # Update to Step 8 before calling AI (this will wait for real AI response)
                         update_loader("✨ Finalizando ajustes...", 8)
