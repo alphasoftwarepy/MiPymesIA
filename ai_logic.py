@@ -482,10 +482,13 @@ IMPORTANTE:
             
             # Simulate progressive callbacks for UI updates (parsing already generated content)
             if progress_callback:
+                import time
                 for idx, section_name in enumerate(section_names, 1):
                     # Extract section content for callback
                     section_content = f"Sección {section_name} generada"
-                    progress_callback(section_name, section_content, idx, 7)
+                    progress_callback(section_name, section_content, idx, 8)  # Changed to 8 total steps
+                    if idx < len(section_names):  # Don't sleep after last one
+                        time.sleep(1.5)  # 1.5 second delay between steps
             
             # Restore original chain
             self.setup_chain(self.business_context)

@@ -604,9 +604,31 @@ INSTRUCCIONES:
 def clean_section_content(content, section_name):
     """
     Cleans AI-generated content by removing unwanted text that leaks from other sections.
+    Also removes duplicate titles and improves formatting.
     """
     if not content or content == "Contenido no disponible.":
         return content
+    
+    import re
+    
+    # FIRST: Remove duplicate section titles that come from AI
+    title_patterns = [
+        r"^👤\s*AVATAR DE CLIENTE IDEAL.*?\n",
+        r"^📢\s*EMBUDO.*?\n",
+        r"^🎣\s*TOFU.*?\n",
+        r"^🧠\s*MOFU.*?\n",
+        r"^💰\s*BOFU.*?\n",
+        r"^❄️\s*TRÁFICO FRÍO.*?\n",
+        r"^🔥\s*TRÁFICO TIBIO.*?\n",
+        r"^🌡️\s*TRÁFICO CALIENTE.*?\n",
+        r"^💬\s*DÍA\s+\d+.*?\n",
+        r"^🛡️\s*OBJECIÓN:.*?\n",
+        r"^✅\s*CHECKLIST.*?\n",
+        r"^📊\s*MÉTRICAS.*?\n"
+    ]
+    
+    for pattern in title_patterns:
+        content = re.sub(pattern, "", content, flags=re.MULTILINE | re.IGNORECASE)
     
     # Patterns to remove based on section
     unwanted_patterns = {
@@ -642,7 +664,6 @@ def clean_section_content(content, section_name):
     
     # Apply cleaning for specific section
     if section_name in unwanted_patterns:
-        import re
         for pattern in unwanted_patterns[section_name]:
             content = re.sub(pattern, "", content, flags=re.IGNORECASE | re.DOTALL)
     
@@ -654,9 +675,15 @@ def clean_section_content(content, section_name):
         r"¡Éxito!.*"
     ]
     
-    import re
     for pattern in general_patterns:
         content = re.sub(pattern, "", content, flags=re.IGNORECASE | re.DOTALL)
+    
+    # IMPROVE FORMATTING: Add bold to key terms
+    content = re.sub(r"^(Objetivo|Formato|Gancho|CTA|Segmentación|Presupuesto|Creativos|Copy|Ángulo|Mensaje|Respuestas condicionadas|Pregunta|Reframing|Propuesta|Mini Cierre):", 
+                     r"**\1:**", content, flags=re.MULTILINE)
+    
+    # Ensure proper paragraph spacing
+    content = re.sub(r"(\n)([A-Z][^:\n]{10,}:)", r"\n\n\2", content)
     
     return content.strip()
 
@@ -889,7 +916,7 @@ def wizard_page():
                                 <div class="loader-card">
                                     <img src="data:image/png;base64,{loader_b64}" class="custom-loader">
                                     <div class="loading-text">{text}</div>
-                                    <div class="step-text">PASO {step} DE 7</div>
+                                    <div class="step-text">PASO {step} DE 8</div>
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)
@@ -933,9 +960,9 @@ def wizard_page():
                             st.warning("💡 **Posible solución:** Verifica que la variable de entorno OPENAI_API_KEY esté configurada en Easypanel.")
                             st.stop()
                         
-                        # Final step
-                        update_loader("✨ Finalizando detalles...", 7)
-                        time.sleep(0.5)
+                        # Final step - Paso 8
+                        update_loader("✨ Finalizando ajustes...", 8)
+                        time.sleep(1.5)
                         
                         st.session_state.strategy_result = result
                         st.session_state.business_info = business_info
