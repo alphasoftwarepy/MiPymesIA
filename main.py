@@ -921,8 +921,9 @@ def wizard_page():
                             </div>
                             """, unsafe_allow_html=True)
 
-                        # Step 1
+                        # Step 1 - Show initial loader with 3 second delay
                         update_loader("⏳ Generando Avatar de Cliente...", 1)
+                        time.sleep(3)  # 3 second delay for user to see progress start
                         
                         business_info = {
                             "rubro": rubro,
@@ -946,7 +947,10 @@ def wizard_page():
                             # Update loader with current section and step count
                             update_loader(f"✅ Generando {section_name}...", section_num)
                         
-                        # Generate strategy progressively
+                        # Update to Step 8 before calling AI (this will wait for real AI response)
+                        update_loader("✨ Finalizando ajustes...", 8)
+                        
+                        # Generate strategy progressively (this is where the real wait happens)
                         result = st.session_state.ai_agent.generate_strategy_progressive(
                             business_info, 
                             on_section_complete
@@ -959,10 +963,6 @@ def wizard_page():
                             st.error(result)
                             st.warning("💡 **Posible solución:** Verifica que la variable de entorno OPENAI_API_KEY esté configurada en Easypanel.")
                             st.stop()
-                        
-                        # Final step - Paso 8
-                        update_loader("✨ Finalizando ajustes...", 8)
-                        time.sleep(1.5)
                         
                         st.session_state.strategy_result = result
                         st.session_state.business_info = business_info

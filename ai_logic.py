@@ -141,27 +141,37 @@ Incluye: Formato, Gancho y CTA.
 
 Sé CONCISO y DIRECTO. Contenido específico para {business_info.get('rubro')}.""",
             
-            "ADS": f"""Eres un Estratega de Ads.
+            "ADS": f"""Eres un Estratega de Ads especializado en {business_info.get('plataforma')}.
 {base_info}
 
-Genera ESTRATEGIA DE ADS (3 niveles):
+IMPORTANTE - PLATAFORMA(S) SELECCIONADA(S): {business_info.get('plataforma')}
+
+INSTRUCCIONES SEGÚN PLATAFORMA:
+- Si es SOLO Facebook Ads: Enfócate en copy emocional, creativos visuales (videos/imágenes), segmentación por intereses/demografía.
+- Si es SOLO Google Ads: Enfócate en copy basado en intención de búsqueda, anuncios de texto/búsqueda, segmentación por keywords.
+- Si son AMBAS plataformas: Divide el presupuesto 60% Facebook / 40% Google y adapta la estrategia para cada una.
+
+Genera ESTRATEGIA DE ADS (3 niveles) ADAPTADA A LA(S) PLATAFORMA(S):
 
 <<<SECTION_START: ADS_FRIO>>>
 🔥 TRÁFICO FRÍO
 Objetivo: Atraer desconocidos.
-Define: Objetivo, Ángulo (Dolor), 3 Variaciones Copy, Creativos, Segmentación, Presupuesto (50%).
+Define: Objetivo, Ángulo (Dolor), 3 Variaciones Copy (adaptadas a la plataforma), Creativos (específicos para la plataforma), Segmentación (según plataforma), Presupuesto (50%).
+Si son ambas plataformas, especifica qué hacer en cada una.
 
 <<<SECTION_START: ADS_TIBIO>>>
 🔥 TRÁFICO TIBIO
 Objetivo: Retargeting.
-Define: Objetivo, Ángulo (Prueba Social), Copy, Creativos, Segmentación, Presupuesto (35%).
+Define: Objetivo, Ángulo (Prueba Social), Copy (adaptado a la plataforma), Creativos (específicos para la plataforma), Segmentación (según plataforma), Presupuesto (35%).
+Si son ambas plataformas, especifica qué hacer en cada una.
 
 <<<SECTION_START: ADS_CALIENTE>>>
 🔥 TRÁFICO CALIENTE
 Objetivo: Cierre.
-Define: Objetivo, Ángulo (Urgencia), Copy Cierre, Creativos, Segmentación, Presupuesto (15%).
+Define: Objetivo, Ángulo (Urgencia), Copy Cierre (adaptado a la plataforma), Creativos (específicos para la plataforma), Segmentación (según plataforma), Presupuesto (15%).
+Si son ambas plataformas, especifica qué hacer en cada una.
 
-Sé CONCISO. Contenido específico para {business_info.get('rubro')}.""",
+Sé CONCISO pero ESPECÍFICO para {business_info.get('plataforma')}. Contenido específico para {business_info.get('rubro')}.""",
             
             "WHATSAPP": f"""Eres un Estratega de Ventas.
 {base_info}
@@ -330,19 +340,22 @@ Objetivo: Oferta directa, urgencia, venta.
 Incluye: Formato (Post Venta/Historia), Gancho y CTA.
 
 <<<SECTION_START: ADS_FRIO>>>
-❄️ TRÁFICO FRÍO
+❄️ TRÁFICO FRÍO - {business_info.get('plataforma')}
 Objetivo: Llegar a personas que NO te conocen.
-Define: Objetivo, Ángulo (Dolor), 3 Variaciones Copy, Creativos, Segmentación, Presupuesto (50% = ${business_info.get('presupuesto')*0.5} USD), CTA.
+Define: Objetivo, Ángulo (Dolor), 3 Variaciones Copy (adaptadas a {business_info.get('plataforma')}), Creativos (específicos para {business_info.get('plataforma')}), Segmentación (según {business_info.get('plataforma')}), Presupuesto (50% = ${business_info.get('presupuesto')*0.5} USD), CTA.
+Si son ambas plataformas: especifica distribución 60% Facebook / 40% Google y estrategia para cada una.
 
 <<<SECTION_START: ADS_TIBIO>>>
-🔥 TRÁFICO TIBIO - Retargeting
+🔥 TRÁFICO TIBIO - Retargeting en {business_info.get('plataforma')}
 Objetivo: Convertir interesados en prospectos.
-Define: Objetivo, Ángulo (Prueba Social), Copy, Creativos, Segmentación, Presupuesto (35% = ${business_info.get('presupuesto')*0.35} USD), CTA.
+Define: Objetivo, Ángulo (Prueba Social), Copy (adaptado a {business_info.get('plataforma')}), Creativos (específicos para {business_info.get('plataforma')}), Segmentación (según {business_info.get('plataforma')}), Presupuesto (35% = ${business_info.get('presupuesto')*0.35} USD), CTA.
+Si son ambas plataformas: especifica distribución 60% Facebook / 40% Google y estrategia para cada una.
 
 <<<SECTION_START: ADS_CALIENTE>>>
-🌡️ TRÁFICO CALIENTE - Cierre
+🌡️ TRÁFICO CALIENTE - Cierre en {business_info.get('plataforma')}
 Objetivo: Cerrar ventas YA.
-Define: Objetivo, Ángulo (Urgencia), Copy Cierre, Creativos, Segmentación, Presupuesto (15% = ${business_info.get('presupuesto')*0.15} USD), CTA.
+Define: Objetivo, Ángulo (Urgencia), Copy Cierre (adaptado a {business_info.get('plataforma')}), Creativos (específicos para {business_info.get('plataforma')}), Segmentación (según {business_info.get('plataforma')}), Presupuesto (15% = ${business_info.get('presupuesto')*0.15} USD), CTA.
+Si son ambas plataformas: especifica distribución 60% Facebook / 40% Google y estrategia para cada una.
 
 <<<SECTION_START: WHATSAPP_DIA1>>>
 💬 DÍA 1 — Contacto + Diagnóstico
@@ -455,40 +468,33 @@ IMPORTANTE:
         try:
             # Single LLM call for entire strategy
             from langchain.schema import HumanMessage, SystemMessage
+            import time
             
             # Simulate progressive updates for UI (fake progress)
             section_names = [
-                "Avatar de Cliente",
-                "Embudo de Contenido", 
-                "Estrategia de Ads",
-                "Flujo WhatsApp 7 Días",
-                "Manejo de Objeciones",
-                "Acciones Diarias",
-                "Métricas y Optimización"
+                "Embudo de Contenido",  # Step 2
+                "Estrategia de Ads",     # Step 3
+                "Flujo WhatsApp 7 Días", # Step 4
+                "Manejo de Objeciones",  # Step 5
+                "Acciones Diarias",      # Step 6
+                "Métricas y Optimización" # Step 7
             ]
             
-            # Update UI to show we're starting
+            # Show progressive steps 2-7 BEFORE calling the AI (1.5s each)
             if progress_callback:
-                progress_callback("Avatar de Cliente", "Generando...", 1, 7)
+                for idx, section_name in enumerate(section_names, 2):  # Start from step 2
+                    progress_callback(section_name, "Preparando...", idx, 8)
+                    time.sleep(1.5)  # 1.5 second delay for each step
             
+            # Now prepare the AI call (Step 8 is already showing in main.py)
             messages = [
                 SystemMessage(content=unified_prompt),
                 HumanMessage(content="Genera la estrategia completa ahora siguiendo EXACTAMENTE la estructura con los delimitadores.")
             ]
             
-            # Generate complete strategy in ONE call
+            # Generate complete strategy in ONE call (THIS IS THE REAL WAIT - happens during Step 8)
             response = self.llm(messages)
             complete_strategy = response.content
-            
-            # Simulate progressive callbacks for UI updates (parsing already generated content)
-            if progress_callback:
-                import time
-                for idx, section_name in enumerate(section_names, 1):
-                    # Extract section content for callback
-                    section_content = f"Sección {section_name} generada"
-                    progress_callback(section_name, section_content, idx, 8)  # Changed to 8 total steps
-                    if idx < len(section_names):  # Don't sleep after last one
-                        time.sleep(1.5)  # 1.5 second delay between steps
             
             # Restore original chain
             self.setup_chain(self.business_context)

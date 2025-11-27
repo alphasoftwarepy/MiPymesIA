@@ -48,6 +48,46 @@ def render():
     # 3️⃣ BANNER / CARRUSEL (5 imágenes)
     carousel.show(num_images=5)
     
+    # 📄 SECCIÓN DE DESCARGA DE PDF DE EJEMPLO
+    st.markdown("""
+    <div style='background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%); padding: 40px 30px; border-radius: 20px; margin: 30px 0; box-shadow: 0 10px 30px rgba(0,0,0,0.1);'>
+        <div style='text-align: center;'>
+            <h2 style='color: #1a5276; font-size: 2em; margin-bottom: 15px;'>📄 Ve un Ejemplo Real</h2>
+            <p style='color: #555; font-size: 1.15em; margin-bottom: 25px; line-height: 1.6;'>
+                Descarga una estrategia completa generada por nuestra IA.<br>
+                <span style='font-style: italic; color: #666;'>Sin registro, sin compromisos. Solo para que veas el poder de la herramienta.</span>
+            </p>
+        </div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Botón de descarga centrado
+    col_pdf_left, col_pdf_center, col_pdf_right = st.columns([1, 2, 1])
+    with col_pdf_center:
+        # Check if example PDF exists
+        import os
+        pdf_path = "assets/ejemplo-estrategia.pdf"
+        
+        if os.path.exists(pdf_path):
+            with open(pdf_path, "rb") as pdf_file:
+                st.download_button(
+                    label="📥 Descargar Ejemplo PDF",
+                    data=pdf_file,
+                    file_name="ejemplo-estrategia-mipymesia.pdf",
+                    mime="application/pdf",
+                    type="primary",
+                    use_container_width=True,
+                    key="download_example_pdf"
+                )
+        else:
+            st.info("📄 PDF de ejemplo próximamente disponible")
+        
+        st.markdown("<p style='text-align: center; color: #888; font-size: 0.9em; margin-top: 15px;'>¿Listo para crear la tuya?</p>", unsafe_allow_html=True)
+        
+        if st.button("🚀 Generar Mi Estrategia Ahora", use_container_width=True, type="secondary", key="cta_after_pdf"):
+            st.session_state.page = 'register'
+            st.rerun()
+    
     st.markdown("<br><br>", unsafe_allow_html=True)
     
     # 4️⃣ SECCIÓN '¿QUÉ VAS A OBTENER?'
