@@ -618,11 +618,19 @@ def section_chat(section_name, section_content, section_key):
         prompt = st.chat_input(f"Pregunta sobre {section_name}...", key=f"input_{section_key}")
         
         if prompt:
+            # ========== CHECK AI REQUEST LIMIT ==========
+            username = st.session_state.user['username']
+            can_request, remaining = auth.increment_ai_request(username)
+            
+            if not can_request:
+                st.error("❌ Has alcanzado el límite diario de consultas IA. Intenta mañana o mejora tu plan.")
+                st.stop()
+            # ============================================
+            
             # Add user message
             st.session_state[chat_key].append({"role": "user", "content": prompt})
             
             # Save user message to database
-            username = st.session_state.user['username']
             auth.save_section_history(username, section_key, "user", prompt)
             
             # Create context-aware prompt for AI
@@ -1375,6 +1383,20 @@ def wizard_page():
         with st.sidebar:
             # Display subscription info FIRST
             user = st.session_state.user
+            
+            # ========== SHOW PLAN NAME ==========
+            plan_actual = user.get('plan_actual', 'prueba')
+            plan_names = {
+                'gratuito': 'GRATUITO',
+                'prueba': 'PRUEBA GRATUITA',
+                'mensual': 'MENSUAL',
+                'trimestral': 'TRIMESTRAL',
+                'semestral': 'SEMESTRAL',
+                'anual': 'ANUAL'
+            }
+            st.markdown(f"**Plan:** {plan_names.get(plan_actual, plan_actual.upper())}")
+            # ====================================
+            
             if user.get('expiration_date'):
                 exp_date = datetime.fromisoformat(user['expiration_date'])
                 days_remaining = (exp_date - datetime.now()).days
@@ -1389,11 +1411,35 @@ def wizard_page():
                 
                 st.markdown(f"**Días restantes:** :{color}[{days_remaining}]")
             
-            # Display request count
+            # ========== STRATEGY COUNTER ==========
             requests_today = user.get('requests_today', 0)
-            daily_limit = user.get('daily_request_limit', 20)
-            remaining_requests = daily_limit - requests_today
-            st.markdown(f"**Consultas disponibles:** {remaining_requests}/{daily_limit}")
+            daily_limit = user.get('daily_request_limit', 5)
+            remaining_strategies = daily_limit - requests_today
+            
+            # Color coding for strategies
+            if remaining_strategies > daily_limit * 0.5:
+                strat_color = "green"
+            elif remaining_strategies > 0:
+                strat_color = "orange"
+            else:
+                strat_color = "red"
+            
+            st.markdown(f"**Estrategias disponibles:** :{strat_color}[{remaining_strategies}/{daily_limit}]")
+            # ======================================
+            
+            # ========== AI REQUEST COUNTER ==========
+            ai_used, ai_limit, ai_remaining = auth.get_ai_request_status(user['username'])
+            
+            # Color coding for AI requests
+            if ai_remaining > ai_limit * 0.5:
+                ai_color = "green"
+            elif ai_remaining > 0:
+                ai_color = "orange"
+            else:
+                ai_color = "red"
+            
+            st.markdown(f"**Consultas IA disponibles:** :{ai_color}[{ai_remaining}/{ai_limit}]")
+            # ========================================
             
             # Calculate hours until midnight (renewal time)
             now = datetime.now()

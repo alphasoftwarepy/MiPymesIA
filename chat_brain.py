@@ -45,6 +45,14 @@ def chat_page():
     prompt = st.chat_input("Pregunta sobre tu negocio, estrategia, marketing...")
     
     if prompt:
+        # ========== CHECK AI REQUEST LIMIT ==========
+        can_request, remaining = auth.increment_ai_request(username)
+        
+        if not can_request:
+            st.error("❌ Has alcanzado el límite diario de consultas IA. Intenta mañana o mejora tu plan.")
+            st.stop()
+        # ============================================
+        
         # Add user message
         st.session_state.brain_chat_history.append({"role": "user", "content": prompt})
         
