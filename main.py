@@ -2,6 +2,8 @@ import streamlit as st
 import auth
 import pdf_gen
 import ai_logic
+from ai_logic import MarketingStrategist
+from pdf_gen import generate_pdf
 import business_brain
 import chat_brain
 import admin_panel
