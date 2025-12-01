@@ -1250,8 +1250,12 @@ def wizard_page():
                                 'timestamp': dt.utcnow().isoformat()
                             }
                             
-                            # ALWAYS update base info (in case user changes business or adds new product)
-                            brain_data['base'] = {
+                            # UPDATE base info (preserve existing data, only update changed fields)
+                            if 'base' not in brain_data:
+                                brain_data['base'] = {}
+                            
+                            # Update only the fields from current strategy
+                            brain_data['base'].update({
                                 'rubro': business_info.get('rubro', ''),
                                 'nombre': business_info.get('nombre', ''),
                                 'producto': business_info.get('producto', ''),
@@ -1261,8 +1265,9 @@ def wizard_page():
                                 'presupuesto': business_info.get('presupuesto'),
                                 'plataforma': business_info.get('plataforma', ''),
                                 'modalidad_venta': business_info.get('modalidad_venta', ''),
-                                'avatar': avatar_info  # Latest avatar
-                            }
+                                'avatar': avatar_info,  # Latest avatar
+                                'ultima_estrategia': dt.utcnow().isoformat()
+                            })
                             
                             # Add diferenciador if provided
                             if business_info.get('diferenciador'):
@@ -1299,6 +1304,40 @@ def wizard_page():
                             auth.update_brain_data(user['username'], brain_data)
                             print(f"✅ Brain updated for user {user['username']}")
                             # ==========================================
+                            
+                            # ========== CLEAR OLD SECTION CHATS ==========
+                            # When generating new strategy, compact and clear all old section chats
+                            section_keys = ['avatar', 'embudo_tofu', 'embudo_mofu', 'embudo_bofu', 
+                                          'ads_frio', 'ads_tibio', 'ads_caliente',
+                                          'whatsapp_dia1', 'whatsapp_dia2', 'whatsapp_dia3', 
+                                          'whatsapp_dia4', 'whatsapp_dia5', 'whatsapp_dia6', 'whatsapp_dia7',
+                                          'objecion_costo', 'objecion_tiempo', 'objecion_personal', 
+                                          'objecion_integracion', 'objecion_miedo',
+                                          'acciones_diarias', 'metricas']
+                            
+                            for section_key in section_keys:
+                                try:
+                                    # Check if section has messages
+                                    messages = auth.get_section_history(user['username'], section_key)
+                                    if messages and len(messages) > 0:
+                                        # Compact before clearing
+                                        success, summary, insights_count = auth.compact_section_history(
+                                            user['username'], 
+                                            section_key, 
+                                            st.session_state.ai_agent
+                                        )
+                                        if success:
+                                            print(f"✅ Compacted old {section_key} chat: {insights_count} insights")
+                                        
+                                        # Clear from session state if exists
+                                        chat_key = f"chat_{section_key}"
+                                        if chat_key in st.session_state:
+                                            st.session_state[chat_key] = []
+                                except Exception as e:
+                                    print(f"Warning: Failed to compact {section_key}: {e}")
+                            
+                            print("✅ All old section chats cleared for new strategy")
+                            # ============================================
                             
                         except Exception as save_error:
                             # Don't fail the whole process if save fails, just log it

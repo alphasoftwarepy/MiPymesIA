@@ -70,4 +70,4 @@ Para consultas sobre privacidad o para ejercer sus derechos:
 
 ## 10. Consentimiento
 
-Al utilizar SG MiPymes IA, usted consiente la recopilación y uso de información según se describe en esta política.
+Al utilizar Generador MiPymes IA, usted consiente la recopilación y uso de información según se describe en esta política.

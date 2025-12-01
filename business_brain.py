@@ -19,35 +19,59 @@ def business_brain_page():
         base_info = brain_data.get('base', {})
         
         if base_info and base_info.get('rubro'):
-            col1, col2 = st.columns(2)
+            # Narrative format - more professional
+            nombre = base_info.get('nombre', 'Tu Negocio')
+            rubro = base_info.get('rubro', '')
+            producto = base_info.get('producto', '')
+            tipo = base_info.get('tipo', '')
+            
+            # Main description
+            st.markdown(f"### {nombre} – Resumen Ejecutivo")
+            st.markdown(f"**{nombre}** es un negocio de **{rubro}** enfocado en {tipo.lower()}.")
+            st.markdown("")
+            
+            # Service/Product highlight
+            st.markdown("#### 🎯 Producto/Servicio Principal")
+            st.info(f"**{producto}**")
+            
+            # Key metrics in columns
+            col1, col2, col3 = st.columns(3)
             with col1:
-                st.markdown(f"**Rubro:** {base_info.get('rubro', 'No especificado')}")
-                st.markdown(f"**Producto:** {base_info.get('producto', 'No especificado')}")
-                st.markdown(f"**Precio:** ${base_info.get('precio', 'No especificado')}")
-                st.markdown(f"**Tipo:** {base_info.get('tipo', 'No especificado')}")
+                st.metric("Precio", f"${base_info.get('precio', 0)}")
             with col2:
-                st.markdown(f"**Meta:** {base_info.get('meta', 'No especificado')}")
-                st.markdown(f"**Presupuesto:** ${base_info.get('presupuesto', 'No especificado')}")
+                st.metric("Presupuesto Mensual", f"${base_info.get('presupuesto', 0)}")
+            with col3:
+                st.metric("Meta", base_info.get('meta', 'N/A'))
+            
+            # Additional details
+            st.markdown("#### 📋 Detalles Operativos")
+            col_a, col_b = st.columns(2)
+            with col_a:
                 st.markdown(f"**Plataformas:** {base_info.get('plataforma', 'No especificado')}")
+            with col_b:
                 st.markdown(f"**Modalidad:** {base_info.get('modalidad_venta', 'No especificado')}")
             
-            # Cliente Ideal - Expandible para ver todo el texto
+            # Diferenciadores if available
+            diferenciadores = brain_data.get('diferenciadores', [])
+            if diferenciadores:
+                st.markdown("#### 💎 Diferenciadores Clave")
+                for dif in diferenciadores[-3:]:  # Last 3
+                    st.success(f"✓ {dif.get('principal', '')}")
+            
+            # Cliente Ideal - Expandible
             if base_info.get('avatar', {}).get('descripcion'):
-                st.markdown("---")
-                st.markdown("**Cliente Ideal:**")
+                st.markdown("#### 👤 Cliente Ideal")
                 avatar_desc = base_info['avatar']['descripcion']
-                
-                # Mostrar en text_area expandible (solo lectura) con más altura
                 st.text_area(
                     "Cliente Ideal",
                     value=avatar_desc,
-                    height=250,  # Aumentado de 150 a 250
+                    height=200,
                     disabled=True,
                     label_visibility="collapsed",
                     key="avatar_display_readonly"
                 )
             
-            st.caption("✅ Auto-poblado desde tu estrategia generada")
+            st.caption("✅ Auto-poblado y actualizado desde tus estrategias")
         else:
             st.warning("⚠️ Aún no hay información base. Genera tu primera estrategia para auto-poblar el cerebro.")
     
