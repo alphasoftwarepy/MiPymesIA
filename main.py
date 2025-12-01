@@ -6,7 +6,7 @@ from ai_logic import MarketingStrategist
 from pdf_gen import generate_pdf
 import business_brain
 import chat_brain
-import admin_panel
+from admin_panel import admin_panel
 from datetime import datetime, timedelta
 import time
 import urllib.parse
@@ -2180,4 +2180,4 @@ else:
         elif page == "MiPymes IA":
             chat_brain.chat_page()
         elif page == "Admin Panel":
-            admin_panel.admin_panel()
+            admin_panel()
