@@ -1,15 +1,3 @@
-import streamlit as st
-import auth
-from ai_logic import MarketingStrategist
-from pdf_gen import generate_pdf
-import business_brain
-import chat_brain
-import time
-from datetime import datetime, timedelta
-import urllib.parse
-from views import login_page as new_login_page
-
-# Page Config
 st.set_page_config(page_title="Generador MiPymesIA", page_icon="🚀", layout="wide")
 
 # Prevent accidental page refresh - show warning
@@ -2164,4 +2152,4 @@ else:
         elif page == "MiPymes IA":
             chat_brain.chat_page()
         elif page == "Admin Panel":
-            admin_panel()
+            admin_panel.admin_panel()
