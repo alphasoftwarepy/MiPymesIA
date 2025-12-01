@@ -1,3 +1,17 @@
+import streamlit as st
+import auth
+import pdf_gen
+import ai_logic
+import business_brain
+import chat_brain
+import admin_panel
+import new_login_page
+from datetime import datetime, timedelta
+import time
+import urllib.parse
+from views import login_page as new_login_page
+
+# Page Config
 st.set_page_config(page_title="Generador MiPymesIA", page_icon="🚀", layout="wide")
 
 # Prevent accidental page refresh - show warning
@@ -1383,21 +1397,34 @@ def wizard_page():
                 'anual': 'ANUAL'
             }
             st.markdown(f"**Plan:** {plan_names.get(plan_actual, plan_actual.upper())}")
-            # ====================================
             
-            if user.get('expiration_date'):
-                exp_date = datetime.fromisoformat(user['expiration_date'])
-                days_remaining = (exp_date - datetime.now()).days
-                
-                # Color coding
-                if days_remaining > 10:
-                    color = "green"
-                elif days_remaining >= 4:
-                    color = "orange"
-                else:
-                    color = "red"
-                
-                st.markdown(f"**Días restantes:** :{color}[{days_remaining}]")
+            # Show renewal date only for non-free plans
+            if plan_actual != 'gratuito' and user.get('fecha_vencimiento'):
+                try:
+                    exp_date = datetime.fromisoformat(user['fecha_vencimiento'])
+                    days_remaining = (exp_date - datetime.now()).days
+                    
+                    # Format date as "6/diciembre/2025"
+                    months_es = {
+                        1: 'enero', 2: 'febrero', 3: 'marzo', 4: 'abril',
+                        5: 'mayo', 6: 'junio', 7: 'julio', 8: 'agosto',
+                        9: 'septiembre', 10: 'octubre', 11: 'noviembre', 12: 'diciembre'
+                    }
+                    fecha_renovacion = f"{exp_date.day}/{months_es[exp_date.month]}/{exp_date.year}"
+                    
+                    # Color coding for days remaining
+                    if days_remaining > 10:
+                        color = "green"
+                    elif days_remaining >= 4:
+                        color = "orange"
+                    else:
+                        color = "red"
+                    
+                    st.markdown(f"**Renovación:** {fecha_renovacion}")
+                    st.markdown(f"**Días restantes:** :{color}[{days_remaining}]")
+                except Exception as e:
+                    print(f"Error parsing expiration date: {e}")
+            # ====================================
             
             # ========== STRATEGY COUNTER ==========
             requests_today = user.get('requests_today', 0)
