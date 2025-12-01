@@ -20,6 +20,9 @@ def admin_panel():
     with tab1:
         st.subheader("Gestión de Usuarios")
         
+        # Search filter
+        search_query = st.text_input("🔍 Buscar usuario", placeholder="Buscar por nombre de usuario, email o negocio...")
+        
         # Get all users
         conn = sqlite3.connect('users.db')
         c = conn.cursor()
@@ -33,6 +36,18 @@ def admin_panel():
         """)
         users = c.fetchall()
         conn.close()
+        
+        # Filter users based on search query
+        if search_query:
+            filtered_users = []
+            search_lower = search_query.lower()
+            for user in users:
+                username, email, business_name = user[0], user[1], user[2]
+                if (search_lower in (username or '').lower() or 
+                    search_lower in (email or '').lower() or 
+                    search_lower in (business_name or '').lower()):
+                    filtered_users.append(user)
+            users = filtered_users
         
         # Display users in a table
         st.markdown(f"**Total de usuarios:** {len(users)}")
