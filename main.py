@@ -2,6 +2,8 @@ import streamlit as st
 import auth
 from ai_logic import MarketingStrategist
 from pdf_gen import generate_pdf
+import business_brain
+import chat_brain
 import time
 from datetime import datetime, timedelta
 import urllib.parse
@@ -299,7 +301,9 @@ def login_form_page():
                     else:
                         st.session_state.authenticated = True
                         st.session_state.user = user
-                        st.session_state.ai_agent = MarketingStrategist(business_context=user.get('business_profile', ''))
+                        # Initialize AI agent without business_profile to avoid validation errors
+                        # The business_profile will be used later in chat contexts
+                        st.session_state.ai_agent = MarketingStrategist(business_context="")
                         st.success("✅ Inicio de sesión exitoso!")
                         time.sleep(0.5)
                         st.rerun()
@@ -546,10 +550,36 @@ def section_chat(section_name, section_content, section_key):
     chat_key = f"chat_{section_key}"
     if chat_key not in st.session_state:
         st.session_state[chat_key] = []
+        
+        # Load history from database if available
+        username = st.session_state.user['username']
+        history = auth.get_section_history(username, section_key)
+        
+        if history:
+            # Convert database history to chat format
+            for entry in history:
+                st.session_state[chat_key].append({
+                    "role": entry['tipo'],
+                    "content": entry['contenido']
+                })
     
     # Expander for chat
     with st.expander(f"💬 Ampliar y Profundizar en {section_name}", expanded=False):
         st.caption("Pregunta sobre esta sección específica para obtener más detalles, ejemplos o ideas.")
+        
+        # Show history count and clear button if available
+        if len(st.session_state[chat_key]) > 0:
+            col1, col2 = st.columns([3, 1])
+            with col1:
+                st.caption(f"📝 {len(st.session_state[chat_key]) // 2} interacciones guardadas")
+            with col2:
+                if st.button("🗑️ Limpiar", key=f"clear_{section_key}", help="Reiniciar conversación"):
+                    # Clear from session state
+                    st.session_state[chat_key] = []
+                    # Clear from database
+                    username = st.session_state.user['username']
+                    auth.clear_section_history(username, section_key)
+                    st.rerun()
         
         # Display chat history for this section
         for msg in st.session_state[chat_key]:
@@ -562,6 +592,10 @@ def section_chat(section_name, section_content, section_key):
         if prompt:
             # Add user message
             st.session_state[chat_key].append({"role": "user", "content": prompt})
+            
+            # Save user message to database
+            username = st.session_state.user['username']
+            auth.save_section_history(username, section_key, "user", prompt)
             
             # Create context-aware prompt for AI
             business_context = st.session_state.user.get('business_profile', '')
@@ -598,6 +632,20 @@ INSTRUCCIONES:
             
             # Add assistant message
             st.session_state[chat_key].append({"role": "assistant", "content": response})
+            
+            # Save assistant response to database
+            auth.save_section_history(username, section_key, "assistant", response)
+            
+            # ========== ENRICH BRAIN FROM INTERACTION ==========
+            # Automatically detect and save valuable insights
+            try:
+                insights_added = auth.enrich_brain_from_interaction(username, section_key, prompt, response)
+                if insights_added > 0:
+                    print(f"✅ Added {insights_added} insight(s) to brain from {section_key}")
+            except Exception as e:
+                print(f"Warning: Failed to enrich brain: {e}")
+            # ===================================================
+            
             st.rerun()
 
 # Helper to parse sections
@@ -707,9 +755,146 @@ def wizard_page():
     if st.session_state.step == 1:
         st.subheader("📋 Diagnóstico y Contexto")
         
+        # ========== CHECK FOR SAVED STRATEGY ==========
+        user = st.session_state.user
+        saved_estrategia = auth.get_estrategia(user['username'])
+        
+        if saved_estrategia:
+            # User has a saved strategy - offer choice
+            st.success("✅ Tienes una estrategia guardada")
+            
+            # Show strategy info
+            col1, col2 = st.columns(2)
+            with col1:
+                if saved_estrategia.get('created_at'):
+                    from datetime import datetime as dt
+                    try:
+                        created = dt.fromisoformat(saved_estrategia['created_at'])
+                        st.info(f"📅 **Creada:** {created.strftime('%d/%m/%Y %H:%M')}")
+                    except:
+                        pass
+            with col2:
+                if saved_estrategia.get('updated_at'):
+                    from datetime import datetime as dt
+                    try:
+                        updated = dt.fromisoformat(saved_estrategia['updated_at'])
+                        st.info(f"🔄 **Actualizada:** {updated.strftime('%d/%m/%Y %H:%M')}")
+                    except:
+                        pass
+            
+            st.markdown("---")
+            st.markdown("### ¿Qué deseas hacer?")
+            
+            col_btn1, col_btn2 = st.columns(2)
+            
+            with col_btn1:
+                if st.button("📂 Continuar con Estrategia Guardada", use_container_width=True, type="primary"):
+                    # Load saved strategy into session state
+                    # Reconstruct the strategy_result format that the app expects
+                    strategy_sections = []
+                    
+                    # Add each section with markers
+                    if saved_estrategia.get('avatar'):
+                        strategy_sections.append(f"<<<SECTION_START: AVATAR>>>\n{saved_estrategia['avatar']}")
+                    
+                    # Parse embudo back into subsections
+                    if saved_estrategia.get('embudo'):
+                        embudo_text = saved_estrategia['embudo']
+                        # Try to split back into TOFU, MOFU, BOFU
+                        if 'TOFU:' in embudo_text and 'MOFU:' in embudo_text and 'BOFU:' in embudo_text:
+                            parts = embudo_text.split('MOFU:')
+                            tofu = parts[0].replace('TOFU:', '').strip()
+                            mofu_bofu = parts[1].split('BOFU:')
+                            mofu = mofu_bofu[0].strip()
+                            bofu = mofu_bofu[1].strip() if len(mofu_bofu) > 1 else ''
+                            
+                            strategy_sections.append(f"<<<SECTION_START: EMBUDO_TOFU>>>\n{tofu}")
+                            strategy_sections.append(f"<<<SECTION_START: EMBUDO_MOFU>>>\n{mofu}")
+                            strategy_sections.append(f"<<<SECTION_START: EMBUDO_BOFU>>>\n{bofu}")
+                        else:
+                            strategy_sections.append(f"<<<SECTION_START: EMBUDO_TOFU>>>\n{embudo_text}")
+                    
+                    # Parse ads back into subsections
+                    if saved_estrategia.get('ads'):
+                        ads_text = saved_estrategia['ads']
+                        if 'FRÍO:' in ads_text and 'TIBIO:' in ads_text and 'CALIENTE:' in ads_text:
+                            parts = ads_text.split('TIBIO:')
+                            frio = parts[0].replace('FRÍO:', '').strip()
+                            tibio_caliente = parts[1].split('CALIENTE:')
+                            tibio = tibio_caliente[0].strip()
+                            caliente = tibio_caliente[1].strip() if len(tibio_caliente) > 1 else ''
+                            
+                            strategy_sections.append(f"<<<SECTION_START: ADS_FRIO>>>\n{frio}")
+                            strategy_sections.append(f"<<<SECTION_START: ADS_TIBIO>>>\n{tibio}")
+                            strategy_sections.append(f"<<<SECTION_START: ADS_CALIENTE>>>\n{caliente}")
+                        else:
+                            strategy_sections.append(f"<<<SECTION_START: ADS_FRIO>>>\n{ads_text}")
+                    
+                    # WhatsApp days
+                    if saved_estrategia.get('whatsapp'):
+                        whatsapp_text = saved_estrategia['whatsapp']
+                        # Try to split into days (basic split by double newline)
+                        days = whatsapp_text.split('\n\n')
+                        for i, day_content in enumerate(days[:7], 1):
+                            strategy_sections.append(f"<<<SECTION_START: WHATSAPP_DIA{i}>>>\n{day_content}")
+                    
+                    # Objeciones
+                    if saved_estrategia.get('objeciones'):
+                        objeciones_text = saved_estrategia['objeciones']
+                        objeciones = objeciones_text.split('\n\n')
+                        tipos = ["COSTO", "TIEMPO", "PERSONAL", "INTEGRACION", "MIEDO"]
+                        for i, objecion_content in enumerate(objeciones[:5]):
+                            if i < len(tipos):
+                                strategy_sections.append(f"<<<SECTION_START: OBJECION_{tipos[i]}>>>\n{objecion_content}")
+                    
+                    # Acciones diarias
+                    if saved_estrategia.get('acciones_diarias'):
+                        strategy_sections.append(f"<<<SECTION_START: ACCIONES_DIARIAS>>>\n{saved_estrategia['acciones_diarias']}")
+                    
+                    # KPIs/Métricas
+                    if saved_estrategia.get('kpis'):
+                        strategy_sections.append(f"<<<SECTION_START: METRICAS>>>\n{saved_estrategia['kpis']}")
+                    
+                    # Reconstruct full strategy text
+                    st.session_state.strategy_result = '\n\n'.join(strategy_sections)
+                    st.session_state.step = 3
+                    
+                    # Also populate business_info if we have saved form data
+                    if user.get('last_form_data'):
+                        try:
+                            import json
+                            if isinstance(user['last_form_data'], str):
+                                st.session_state.business_info = json.loads(user['last_form_data'])
+                            else:
+                                st.session_state.business_info = user['last_form_data']
+                            
+                            # Normalize plataforma field for PDF generation
+                            # It might be a list from form data, but PDF expects string
+                            if 'plataforma' in st.session_state.business_info:
+                                plat = st.session_state.business_info['plataforma']
+                                if isinstance(plat, list):
+                                    st.session_state.business_info['plataforma'] = ', '.join(plat)
+                        except:
+                            st.session_state.business_info = {}
+                    
+                    st.rerun()
+            
+            with col_btn2:
+                if st.button("🆕 Crear Nueva Estrategia", use_container_width=True):
+                    # User wants to create new strategy, continue to form below
+                    st.session_state.show_new_strategy_form = True
+                    st.rerun()
+            
+            # If user hasn't clicked "Create New", don't show the form
+            if not st.session_state.get('show_new_strategy_form', False):
+                return
+            else:
+                st.markdown("---")
+                st.markdown("### Nueva Estrategia")
+        # ================================================
+        
         # Load saved form data if available
         saved_data = {}
-        user = st.session_state.user
         if user and user.get('last_form_data'):
             try:
                 import json
@@ -982,6 +1167,73 @@ def wizard_page():
                             if content and content != "Contenido no disponible.":
                                 st.session_state.sections_generated[section] = content
                         
+                        # ========== SAVE STRATEGY TO DATABASE ==========
+                        # Save the complete strategy to database for persistence
+                        try:
+                            estrategia_data = {
+                                'avatar': get_section_content(result, "AVATAR"),
+                                'embudo': f"TOFU:\n{get_section_content(result, 'EMBUDO_TOFU')}\n\nMOFU:\n{get_section_content(result, 'EMBUDO_MOFU')}\n\nBOFU:\n{get_section_content(result, 'EMBUDO_BOFU')}",
+                                'ads': f"FRÍO:\n{get_section_content(result, 'ADS_FRIO')}\n\nTIBIO:\n{get_section_content(result, 'ADS_TIBIO')}\n\nCALIENTE:\n{get_section_content(result, 'ADS_CALIENTE')}",
+                                'objeciones': '\n\n'.join([get_section_content(result, f"OBJECION_{tipo}") for tipo in ["COSTO", "TIEMPO", "PERSONAL", "INTEGRACION", "MIEDO"]]),
+                                'whatsapp': '\n\n'.join([get_section_content(result, f"WHATSAPP_DIA{i}") for i in range(1, 8)]),
+                                'acciones_diarias': get_section_content(result, "ACCIONES_DIARIAS"),
+                                'kpis': get_section_content(result, "METRICAS")
+                            }
+                            auth.save_estrategia(user['username'], estrategia_data)
+                            
+                            # ========== AUTO-POPULATE BRAIN ==========
+                            # Extract key information from strategy and business_info to feed the brain
+                            brain_data = auth.get_brain_data(user['username'])
+                            
+                            from datetime import datetime as dt
+                            
+                            # Extract avatar info
+                            avatar_text = estrategia_data.get('avatar', '')
+                            avatar_info = {
+                                'descripcion': avatar_text,  # Sin límite de caracteres
+                                'timestamp': dt.utcnow().isoformat()
+                            }
+                            
+                            # ALWAYS update base info (in case user changes business or adds new product)
+                            brain_data['base'] = {
+                                'rubro': business_info.get('rubro', ''),
+                                'nombre': business_info.get('nombre', ''),
+                                'producto': business_info.get('producto', ''),
+                                'precio': business_info.get('precio'),
+                                'tipo': business_info.get('tipo', ''),
+                                'meta': business_info.get('meta', ''),
+                                'presupuesto': business_info.get('presupuesto'),
+                                'plataforma': business_info.get('plataforma', ''),
+                                'modalidad_venta': business_info.get('modalidad_venta', ''),
+                                'avatar': avatar_info  # Latest avatar
+                            }
+                            
+                            # Add avatar to history (keep last 5 avatars)
+                            if 'avatares_historicos' not in brain_data:
+                                brain_data['avatares_historicos'] = []
+                            
+                            # Add current avatar to history
+                            brain_data['avatares_historicos'].append({
+                                'producto': business_info.get('producto', ''),
+                                'descripcion': avatar_text,  # Sin límite de caracteres
+                                'timestamp': dt.utcnow().isoformat()
+                            })
+                            
+                            # Keep only last 5 avatars
+                            brain_data['avatares_historicos'] = brain_data['avatares_historicos'][-5:]
+                            
+                            brain_data['ultima_actualizacion'] = dt.utcnow().isoformat()
+                            
+                            # Save updated brain
+                            auth.update_brain_data(user['username'], brain_data)
+                            print(f"✅ Brain updated for user {user['username']}")
+                            # ==========================================
+                            
+                        except Exception as save_error:
+                            # Don't fail the whole process if save fails, just log it
+                            print(f"Warning: Failed to save strategy to database: {save_error}")
+                        # ================================================
+                        
                         # Update user session with new request count
                         st.session_state.user['requests_today'] = user.get('requests_today', 0) + 1
                         
@@ -1042,6 +1294,19 @@ def wizard_page():
             # Payment link
             st.markdown("[💳 Pagar Suscripción](https://wa.link/qf8pf2)")
             
+            # Strategy Status Indicator
+            if auth.has_estrategia(user['username']):
+                estrategia = auth.get_estrategia(user['username'])
+                if estrategia:
+                    st.success("✅ Estrategia Guardada")
+                    if estrategia.get('created_at'):
+                        from datetime import datetime as dt
+                        try:
+                            created = dt.fromisoformat(estrategia['created_at'])
+                            st.caption(f"Creada: {created.strftime('%d/%m/%Y')}")
+                        except:
+                            pass
+            
             st.markdown("---")
             
             # RESULTS NAVIGATION
@@ -1056,6 +1321,7 @@ def wizard_page():
             # Nueva Estrategia button
             if st.button("🔄 Nueva Estrategia", use_container_width=True, type="primary"):
                 st.session_state.step = 1
+                st.session_state.show_new_strategy_form = False  # Reset flag
                 st.rerun()
             
             st.markdown("---")
@@ -1738,8 +2004,8 @@ else:
         if page == "Generador":
             wizard_page()
         elif page == "Cerebro del Negocio":
-            business_brain_page()
+            business_brain.business_brain_page()
         elif page == "MiPymes IA":
-            chat_page()
+            chat_brain.chat_page()
         elif page == "Admin Panel":
             admin_panel()

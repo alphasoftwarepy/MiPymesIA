@@ -39,7 +39,9 @@ class MarketingStrategist:
                 print(f"❌ Error initializing LLM: {e}")
                 self.llm = None
         
-        self.memory = ConversationBufferMemory(return_messages=True)
+        
+        # Initialize memory
+        self.memory = ConversationBufferMemory()
         self.business_context = business_context  # Store for later use
         self.setup_chain(business_context)
 
@@ -48,21 +50,33 @@ class MarketingStrategist:
         if not self.llm:
             return
 
-        system_prompt = "Eres un asistente experto en marketing digital. Ayuda al usuario con sus dudas sobre marketing y ventas."
+        # Build system message
+        system_message = "Eres un asistente experto en marketing digital. Ayuda al usuario con sus dudas sobre marketing y ventas."
         
         if business_context:
-            system_prompt += f"\n\nCONTEXTO DEL NEGOCIO:\n{business_context}\n\nUsa este contexto para dar respuestas personalizadas y específicas para este negocio."
+            system_message += f"\n\nCONTEXTO DEL NEGOCIO:\n{business_context}\n\nUsa este contexto para dar respuestas personalizadas y específicas para este negocio."
         
-        prompt = ChatPromptTemplate.from_messages([
-            SystemMessagePromptTemplate.from_template(system_prompt),
-            MessagesPlaceholder(variable_name="history"),
-            HumanMessagePromptTemplate.from_template("{input}")
-        ])
+        # Use simple PromptTemplate
+        from langchain.prompts import PromptTemplate
+        
+        template = f"""{system_message}
 
+Current conversation:
+{{history}}
+
+Human: {{input}}
+Assistant:"""
+        
+        prompt = PromptTemplate(
+            input_variables=["history", "input"],
+            template=template
+        )
+        
         self.chain = ConversationChain(
             llm=self.llm,
             memory=self.memory,
-            prompt=prompt
+            prompt=prompt,
+            verbose=False
         )
 
     def generate_section(self, section_name, business_info):

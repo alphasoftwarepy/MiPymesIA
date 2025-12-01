@@ -306,6 +306,127 @@ def update_business_profile(username, profile_text):
     conn.commit()
     conn.close()
 
+def get_brain_data(username):
+    """
+    Gets the brain data as a structured dict.
+    Returns a dict with 'base', 'insights', and 'contexto_manual' keys.
+    """
+    import json
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT business_profile FROM users WHERE username = ?", (username,))
+    result = c.fetchone()
+    conn.close()
+    
+    if result and result[0]:
+        try:
+            return json.loads(result[0])
+        except:
+            # Old format or invalid JSON, return empty structure
+            return {
+                "base": {},
+                "insights": [],
+                "contexto_manual": result[0] if result[0] else ""
+            }
+    
+    return {
+        "base": {},
+        "insights": [],
+        "contexto_manual": ""
+    }
+
+def update_brain_data(username, brain_data):
+    """Updates the brain data with a structured dict."""
+    import json
+    update_business_profile(username, json.dumps(brain_data, ensure_ascii=False))
+
+def enrich_brain_from_interaction(username, seccion, user_msg, ai_response):
+    """
+    Analyzes interaction and extracts valuable insights to add to the brain.
+    Uses keyword detection to identify valuable information.
+    """
+    from datetime import datetime
+    import json
+    
+    # Get current brain data
+    brain_data = get_brain_data(username)
+    
+    # Ensure insights list exists
+    if 'insights' not in brain_data:
+        brain_data['insights'] = []
+    
+    # Detect insights using keyword patterns
+    insights_to_add = []
+    
+    # Pattern 1: User mentions something "funciona" or "funcionó"
+    if any(word in user_msg.lower() for word in ['funciona', 'funcionó', 'me sirvió', 'me ayudó', 'resultó', 'funcionó bien', 'dio resultado']):
+        insights_to_add.append({
+            'tipo': 'mensaje_ganador',
+            'contenido': user_msg[:200],  # First 200 chars
+            'timestamp': datetime.utcnow().isoformat(),
+            'fuente': seccion
+        })
+    
+    # Pattern 2: User mentions new objection
+    if any(word in user_msg.lower() for word in ['objeción', 'objecion', 'me dicen que', 'problema', 'barrera', 'no quieren', 'rechazan']):
+        insights_to_add.append({
+            'tipo': 'objecion',
+            'contenido': user_msg[:200],
+            'timestamp': datetime.utcnow().isoformat(),
+            'fuente': seccion
+        })
+    
+    # Pattern 3: User mentions specific results/metrics
+    if any(word in user_msg.lower() for word in ['vendí', 'vendi', 'conseguí', 'consegui', 'logré', 'logre', 'aumentó', 'aumento', 'cerré', 'cerre']):
+        insights_to_add.append({
+            'tipo': 'resultado',
+            'contenido': user_msg[:200],
+            'timestamp': datetime.utcnow().isoformat(),
+            'fuente': seccion
+        })
+    
+    # Pattern 4: User asks about specific strategies or tactics (NEW)
+    if any(word in user_msg.lower() for word in ['cómo', 'como', 'quiero', 'necesito', 'puedo', 'debo']):
+        # This is a question/need - save as insight
+        insights_to_add.append({
+            'tipo': 'recomendacion',
+            'contenido': f"Pregunta: {user_msg[:180]}",
+            'timestamp': datetime.utcnow().isoformat(),
+            'fuente': seccion
+        })
+    
+    # Pattern 5: AI provides important recommendation
+    if any(word in ai_response.lower() for word in ['recomiendo', 'sugiero', 'deberías', 'deberias', 'importante', 'clave', 'fundamental']):
+        # Extract first sentence with recommendation
+        sentences = ai_response.split('.')
+        for sentence in sentences[:3]:  # Check first 3 sentences
+            if any(word in sentence.lower() for word in ['recomiendo', 'sugiero', 'deberías', 'deberias', 'importante', 'clave']):
+                insights_to_add.append({
+                    'tipo': 'recomendacion',
+                    'contenido': sentence.strip()[:200],
+                    'timestamp': datetime.utcnow().isoformat(),
+                    'fuente': seccion
+                })
+                break
+    
+    # Add new insights
+    for insight in insights_to_add:
+        brain_data['insights'].append(insight)
+    
+    # Limit to last 50 insights
+    if len(brain_data['insights']) > 50:
+        brain_data['insights'] = brain_data['insights'][-50:]
+    
+    # Update last modification timestamp
+    brain_data['ultima_actualizacion'] = datetime.utcnow().isoformat()
+    
+    # Save if we added any insights
+    if insights_to_add:
+        update_brain_data(username, brain_data)
+        return len(insights_to_add)
+    
+    return 0
+
 def save_last_form_data(username, form_data):
     """Saves the last form data for a user as JSON."""
     import json
@@ -331,6 +452,259 @@ def get_last_form_data(username):
         except:
             return None
     return None
+
+# ========== ESTRATEGIAS FUNCTIONS ==========
+
+def save_estrategia(username, estrategia_data):
+    """
+    Saves or updates a user's complete strategy.
+    estrategia_data should be a dict with keys: avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis
+    """
+    import json
+    from datetime import datetime
+    
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    # Check if user already has a strategy
+    c.execute("SELECT id FROM estrategias WHERE user_id = ?", (username,))
+    existing = c.fetchone()
+    
+    now = datetime.utcnow().isoformat()
+    
+    # Convert dict values to JSON strings
+    avatar_json = json.dumps(estrategia_data.get('avatar', ''))
+    embudo_json = json.dumps(estrategia_data.get('embudo', ''))
+    ads_json = json.dumps(estrategia_data.get('ads', ''))
+    objeciones_json = json.dumps(estrategia_data.get('objeciones', ''))
+    whatsapp_json = json.dumps(estrategia_data.get('whatsapp', ''))
+    acciones_json = json.dumps(estrategia_data.get('acciones_diarias', ''))
+    kpis_json = json.dumps(estrategia_data.get('kpis', ''))
+    
+    if existing:
+        # Update existing strategy
+        c.execute("""
+            UPDATE estrategias 
+            SET avatar = ?, embudo = ?, ads = ?, objeciones = ?, whatsapp = ?, 
+                acciones_diarias = ?, kpis = ?, updated_at = ?
+            WHERE user_id = ?
+        """, (avatar_json, embudo_json, ads_json, objeciones_json, whatsapp_json, 
+              acciones_json, kpis_json, now, username))
+    else:
+        # Insert new strategy
+        c.execute("""
+            INSERT INTO estrategias 
+            (user_id, avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (username, avatar_json, embudo_json, ads_json, objeciones_json, whatsapp_json,
+              acciones_json, kpis_json, now, now))
+    
+    conn.commit()
+    conn.close()
+    return True
+
+def get_estrategia(username):
+    """
+    Retrieves a user's complete strategy.
+    Returns a dict with keys: avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis, created_at, updated_at
+    Returns None if no strategy exists.
+    """
+    import json
+    
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("""
+        SELECT avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis, created_at, updated_at
+        FROM estrategias WHERE user_id = ?
+    """, (username,))
+    result = c.fetchone()
+    conn.close()
+    
+    if result:
+        try:
+            return {
+                'avatar': json.loads(result[0]) if result[0] else '',
+                'embudo': json.loads(result[1]) if result[1] else '',
+                'ads': json.loads(result[2]) if result[2] else '',
+                'objeciones': json.loads(result[3]) if result[3] else '',
+                'whatsapp': json.loads(result[4]) if result[4] else '',
+                'acciones_diarias': json.loads(result[5]) if result[5] else '',
+                'kpis': json.loads(result[6]) if result[6] else '',
+                'created_at': result[7],
+                'updated_at': result[8]
+            }
+        except json.JSONDecodeError:
+            return None
+    return None
+
+def update_estrategia_section(username, section_name, section_content):
+    """
+    Updates a specific section of the user's strategy.
+    section_name should be one of: avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis
+    """
+    import json
+    from datetime import datetime
+    
+    valid_sections = ['avatar', 'embudo', 'ads', 'objeciones', 'whatsapp', 'acciones_diarias', 'kpis']
+    if section_name not in valid_sections:
+        return False
+    
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    now = datetime.utcnow().isoformat()
+    content_json = json.dumps(section_content)
+    
+    # Check if strategy exists
+    c.execute("SELECT id FROM estrategias WHERE user_id = ?", (username,))
+    if c.fetchone():
+        # Update specific section
+        query = f"UPDATE estrategias SET {section_name} = ?, updated_at = ? WHERE user_id = ?"
+        c.execute(query, (content_json, now, username))
+        conn.commit()
+        conn.close()
+        return True
+    else:
+        # No strategy exists yet, create one with this section
+        conn.close()
+        estrategia_data = {section_name: section_content}
+        return save_estrategia(username, estrategia_data)
+
+def has_estrategia(username):
+    """Checks if a user has a saved strategy."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT id FROM estrategias WHERE user_id = ?", (username,))
+    result = c.fetchone()
+    conn.close()
+    return result is not None
+
+# ========== HISTORIAL SECCIONES FUNCTIONS ==========
+
+def save_section_history(username, seccion, tipo, contenido):
+    """
+    Saves a section interaction to history.
+    
+    Args:
+        username: user's username
+        seccion: section name (e.g., 'avatar', 'embudo', 'ads', etc.)
+        tipo: interaction type ('user' or 'assistant')
+        contenido: content of the interaction
+    """
+    from datetime import datetime
+    
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    now = datetime.utcnow().isoformat()
+    
+    c.execute("""
+        INSERT INTO historial_secciones (user_id, seccion, tipo, contenido, timestamp)
+        VALUES (?, ?, ?, ?, ?)
+    """, (username, seccion, tipo, contenido, now))
+    
+    conn.commit()
+    conn.close()
+    return True
+
+def get_section_history(username, seccion, limit=None):
+    """
+    Retrieves history for a specific section.
+    
+    Args:
+        username: user's username
+        seccion: section name
+        limit: optional limit on number of entries to return (most recent first)
+    
+    Returns:
+        List of dicts with keys: id, tipo, contenido, timestamp
+    """
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    if limit:
+        c.execute("""
+            SELECT id, tipo, contenido, timestamp
+            FROM historial_secciones
+            WHERE user_id = ? AND seccion = ?
+            ORDER BY timestamp DESC
+            LIMIT ?
+        """, (username, seccion, limit))
+    else:
+        c.execute("""
+            SELECT id, tipo, contenido, timestamp
+            FROM historial_secciones
+            WHERE user_id = ? AND seccion = ?
+            ORDER BY timestamp ASC
+        """, (username, seccion))
+    
+    rows = c.fetchall()
+    conn.close()
+    
+    history = []
+    for row in rows:
+        history.append({
+            'id': row[0],
+            'tipo': row[1],
+            'contenido': row[2],
+            'timestamp': row[3]
+        })
+    
+    return history
+
+def get_all_section_history(username):
+    """
+    Retrieves all section history for a user, grouped by section.
+    
+    Returns:
+        Dict with section names as keys and list of interactions as values
+    """
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    c.execute("""
+        SELECT seccion, tipo, contenido, timestamp
+        FROM historial_secciones
+        WHERE user_id = ?
+        ORDER BY seccion, timestamp ASC
+    """, (username,))
+    
+    rows = c.fetchall()
+    conn.close()
+    
+    history_by_section = {}
+    for row in rows:
+        seccion = row[0]
+        if seccion not in history_by_section:
+            history_by_section[seccion] = []
+        
+        history_by_section[seccion].append({
+            'tipo': row[1],
+            'contenido': row[2],
+            'timestamp': row[3]
+        })
+    
+    return history_by_section
+
+def clear_section_history(username, seccion=None):
+    """
+    Clears section history.
+    
+    Args:
+        username: user's username
+        seccion: optional section name. If None, clears all history for user
+    """
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    if seccion:
+        c.execute("DELETE FROM historial_secciones WHERE user_id = ? AND seccion = ?", (username, seccion))
+    else:
+        c.execute("DELETE FROM historial_secciones WHERE user_id = ?", (username,))
+    
+    conn.commit()
+    conn.close()
+    return True
 
 # Auto-initialize database when module is imported
 # This ensures the database and table exist before any operations
