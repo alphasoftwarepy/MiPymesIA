@@ -567,18 +567,46 @@ def section_chat(section_name, section_content, section_key):
     with st.expander(f"💬 Ampliar y Profundizar en {section_name}", expanded=False):
         st.caption("Pregunta sobre esta sección específica para obtener más detalles, ejemplos o ideas.")
         
+        # ========== SHOW ARCHIVED CONVERSATIONS ==========
+        username = st.session_state.user['username']
+        archives = auth.get_archived_conversations(username, section_key, limit=3)
+        
+        if archives:
+            st.markdown("**📦 Conversaciones Archivadas:**")
+            for archive in archives:
+                with st.expander(f"📦 {archive['mensajes_count']} mensajes - {archive['timestamp'][:10]}", expanded=False):
+                    st.markdown(archive['resumen'])
+            st.divider()
+        # =================================================
+        
         # Show history count and clear button if available
         if len(st.session_state[chat_key]) > 0:
             col1, col2 = st.columns([3, 1])
             with col1:
                 st.caption(f"📝 {len(st.session_state[chat_key]) // 2} interacciones guardadas")
             with col2:
-                if st.button("🗑️ Limpiar", key=f"clear_{section_key}", help="Reiniciar conversación"):
+                if st.button("🗑️ Limpiar", key=f"clear_{section_key}", help="Compactar y reiniciar conversación"):
+                    username = st.session_state.user['username']
+                    
+                    # ========== COMPACT BEFORE CLEARING ==========
+                    # Compact conversation to preserve insights
+                    try:
+                        success, summary, insights_count = auth.compact_section_history(
+                            username, 
+                            section_key, 
+                            st.session_state.ai_agent
+                        )
+                        if success:
+                            st.success(f"✅ Conversación archivada. {insights_count} insights guardados en el cerebro.")
+                            print(f"✅ Compacted {section_key} before clearing: {insights_count} insights")
+                    except Exception as e:
+                        print(f"Warning: Failed to compact before clearing: {e}")
+                        # If compaction fails, just clear normally
+                        auth.clear_section_history(username, section_key)
+                    # ============================================
+                    
                     # Clear from session state
                     st.session_state[chat_key] = []
-                    # Clear from database
-                    username = st.session_state.user['username']
-                    auth.clear_section_history(username, section_key)
                     st.rerun()
         
         # Display chat history for this section
@@ -644,6 +672,24 @@ INSTRUCCIONES:
                     print(f"✅ Added {insights_added} insight(s) to brain from {section_key}")
             except Exception as e:
                 print(f"Warning: Failed to enrich brain: {e}")
+            # ===================================================
+            
+            # ========== AUTO-COMPACTION AT 10 MESSAGES ==========
+            # Check if we should compact this section
+            message_count = len(st.session_state[chat_key])
+            if message_count >= 20:  # 10 user + 10 assistant = 20 total
+                try:
+                    success, summary, insights_count = auth.compact_section_history(
+                        username, 
+                        section_key, 
+                        st.session_state.ai_agent
+                    )
+                    if success:
+                        print(f"✅ Auto-compacted {section_key}: {insights_count} insights extracted")
+                        # Clear session state since messages are now archived
+                        st.session_state[chat_key] = []
+                except Exception as e:
+                    print(f"Warning: Failed to auto-compact: {e}")
             # ===================================================
             
             st.rerun()
@@ -948,6 +994,15 @@ def wizard_page():
             with col2:
                 st.markdown("### 🎯 Objetivos y Presupuesto")
                 producto = st.text_input("⭐ Producto/Servicio Estrella", value=saved_data.get('producto', ''), placeholder="ej: Curso de Marketing Digital")
+                
+                # NEW: Diferenciador clave
+                diferenciador = st.text_input(
+                    "💎 ¿Qué te hace diferente de la competencia?",
+                    value=saved_data.get('diferenciador', ''),
+                    placeholder="ej: Entrega en 24hs, Garantía de por vida, Atención 24/7",
+                    help="Tu ventaja competitiva única"
+                )
+                
                 precio = st.number_input("💵 Precio del Producto/Servicio (USD) - Opcional", min_value=0.0, value=float(saved_data.get('precio', 0.0)) if saved_data.get('precio') else 0.0, step=1.0)
                 
                 meta_options = ["Aumentar Ventas", "Ganar Seguidores", "Reconocimiento de Marca", "Generar Leads"]
@@ -1019,6 +1074,7 @@ def wizard_page():
                         "nombre": nombre,
                         "tipo": tipo,
                         "producto": producto,
+                        "diferenciador": diferenciador,  # NEW
                         "precio": precio,
                         "meta": meta,
                         "presupuesto": presupuesto,
@@ -1207,6 +1263,21 @@ def wizard_page():
                                 'modalidad_venta': business_info.get('modalidad_venta', ''),
                                 'avatar': avatar_info  # Latest avatar
                             }
+                            
+                            # Add diferenciador if provided
+                            if business_info.get('diferenciador'):
+                                if 'diferenciadores' not in brain_data:
+                                    brain_data['diferenciadores'] = []
+                                
+                                # Add new diferenciador
+                                brain_data['diferenciadores'].append({
+                                    'principal': business_info.get('diferenciador'),
+                                    'timestamp': dt.utcnow().isoformat(),
+                                    'fuente': 'formulario_inicial'
+                                })
+                                
+                                # Keep only last 3 diferenciadores
+                                brain_data['diferenciadores'] = brain_data['diferenciadores'][-3:]
                             
                             # Add avatar to history (keep last 5 avatars)
                             if 'avatares_historicos' not in brain_data:
