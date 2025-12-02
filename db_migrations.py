@@ -6,13 +6,7 @@ import sqlite3
 import os
 from datetime import datetime
 
-# Use /app/data for production (Easypanel persistent volume), current dir for local dev
-DB_PATH = os.getenv("DB_PATH", "/app/data" if os.path.exists("/app/data") else ".")
-
-# Ensure the directory exists
-os.makedirs(DB_PATH, exist_ok=True)
-
-DB_NAME = os.path.join(DB_PATH, "users.db")
+DB_NAME = "users.db"
 MIGRATIONS_TABLE = "schema_migrations"
 
 def init_migrations_table():
@@ -187,136 +181,6 @@ def migration_002_tasks_system():
     conn.close()
 
 
-
-def migration_003_missing_auth_columns():
-    """Add missing auth columns (email, limits, lockout) if they don't exist."""
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    
-    columns_to_add = [
-        ("email", "TEXT DEFAULT ''"),
-        ("daily_request_limit", "INTEGER DEFAULT 20"),
-        ("failed_login_attempts", "INTEGER DEFAULT 0"),
-        ("lockout_until", "TEXT")
-    ]
-    
-    for column_name, column_def in columns_to_add:
-        try:
-            c.execute(f"ALTER TABLE users ADD COLUMN {column_name} {column_def}")
-            print(f"    ✓ Added column: {column_name}")
-        except sqlite3.OperationalError as e:
-            if "duplicate column" in str(e).lower():
-                print(f"    - Column {column_name} already exists")
-            else:
-                raise
-    
-    conn.commit()
-    conn.close()
-
-
-
-
-def migration_004_estrategias_table():
-    """Create estrategias table for storing user strategies."""
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    
-    # Check if table exists
-    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='estrategias'")
-    if c.fetchone():
-        print("    - Table 'estrategias' already exists")
-        conn.close()
-        return
-    
-    print("    ✓ Creating 'estrategias' table...")
-    c.execute('''
-        CREATE TABLE estrategias (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT NOT NULL,
-            avatar TEXT,
-            embudo TEXT,
-            ads TEXT,
-            objeciones TEXT,
-            whatsapp TEXT,
-            acciones_diarias TEXT,
-            kpis TEXT,
-            created_at TEXT NOT NULL,
-            updated_at TEXT NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users(username) ON DELETE CASCADE
-        )
-    ''')
-    
-    # Create index for faster lookups
-    c.execute('CREATE INDEX idx_estrategias_user_id ON estrategias(user_id)')
-    
-    conn.commit()
-    conn.close()
-
-
-def migration_005_historial_secciones_table():
-    """Create historial_secciones table for storing section interaction history."""
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    
-    # Check if table exists
-    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='historial_secciones'")
-    if c.fetchone():
-        print("    - Table 'historial_secciones' already exists")
-        conn.close()
-        return
-    
-    print("    ✓ Creating 'historial_secciones' table...")
-    c.execute('''
-        CREATE TABLE historial_secciones (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT NOT NULL,
-            seccion TEXT NOT NULL,
-            tipo TEXT NOT NULL,
-            contenido TEXT NOT NULL,
-            timestamp TEXT NOT NULL,
-            FOREIGN KEY (user_id) REFERENCES users(username) ON DELETE CASCADE
-        )
-    ''')
-    
-    # Create indexes for faster lookups
-    c.execute('CREATE INDEX idx_historial_user_id ON historial_secciones(user_id)')
-    c.execute('CREATE INDEX idx_historial_seccion ON historial_secciones(user_id, seccion)')
-    c.execute('CREATE INDEX idx_historial_timestamp ON historial_secciones(timestamp)')
-    
-    conn.commit()
-    conn.close()
-
-
-def migration_006_conversaciones_archivadas_table():
-    """Create conversaciones_archivadas table for storing compacted conversation summaries."""
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    
-    # Check if table exists
-    c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='conversaciones_archivadas'")
-    if c.fetchone():
-        print("    - Table 'conversaciones_archivadas' already exists")
-        conn.close()
-        return
-    
-    print("    ✓ Creating 'conversaciones_archivadas' table...")
-    c.execute("""
-        CREATE TABLE conversaciones_archivadas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT NOT NULL,
-            seccion TEXT NOT NULL,
-            resumen TEXT,
-            mensajes_count INTEGER,
-            timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-            expandible BOOLEAN DEFAULT 1,
-            FOREIGN KEY (user_id) REFERENCES users(username)
-        )
-    """)
-    
-    conn.commit()
-    conn.close()
-
-
 # ==================== MAIN MIGRATION RUNNER ====================
 
 def run_all_migrations():
@@ -330,10 +194,6 @@ def run_all_migrations():
     migrations = [
         ("001_subscription_system", migration_001_subscription_system),
         ("002_tasks_system", migration_002_tasks_system),
-        ("003_missing_auth_columns", migration_003_missing_auth_columns),
-        ("004_estrategias_table", migration_004_estrategias_table),
-        ("005_historial_secciones_table", migration_005_historial_secciones_table),
-        ("006_conversaciones_archivadas_table", migration_006_conversaciones_archivadas_table),
     ]
     
     # Run each migration

@@ -1,16 +1,56 @@
 # Python
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
+.Python
 .venv/
-.env
+venv/
+env/
+ENV/
 
-# Database
-users.db
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+users_backup_*.db
+
+# Database exports
+users_export*.json
+database_schema.sql
+database_structure.md
 
 # Large files
 *.zip
 MiPymesIA.zip
 
+# Logs
+*.log
+logs/
+
+# Temporary files
+temp_*.txt
+temp_*.py
+*.tmp
+
 # OS
 Thumbs.db
 Desktop.ini
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Backup files
+*_backup.py
+*_backup_*.py
+*.bak
