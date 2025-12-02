@@ -119,12 +119,16 @@ def login_user(username, password):
             conn.commit()
     
     c.execute("""SELECT username, password, business_name, is_active, is_admin, start_date, expiration_date, 
-                        requests_today, last_request_date, email, daily_request_limit, business_profile, last_form_data 
+                        requests_today, last_request_date, email, daily_request_limit, business_profile, last_form_data,
+                        plan_actual, fecha_registro, fecha_ultimo_pago, fecha_vencimiento,
+                        ai_requests_today, ai_request_limit
                  FROM users WHERE username = ?""", (username,))
     user = c.fetchone()
 
     if user:
-        # user structure: (username, password_hash, business_name, is_active, is_admin, start_date, expiration_date, requests_today, last_request_date, email, daily_request_limit, business_profile, last_form_data)
+        # user structure: (username, password_hash, business_name, is_active, is_admin, start_date, expiration_date, 
+        #                  requests_today, last_request_date, email, daily_request_limit, business_profile, last_form_data,
+        #                  plan_actual, fecha_registro, fecha_ultimo_pago, fecha_vencimiento, ai_requests_today, ai_request_limit)
         if verify_password(password, user[1]):
             # Reset failed attempts on successful login
             c.execute("UPDATE users SET failed_login_attempts = 0, lockout_until = NULL WHERE username = ?", (username,))
@@ -150,9 +154,15 @@ def login_user(username, password):
                 "requests_today": user[7] or 0,
                 "last_request_date": user[8],
                 "email": user[9] or "",
-                "daily_request_limit": user[10] or 20,
+                "daily_request_limit": user[10] or 5,
                 "business_profile": user[11] or "",
-                "last_form_data": user[12] or ""
+                "last_form_data": user[12] or "",
+                "plan_actual": user[13] or "prueba",
+                "fecha_registro": user[14],
+                "fecha_ultimo_pago": user[15],
+                "fecha_vencimiento": user[16],
+                "ai_requests_today": user[17] or 0,
+                "ai_request_limit": user[18] or 10
             }
 
 
