@@ -258,16 +258,20 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
             
             # Use expander for chat (like sections)
             with st.expander("💬 Asistente IA - Ayuda con esta tarea", expanded=False):
-                # Display chat history
-                if not st.session_state[chat_history_key]:
-                    st.info(f"👋 ¡Hola! Te ayudo con: **{task['titulo']}**. ¿Qué necesitas saber?")
-                else:
-                    for msg in st.session_state[chat_history_key]:
-                        if msg['role'] == 'user':
-                            st.markdown(f"**Tú:** {msg['content']}")
-                        else:
-                            st.markdown(f"**IA:** {msg['content']}")
-                        st.markdown("")
+                # Show chat count and clear button
+                if len(st.session_state[chat_history_key]) > 0:
+                    col1, col2 = st.columns([4, 1])
+                    with col1:
+                        st.caption(f"📝 {len(st.session_state[chat_history_key]) // 2} mensajes")
+                    with col2:
+                        if st.button("🗑️ Limpiar", key=f"clear_chat_{task['id']}", help="Reiniciar conversación"):
+                            st.session_state[chat_history_key] = []
+                            st.rerun()
+                
+                # Display chat messages with st.chat_message (like sections)
+                for msg in st.session_state[chat_history_key]:
+                    with st.chat_message(msg["role"]):
+                        st.markdown(msg["content"])
                 
                 # Quick suggestions
                 st.caption("💡 **Sugerencias rápidas:**")
@@ -301,34 +305,19 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                             st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
                         st.rerun()
                 
-                st.markdown("---")
+                # Chat input (like sections - supports Enter key)
+                prompt = st.chat_input("Pregunta sobre esta tarea...", key=f"chat_input_{task['id']}")
                 
-                # Chat input
-                user_input = st.text_input(
-                    "Escribe tu pregunta...", 
-                    key=f"chat_input_{task['id']}",
-                    placeholder="Ej: ¿Qué copy uso? ¿Qué hashtags? ¿Cómo lo hago?"
-                )
-                
-                col_send, col_clear = st.columns([0.7, 0.3])
-                
-                with col_send:
-                    if st.button("📤 Enviar", key=f"send_{task['id']}", use_container_width=True, type="primary"):
-                        if user_input:
-                            # Add user message
-                            st.session_state[chat_history_key].append({"role": "user", "content": user_input})
-                            
-                            # Generate AI response
-                            with st.spinner("🤔 Pensando..."):
-                                ai_response = get_task_ai_help(task, user_input, username)
-                                st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
-                            
-                            st.rerun()
-                
-                with col_clear:
-                    if st.button("🗑️ Limpiar", key=f"clear_chat_{task['id']}", use_container_width=True):
-                        st.session_state[chat_history_key] = []
-                        st.rerun()
+                if prompt:
+                    # Add user message
+                    st.session_state[chat_history_key].append({"role": "user", "content": prompt})
+                    
+                    # Generate AI response
+                    with st.spinner("🤔 Pensando..."):
+                        ai_response = get_task_ai_help(task, prompt, username)
+                        st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
+                    
+                    st.rerun()
         
         st.markdown("")
 
