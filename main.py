@@ -13,9 +13,17 @@ from datetime import datetime, timedelta
 import time
 import urllib.parse
 from views import login_page as new_login_page
+import db_migrations
 
 # Page Config
 st.set_page_config(page_title="Generador MiPymesIA", page_icon="🚀", layout="wide")
+
+# Run database migrations automatically on startup
+try:
+    db_migrations.run_all_migrations()
+except Exception as e:
+    st.error(f"Error running database migrations: {e}")
+    st.stop()
 
 # Prevent accidental page refresh - show warning
 st.markdown("""
