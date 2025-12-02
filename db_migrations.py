@@ -181,6 +181,33 @@ def migration_002_tasks_system():
     conn.close()
 
 
+
+def migration_003_missing_auth_columns():
+    """Add missing auth columns (email, limits, lockout) if they don't exist."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    columns_to_add = [
+        ("email", "TEXT DEFAULT ''"),
+        ("daily_request_limit", "INTEGER DEFAULT 20"),
+        ("failed_login_attempts", "INTEGER DEFAULT 0"),
+        ("lockout_until", "TEXT")
+    ]
+    
+    for column_name, column_def in columns_to_add:
+        try:
+            c.execute(f"ALTER TABLE users ADD COLUMN {column_name} {column_def}")
+            print(f"    ✓ Added column: {column_name}")
+        except sqlite3.OperationalError as e:
+            if "duplicate column" in str(e).lower():
+                print(f"    - Column {column_name} already exists")
+            else:
+                raise
+    
+    conn.commit()
+    conn.close()
+
+
 # ==================== MAIN MIGRATION RUNNER ====================
 
 def run_all_migrations():
@@ -194,6 +221,7 @@ def run_all_migrations():
     migrations = [
         ("001_subscription_system", migration_001_subscription_system),
         ("002_tasks_system", migration_002_tasks_system),
+        ("003_missing_auth_columns", migration_003_missing_auth_columns),
     ]
     
     # Run each migration
