@@ -20,6 +20,7 @@ st.set_page_config(page_title="Generador MiPymesIA", page_icon="🚀", layout="w
 
 # Run database migrations automatically on startup
 try:
+    auth.init_db()  # Ensure tables exist first
     db_migrations.run_all_migrations()
 except Exception as e:
     st.error(f"Error running database migrations: {e}")
