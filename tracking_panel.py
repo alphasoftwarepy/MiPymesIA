@@ -249,7 +249,165 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                         tasks_manager.delete_task(username, task['id'])
                         st.rerun()
         
+        # AI Chat Helper - Only for non-completed tasks
+        if not task['completada']:
+            # Button to toggle chat
+            chat_key = f"show_chat_{task['id']}"
+            if chat_key not in st.session_state:
+                st.session_state[chat_key] = False
+            
+            col_btn1, col_btn2 = st.columns([0.3, 0.7])
+            with col_btn1:
+                if st.button("💬 ¿Necesitas ayuda con esta tarea?", key=f"help_btn_{task['id']}", use_container_width=True):
+                    st.session_state[chat_key] = not st.session_state[chat_key]
+                    st.rerun()
+            
+            # Show chat if toggled
+            if st.session_state[chat_key]:
+                with st.container():
+                    st.markdown("---")
+                    st.markdown("### 💬 Asistente IA - Ayuda con esta tarea")
+                    
+                    # Get task-specific chat history
+                    chat_history_key = f"task_chat_{task['id']}"
+                    if chat_history_key not in st.session_state:
+                        st.session_state[chat_history_key] = []
+                    
+                    # Display chat history
+                    chat_container = st.container()
+                    with chat_container:
+                        if not st.session_state[chat_history_key]:
+                            st.info(f"👋 ¡Hola! Te ayudo con: **{task['titulo']}**. ¿Qué necesitas saber?")
+                        else:
+                            for msg in st.session_state[chat_history_key]:
+                                if msg['role'] == 'user':
+                                    st.markdown(f"**Tú:** {msg['content']}")
+                                else:
+                                    st.markdown(f"**IA:** {msg['content']}")
+                                st.markdown("")
+                    
+                    # Quick suggestions
+                    st.caption("💡 **Sugerencias rápidas:**")
+                    col_s1, col_s2, col_s3 = st.columns(3)
+                    
+                    with col_s1:
+                        if st.button("📝 Dame un ejemplo", key=f"sugg1_{task['id']}", use_container_width=True):
+                            user_msg = "Dame un ejemplo concreto de cómo hacer esta tarea"
+                            st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
+                            st.rerun()
+                    
+                    with col_s2:
+                        if st.button("⏰ ¿Cuándo hacerlo?", key=f"sugg2_{task['id']}", use_container_width=True):
+                            user_msg = "¿Cuál es el mejor momento para hacer esta tarea?"
+                            st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
+                            st.rerun()
+                    
+                    with col_s3:
+                        if st.button("🎯 Tips y trucos", key=f"sugg3_{task['id']}", use_container_width=True):
+                            user_msg = "Dame tips y mejores prácticas para esta tarea"
+                            st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
+                            st.rerun()
+                    
+                    # Chat input
+                    user_input = st.text_input(
+                        "Escribe tu pregunta...", 
+                        key=f"chat_input_{task['id']}",
+                        placeholder="Ej: ¿Qué copy uso? ¿Qué hashtags? ¿Cómo lo hago?"
+                    )
+                    
+                    col_send, col_clear = st.columns([0.7, 0.3])
+                    
+                    with col_send:
+                        if st.button("📤 Enviar", key=f"send_{task['id']}", use_container_width=True, type="primary"):
+                            if user_input:
+                                # Add user message
+                                st.session_state[chat_history_key].append({"role": "user", "content": user_input})
+                                
+                                # Generate AI response
+                                with st.spinner("🤔 Pensando..."):
+                                    ai_response = get_task_ai_help(task, user_input, username)
+                                    st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
+                                
+                                st.rerun()
+                    
+                    with col_clear:
+                        if st.button("🗑️ Limpiar chat", key=f"clear_chat_{task['id']}", use_container_width=True):
+                            st.session_state[chat_history_key] = []
+                            st.rerun()
+        
         st.markdown("")
+
+
+def get_task_ai_help(task, user_question, username):
+    """Get AI assistance for a specific task."""
+    from openai import OpenAI
+    import os
+    
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    
+    # Build context
+    import auth
+    
+    # Get user's strategy and brain data
+    user_data = auth.get_user(username)
+    estrategia = auth.get_estrategia(username) if user_data else None
+    brain_data = auth.get_brain_data(username)
+    
+    # Build rich context
+    context = f"""Eres un asistente experto en marketing digital que ayuda a ejecutar tareas específicas.
+
+TAREA ACTUAL:
+- Título: {task['titulo']}
+- Descripción: {task['descripcion']}
+- Categoría: {task['categoria']}
+- Prioridad: {task['prioridad']}
+
+CONTEXTO DEL NEGOCIO:
+"""
+    
+    if brain_data and brain_data.get('base'):
+        base = brain_data['base']
+        context += f"""- Negocio: {base.get('nombre', 'N/A')}
+- Rubro: {base.get('rubro', 'N/A')}
+- Producto/Servicio: {base.get('producto', 'N/A')}
+- Plataformas: {base.get('plataforma', 'N/A')}
+"""
+    
+    if estrategia:
+        context += f"\nESTRATEGIA RELACIONADA:\n"
+        if task['seccion_origen'] == 'embudo':
+            context += f"Embudo de contenido: {estrategia.get('embudo', '')[:500]}...\n"
+        elif task['seccion_origen'] == 'ads':
+            context += f"Estrategia de Ads: {estrategia.get('ads', '')[:500]}...\n"
+        elif task['seccion_origen'] == 'whatsapp':
+            context += f"Flujo WhatsApp: {estrategia.get('whatsapp', '')[:500]}...\n"
+    
+    context += f"""
+INSTRUCCIONES:
+1. Sé específico y práctico
+2. Da ejemplos concretos aplicados a este negocio
+3. Si es contenido, sugiere copy, hashtags, CTAs
+4. Si es ads, sugiere textos, segmentación, presupuesto
+5. Sé breve pero completo (máximo 200 palabras)
+
+PREGUNTA DEL USUARIO: {user_question}
+"""
+    
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Eres un experto en marketing digital que da consejos prácticos y específicos."},
+                {"role": "user", "content": context}
+            ],
+            temperature=0.7,
+            max_tokens=500
+        )
+        
+        return response.choices[0].message.content
+    
+    except Exception as e:
+        return f"⚠️ Error al obtener ayuda: {e}. Por favor intenta de nuevo."
 
 
 def show_create_task_form(username):
