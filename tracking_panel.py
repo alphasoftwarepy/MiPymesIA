@@ -43,49 +43,100 @@ def tracking_panel_page():
     # ========== TABS ==========
     tab1, tab2, tab3 = st.tabs(["📋 Tareas de Hoy", "📅 Vista Semanal", "🏆 Logros"])
     
-    # ========== TAB 1: TAREAS DE HOY ==========
+    
+    # ========== TAB 1: TAREAS ==========
     with tab1:
-        st.subheader(f"📋 Tareas de Hoy - {datetime.now().strftime('%A %d %b')}")
+        st.subheader("📋 Tareas")
         
-        tasks_today = tasks_manager.get_tasks_for_today(username)
+        # Get all tasks for the week
+        all_tasks = tasks_manager.get_tasks_for_week(username)
         
-        if not tasks_today:
-            st.info("🎉 ¡No tienes tareas pendientes para hoy! Puedes crear tareas manualmente o generar una nueva estrategia.")
+        if not all_tasks:
+            st.info("🎉 ¡No tienes tareas pendientes! Puedes crear tareas manualmente o generar una nueva estrategia.")
             
             if st.button("➕ Crear Tarea Manual"):
                 st.session_state.show_create_task = True
                 st.rerun()
         else:
-            # Group by priority
-            alta = [t for t in tasks_today if t['prioridad'] == 'alta' and not t['completada']]
-            media = [t for t in tasks_today if t['prioridad'] == 'media' and not t['completada']]
-            baja = [t for t in tasks_today if t['prioridad'] == 'baja' and not t['completada']]
-            completadas = [t for t in tasks_today if t['completada']]
+            # Separate pending and completed
+            pending_tasks = [t for t in all_tasks if not t['completada']]
+            completed_tasks = [t for t in all_tasks if t['completada']]
             
-            # High Priority
-            if alta:
-                st.markdown("### 🔴 Alta Prioridad")
-                for task in alta:
-                    render_task_card(task, username)
+            # Group pending tasks by date
+            from collections import defaultdict
+            tasks_by_date = defaultdict(list)
             
-            # Medium Priority
-            if media:
-                st.markdown("### 🟡 Media Prioridad")
-                for task in media:
-                    render_task_card(task, username)
+            today = datetime.now().date()
             
-            # Low Priority
-            if baja:
-                st.markdown("### 🟢 Baja Prioridad")
-                for task in baja:
-                    render_task_card(task, username)
+            for task in pending_tasks:
+                # Determine task date
+                if task['frecuencia'] == 'diaria':
+                    task_date = today
+                elif task['frecuencia'] == 'semanal' and task['dia_semana'] is not None:
+                    # Calculate next occurrence
+                    days_ahead = task['dia_semana'] - today.weekday()
+                    if days_ahead < 0:
+                        days_ahead += 7
+                    task_date = today + timedelta(days=days_ahead)
+                else:  # unica
+                    task_date = today
+                
+                tasks_by_date[task_date].append(task)
             
-            # Completed
-            if completadas:
+            # Sort dates
+            sorted_dates = sorted(tasks_by_date.keys())
+            
+            # Display tasks grouped by date
+            for task_date in sorted_dates:
+                # Format date label
+                days_diff = (task_date - today).days
+                if days_diff == 0:
+                    date_label = f"📍 Hoy, {task_date.strftime('%d %B')}"
+                elif days_diff == 1:
+                    date_label = f"📅 Mañana, {task_date.strftime('%d %B')}"
+                else:
+                    weekday_names = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+                    weekday = weekday_names[task_date.weekday()]
+                    date_label = f"📅 {weekday}, {task_date.strftime('%d %B')}"
+                
+                st.markdown(f"### {date_label}")
+                
+                # Sort by priority within date
+                day_tasks = sorted(tasks_by_date[task_date], 
+                                 key=lambda x: {'alta': 0, 'media': 1, 'baja': 2}.get(x['prioridad'], 3))
+                
+                for task in day_tasks:
+                    render_task_card(task, username, show_date=False)
+            
+            # Completed tasks section
+            if completed_tasks:
                 st.markdown("---")
-                with st.expander(f"✅ Completadas ({len(completadas)})", expanded=False):
-                    for task in completadas:
-                        render_task_card(task, username, is_completed=True)
+                st.markdown("### ✅ Completadas")
+                
+                # Sort by completion date (most recent first)
+                completed_sorted = sorted(completed_tasks, 
+                                        key=lambda x: x.get('fecha_completada', ''), 
+                                        reverse=True)
+                
+                for task in completed_sorted[:10]:  # Show last 10 completed
+                    # Format completion date
+                    if task.get('fecha_completada'):
+                        try:
+                            comp_date = datetime.fromisoformat(task['fecha_completada']).date()
+                            days_ago = (today - comp_date).days
+                            if days_ago == 0:
+                                date_str = "Hoy"
+                            elif days_ago == 1:
+                                date_str = "Ayer"
+                            else:
+                                date_str = f"{days_ago} días atrás"
+                        except:
+                            date_str = ""
+                    else:
+                        date_str = ""
+                    
+                    # Render completed task with points
+                    render_task_card(task, username, is_completed=True, completion_date=date_str)
     
     # ========== TAB 2: VISTA SEMANAL ==========
     with tab2:
@@ -179,7 +230,7 @@ def tracking_panel_page():
             st.info("No hay estadísticas por categoría aún")
 
 
-def render_task_card(task, username, is_completed=False, compact=False, day_context=None):
+def render_task_card(task, username, is_completed=False, compact=False, day_context=None, show_date=True, completion_date=None):
     """Render a single task card with actions."""
     
     # Priority color
@@ -222,16 +273,19 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
             col1, col2, col3 = st.columns([0.1, 0.8, 0.1])
             
             with col1:
-                checked = st.checkbox("", value=task['completada'], key=f"task_{task['id']}")
-                if checked != task['completada']:
-                    if checked:
-                        success = tasks_manager.complete_task(username, task['id'])
-                        if success:
-                            st.success(f"✅ +{task['puntos']} puntos!")
+                if not is_completed:
+                    checked = st.checkbox("", value=task['completada'], key=f"task_{task['id']}")
+                    if checked != task['completada']:
+                        if checked:
+                            success = tasks_manager.complete_task(username, task['id'])
+                            if success:
+                                st.success(f"✅ +{task['puntos']} puntos!")
+                                st.rerun()
+                        else:
+                            tasks_manager.uncomplete_task(username, task['id'])
                             st.rerun()
-                    else:
-                        tasks_manager.uncomplete_task(username, task['id'])
-                        st.rerun()
+                else:
+                    st.markdown("✅")
             
             with col2:
                 style = "text-decoration: line-through; opacity: 0.6;" if task['completada'] else ""
@@ -240,7 +294,9 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                 if task['descripcion'] and not task['completada']:
                     st.caption(task['descripcion'])
                 
-                if task['completada']:
+                if task['completada'] and completion_date:
+                    st.caption(f"✅ {completion_date} - +{task['puntos']} puntos")
+                elif task['completada']:
                     st.caption(f"✅ Completada - +{task['puntos']} puntos")
             
             with col3:
