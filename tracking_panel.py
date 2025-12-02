@@ -19,22 +19,39 @@ def tracking_panel_page():
     stats = tasks_manager.get_user_stats(username)
     weekly_progress = tasks_manager.get_weekly_progress(username)
     
+    # Provide default values if stats are None
+    if stats is None:
+        stats = {
+            'racha_actual': 0,
+            'puntos': 0,
+            'nivel': 1,
+            'por_categoria': []
+        }
+    
+    if weekly_progress is None:
+        weekly_progress = {
+            'tareas_completadas': 0,
+            'tareas_totales': 0,
+            'racha_dias': 0,
+            'puntos_ganados': 0
+        }
+    
     # ========== HEADER STATS ==========
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("🔥 Racha Actual", f"{stats['racha_actual']} días")
+        st.metric("🔥 Racha Actual", f"{stats.get('racha_actual', 0)} días")
     
     with col2:
-        st.metric("⭐ Puntos Totales", stats['puntos'])
+        st.metric("⭐ Puntos Totales", stats.get('puntos', 0))
     
     with col3:
-        nivel = stats['nivel']
+        nivel = stats.get('nivel', 1)
         st.metric("👑 Nivel", nivel)
     
     with col4:
         progreso_semana = 0
-        if weekly_progress['tareas_totales'] > 0:
+        if weekly_progress.get('tareas_totales', 0) > 0:
             progreso_semana = int((weekly_progress['tareas_completadas'] / weekly_progress['tareas_totales']) * 100)
         st.metric("📈 Progreso Semana", f"{progreso_semana}%")
     
@@ -149,10 +166,10 @@ def tracking_panel_page():
         st.markdown(f"**Semana del {monday.strftime('%d %b')} - {(monday + timedelta(days=6)).strftime('%d %b %Y')}**")
         
         # Progress bar
-        if weekly_progress['tareas_totales'] > 0:
-            progress_pct = weekly_progress['tareas_completadas'] / weekly_progress['tareas_totales']
+        if weekly_progress.get('tareas_totales', 0) > 0:
+            progress_pct = weekly_progress.get('tareas_completadas', 0) / weekly_progress.get('tareas_totales', 1)
             st.progress(progress_pct)
-            st.caption(f"{weekly_progress['tareas_completadas']} de {weekly_progress['tareas_totales']} tareas completadas ({int(progress_pct * 100)}%)")
+            st.caption(f"{weekly_progress.get('tareas_completadas', 0)} de {weekly_progress.get('tareas_totales', 0)} tareas completadas ({int(progress_pct * 100)}%)")
         else:
             st.info("No hay tareas para esta semana")
         
@@ -205,11 +222,11 @@ def tracking_panel_page():
         # Category breakdown
         st.markdown("### 📊 Progreso por Categoría")
         
-        if stats['por_categoria']:
+        if stats.get('por_categoria') and len(stats['por_categoria']) > 0:
             for cat_stat in stats['por_categoria']:
-                cat = cat_stat['categoria']
-                total = cat_stat['total']
-                completadas = cat_stat['completadas']
+                cat = cat_stat.get('categoria', 'general')
+                total = cat_stat.get('total', 0)
+                completadas = cat_stat.get('completadas', 0)
                 pct = (completadas / total * 100) if total > 0 else 0
                 
                 # Category emoji
