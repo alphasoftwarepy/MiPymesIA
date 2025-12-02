@@ -7,6 +7,8 @@ from pdf_gen import generate_pdf
 import business_brain
 import chat_brain
 from admin_panel import admin_panel
+import tracking_panel
+import tasks_manager
 from datetime import datetime, timedelta
 import time
 import urllib.parse
@@ -2084,13 +2086,15 @@ else:
         # Page Routing
         if st.session_state.user.get('is_admin', False):
             with st.sidebar:
-                 page = st.radio("Modo", ["Generador", "Cerebro del Negocio", "MiPymes IA", "Admin Panel"])
+                 page = st.radio("Modo", ["Generador", "Mi Progreso", "Cerebro del Negocio", "MiPymes IA", "Admin Panel"])
         else:
             with st.sidebar:
-                page = st.radio("Menú", ["Generador", "Cerebro del Negocio", "MiPymes IA"])
+                page = st.radio("Menú", ["Generador", "Mi Progreso", "Cerebro del Negocio", "MiPymes IA"])
         
         if page == "Generador":
             wizard_page()
+        elif page == "Mi Progreso":
+            tracking_panel.tracking_panel_page()
         elif page == "Cerebro del Negocio":
             business_brain.business_brain_page()
         elif page == "MiPymes IA":
