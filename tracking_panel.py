@@ -130,7 +130,7 @@ def tracking_panel_page():
                 emoji = "📍" if es_hoy else "📅"
                 with st.expander(f"{emoji} **{dia}** {fecha.strftime('%d/%m')} - {completadas_dia}/{total_dia}", expanded=es_hoy):
                     for task in tasks_dia:
-                        render_task_card(task, username, compact=True)
+                        render_task_card(task, username, compact=True, day_context=i)
     
     # ========== TAB 3: LOGROS ==========
     with tab3:
@@ -179,7 +179,7 @@ def tracking_panel_page():
             st.info("No hay estadísticas por categoría aún")
 
 
-def render_task_card(task, username, is_completed=False, compact=False):
+def render_task_card(task, username, is_completed=False, compact=False, day_context=None):
     """Render a single task card with actions."""
     
     # Priority color
@@ -200,10 +200,11 @@ def render_task_card(task, username, is_completed=False, compact=False):
     }.get(task['categoria'], '📌')
     
     if compact:
-        # Compact view for weekly tab
+        # Compact view for weekly tab - add day_context to make keys unique
+        key_suffix = f"_day{day_context}" if day_context is not None else ""
         col1, col2 = st.columns([0.1, 0.9])
         with col1:
-            checked = st.checkbox("", value=task['completada'], key=f"task_{task['id']}_compact")
+            checked = st.checkbox("", value=task['completada'], key=f"task_{task['id']}_compact{key_suffix}")
             if checked != task['completada']:
                 if checked:
                     tasks_manager.complete_task(username, task['id'])

@@ -1094,7 +1094,7 @@ def wizard_page():
                                 <div class="loader-card">
                                     <img src="data:image/png;base64,{loader_b64}" class="custom-loader">
                                     <div class="loading-text">{text}</div>
-                                    <div class="step-text">PASO {step} DE 8</div>
+                                    <div class="step-text">PASO {step} DE 9</div>
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)
@@ -1128,8 +1128,8 @@ def wizard_page():
                             else:
                                 update_loader(f"✅ Generando {section_name}...", section_num)
                         
-                        # Update to Step 8 before calling AI (this will wait for real AI response)
-                        update_loader("✨ Finalizando ajustes...", 8)
+                        # Update to Step 8 before generating tasks
+                        update_loader("🤖 Generando tareas para la nueva estrategia...", 8)
                         
                         # Generate strategy progressively (this is where the real wait happens)
                         result = st.session_state.ai_agent.generate_strategy_progressive(
@@ -1175,19 +1175,25 @@ def wizard_page():
                             auth.save_estrategia(user['username'], estrategia_data)
                             
                             # ========== AUTO-GENERATE TASKS FROM STRATEGY ==========
+                            # Show step 9 loader
+                            update_loader("✨ Finalizando ajustes...", 9)
+                            
                             try:
-                                st.info("🤖 Generando tareas ejecutables desde tu estrategia...")
                                 tasks_count, tasks_list = tasks_manager.generate_tasks_from_strategy(
                                     username=user['username'],
                                     estrategia_dict=estrategia_data,
                                     business_info=business_info
                                 )
                                 
+                                # Clear loader before showing success message
+                                overlay_placeholder.empty()
+                                
                                 if tasks_count > 0:
                                     st.success(f"✅ {tasks_count} tareas creadas automáticamente! Ve a 'Mi Progreso' para verlas.")
                                 else:
                                     st.warning("⚠️ No se pudieron generar tareas automáticamente. Puedes crearlas manualmente en 'Mi Progreso'.")
                             except Exception as e:
+                                overlay_placeholder.empty()
                                 st.warning(f"⚠️ Error al generar tareas: {e}. Puedes crearlas manualmente en 'Mi Progreso'.")
                                 print(f"Error generating tasks: {e}")
                             
