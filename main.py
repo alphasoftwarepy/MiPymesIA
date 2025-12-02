@@ -869,6 +869,14 @@ def wizard_page():
         # Load saved form data if available
         saved_data = {}
         if user and user.get('last_form_data'):
+            try:
+                import json
+                if isinstance(user['last_form_data'], str):
+                    saved_data = json.loads(user['last_form_data'])
+                else:
+                    saved_data = user['last_form_data']
+            except:
+                saved_data = {}
         
         # Add custom CSS for better styling
         st.markdown("""
