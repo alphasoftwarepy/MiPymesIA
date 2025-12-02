@@ -821,14 +821,54 @@ def wizard_page():
                             if i < len(tipos):
                                 strategy_sections.append(f"<<<SECTION_START: OBJECION_{tipos[i]}>>>\n{objecion_content}")
                     
-            try:
-                import json
-                if isinstance(user['last_form_data'], str):
-                    saved_data = json.loads(user['last_form_data'])
-                else:
-                    saved_data = user['last_form_data']
-            except:
-                saved_data = {}
+                    # Acciones diarias
+                    if saved_estrategia.get('acciones_diarias'):
+                        strategy_sections.append(f"<<<SECTION_START: ACCIONES_DIARIAS>>>\n{saved_estrategia['acciones_diarias']}")
+                    
+                    # KPIs/Métricas
+                    if saved_estrategia.get('kpis'):
+                        strategy_sections.append(f"<<<SECTION_START: METRICAS>>>\n{saved_estrategia['kpis']}")
+                    
+                    # Reconstruct full strategy text
+                    st.session_state.strategy_result = '\n\n'.join(strategy_sections)
+                    st.session_state.step = 2
+                    
+                    # Also populate business_info if we have saved form data
+                    if user.get('last_form_data'):
+                        try:
+                            import json
+                            if isinstance(user['last_form_data'], str):
+                                st.session_state.business_info = json.loads(user['last_form_data'])
+                            else:
+                                st.session_state.business_info = user['last_form_data']
+                            
+                            # Normalize plataforma field for PDF generation
+                            if 'plataforma' in st.session_state.business_info:
+                                plat = st.session_state.business_info['plataforma']
+                                if isinstance(plat, list):
+                                    st.session_state.business_info['plataforma'] = ', '.join(plat)
+                        except:
+                            st.session_state.business_info = {}
+                    
+                    st.rerun()
+            
+            with col_btn2:
+                if st.button("🆕 Crear Nueva Estrategia", use_container_width=True):
+                    # User wants to create new strategy, continue to form below
+                    st.session_state.show_new_strategy_form = True
+                    st.rerun()
+            
+            # If user hasn't clicked "Create New", don't show the form
+            if not st.session_state.get('show_new_strategy_form', False):
+                return
+            else:
+                st.markdown("---")
+                st.markdown("### Nueva Estrategia")
+        # ================================================
+        
+        # Load saved form data if available
+        saved_data = {}
+        if user and user.get('last_form_data'):
         
         # Add custom CSS for better styling
         st.markdown("""
