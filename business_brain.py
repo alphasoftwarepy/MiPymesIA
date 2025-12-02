@@ -15,7 +15,7 @@ def business_brain_page():
     brain_data = auth.get_brain_data(username)
     
     # Base Information Card
-    with st.expander("📊 Información Base del Negocio", expanded=True):
+    with st.expander("📊 Información del Negocio", expanded=True):
         base_info = brain_data.get('base', {})
         
         if base_info and base_info.get('rubro'):
@@ -57,6 +57,29 @@ def business_brain_page():
                 st.markdown("#### 💎 Diferenciadores Clave")
                 for dif in diferenciadores[-3:]:  # Last 3
                     st.success(f"✓ {dif.get('principal', '')}")
+            
+            # Clear base info button with confirmation
+            st.markdown("---")
+            if 'confirm_clear_base' not in st.session_state:
+                st.session_state.confirm_clear_base = False
+            
+            if not st.session_state.confirm_clear_base:
+                if st.button("🗑️ Limpiar Información del Negocio", type="secondary"):
+                    st.session_state.confirm_clear_base = True
+                    st.rerun()
+            else:
+                st.warning("⚠️ ¿Estás seguro? Esta acción eliminará toda la información base del negocio.")
+                col_yes, col_no = st.columns(2)
+                with col_yes:
+                    if st.button("✅ Sí, limpiar", type="primary"):
+                        auth.clear_base_info(username)
+                        st.session_state.confirm_clear_base = False
+                        st.success("✅ Información base eliminada")
+                        st.rerun()
+                with col_no:
+                    if st.button("❌ Cancelar"):
+                        st.session_state.confirm_clear_base = False
+                        st.rerun()
             
             # Cliente Ideal - Expandible
             if base_info.get('avatar', {}).get('descripcion'):
@@ -105,12 +128,28 @@ def business_brain_page():
                         st.markdown(f"- {item.get('contenido', '')}")
                     st.markdown("")
             
-            # Clear insights button
-            if st.button("🗑️ Limpiar Todos los Insights", key="clear_insights_btn"):
-                brain_data['insights'] = []
-                auth.update_brain_data(username, brain_data)
-                st.success("✅ Insights eliminados")
-                st.rerun()
+            # Clear insights button with confirmation
+            if 'confirm_clear_insights' not in st.session_state:
+                st.session_state.confirm_clear_insights = False
+            
+            if not st.session_state.confirm_clear_insights:
+                if st.button("🗑️ Limpiar Todos los Insights", key="clear_insights_btn", type="secondary"):
+                    st.session_state.confirm_clear_insights = True
+                    st.rerun()
+            else:
+                st.warning("⚠️ ¿Estás seguro? Esta acción eliminará todos los insights aprendidos.")
+                col_yes, col_no = st.columns(2)
+                with col_yes:
+                    if st.button("✅ Sí, limpiar", key="confirm_clear_insights_yes", type="primary"):
+                        brain_data['insights'] = []
+                        auth.update_brain_data(username, brain_data)
+                        st.session_state.confirm_clear_insights = False
+                        st.success("✅ Insights eliminados")
+                        st.rerun()
+                with col_no:
+                    if st.button("❌ Cancelar", key="confirm_clear_insights_no"):
+                        st.session_state.confirm_clear_insights = False
+                        st.rerun()
         else:
             st.info("📝 Aún no hay insights. El cerebro aprenderá automáticamente de tus interacciones.")
     

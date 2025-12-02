@@ -1093,6 +1093,15 @@ def track_tokens(username, tokens_used):
     conn.close()
     return True
 
+def clear_base_info(username):
+    """
+    Clears the base business information from the brain.
+    """
+    brain_data = get_brain_data(username)
+    brain_data['base'] = {}
+    update_brain_data(username, brain_data)
+    return True
+
 # Auto-initialize database when module is imported
 # This ensures the database and table exist before any operations
 try:
