@@ -1129,7 +1129,7 @@ def wizard_page():
                                 update_loader(f"✅ Generando {section_name}...", section_num)
                         
                         # Update to Step 8 before generating tasks
-                        update_loader("🤖 Generando tareas para la nueva estrategia...", 8)
+                        update_loader("🤖 Generando Mi Progreso...", 8)
                         
                         # Generate strategy progressively (this is where the real wait happens)
                         result = st.session_state.ai_agent.generate_strategy_progressive(

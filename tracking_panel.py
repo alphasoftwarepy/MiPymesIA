@@ -251,89 +251,84 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
         
         # AI Chat Helper - Only for non-completed tasks
         if not task['completada']:
-            # Button to toggle chat
-            chat_key = f"show_chat_{task['id']}"
-            if chat_key not in st.session_state:
-                st.session_state[chat_key] = False
+            # Get task-specific chat history
+            chat_history_key = f"task_chat_{task['id']}"
+            if chat_history_key not in st.session_state:
+                st.session_state[chat_history_key] = []
             
-            col_btn1, col_btn2 = st.columns([0.3, 0.7])
-            with col_btn1:
-                if st.button("💬 ¿Necesitas ayuda con esta tarea?", key=f"help_btn_{task['id']}", use_container_width=True):
-                    st.session_state[chat_key] = not st.session_state[chat_key]
-                    st.rerun()
-            
-            # Show chat if toggled
-            if st.session_state[chat_key]:
-                with st.container():
-                    st.markdown("---")
-                    st.markdown("### 💬 Asistente IA - Ayuda con esta tarea")
-                    
-                    # Get task-specific chat history
-                    chat_history_key = f"task_chat_{task['id']}"
-                    if chat_history_key not in st.session_state:
-                        st.session_state[chat_history_key] = []
-                    
-                    # Display chat history
-                    chat_container = st.container()
-                    with chat_container:
-                        if not st.session_state[chat_history_key]:
-                            st.info(f"👋 ¡Hola! Te ayudo con: **{task['titulo']}**. ¿Qué necesitas saber?")
+            # Use expander for chat (like sections)
+            with st.expander("💬 Asistente IA - Ayuda con esta tarea", expanded=False):
+                # Display chat history
+                if not st.session_state[chat_history_key]:
+                    st.info(f"👋 ¡Hola! Te ayudo con: **{task['titulo']}**. ¿Qué necesitas saber?")
+                else:
+                    for msg in st.session_state[chat_history_key]:
+                        if msg['role'] == 'user':
+                            st.markdown(f"**Tú:** {msg['content']}")
                         else:
-                            for msg in st.session_state[chat_history_key]:
-                                if msg['role'] == 'user':
-                                    st.markdown(f"**Tú:** {msg['content']}")
-                                else:
-                                    st.markdown(f"**IA:** {msg['content']}")
-                                st.markdown("")
-                    
-                    # Quick suggestions
-                    st.caption("💡 **Sugerencias rápidas:**")
-                    col_s1, col_s2, col_s3 = st.columns(3)
-                    
-                    with col_s1:
-                        if st.button("📝 Dame un ejemplo", key=f"sugg1_{task['id']}", use_container_width=True):
-                            user_msg = "Dame un ejemplo concreto de cómo hacer esta tarea"
-                            st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
+                            st.markdown(f"**IA:** {msg['content']}")
+                        st.markdown("")
+                
+                # Quick suggestions
+                st.caption("💡 **Sugerencias rápidas:**")
+                col_s1, col_s2, col_s3 = st.columns(3)
+                
+                with col_s1:
+                    if st.button("📝 Dame un ejemplo", key=f"sugg1_{task['id']}", use_container_width=True):
+                        user_msg = "Dame un ejemplo concreto de cómo hacer esta tarea"
+                        st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
+                        # Generate AI response immediately
+                        with st.spinner("🤔 Pensando..."):
+                            ai_response = get_task_ai_help(task, user_msg, username)
+                            st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
+                        st.rerun()
+                
+                with col_s2:
+                    if st.button("⏰ ¿Cuándo hacerlo?", key=f"sugg2_{task['id']}", use_container_width=True):
+                        user_msg = "¿Cuál es el mejor momento para hacer esta tarea?"
+                        st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
+                        with st.spinner("🤔 Pensando..."):
+                            ai_response = get_task_ai_help(task, user_msg, username)
+                            st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
+                        st.rerun()
+                
+                with col_s3:
+                    if st.button("🎯 Tips y trucos", key=f"sugg3_{task['id']}", use_container_width=True):
+                        user_msg = "Dame tips y mejores prácticas para esta tarea"
+                        st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
+                        with st.spinner("🤔 Pensando..."):
+                            ai_response = get_task_ai_help(task, user_msg, username)
+                            st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
+                        st.rerun()
+                
+                st.markdown("---")
+                
+                # Chat input
+                user_input = st.text_input(
+                    "Escribe tu pregunta...", 
+                    key=f"chat_input_{task['id']}",
+                    placeholder="Ej: ¿Qué copy uso? ¿Qué hashtags? ¿Cómo lo hago?"
+                )
+                
+                col_send, col_clear = st.columns([0.7, 0.3])
+                
+                with col_send:
+                    if st.button("📤 Enviar", key=f"send_{task['id']}", use_container_width=True, type="primary"):
+                        if user_input:
+                            # Add user message
+                            st.session_state[chat_history_key].append({"role": "user", "content": user_input})
+                            
+                            # Generate AI response
+                            with st.spinner("🤔 Pensando..."):
+                                ai_response = get_task_ai_help(task, user_input, username)
+                                st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
+                            
                             st.rerun()
-                    
-                    with col_s2:
-                        if st.button("⏰ ¿Cuándo hacerlo?", key=f"sugg2_{task['id']}", use_container_width=True):
-                            user_msg = "¿Cuál es el mejor momento para hacer esta tarea?"
-                            st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
-                            st.rerun()
-                    
-                    with col_s3:
-                        if st.button("🎯 Tips y trucos", key=f"sugg3_{task['id']}", use_container_width=True):
-                            user_msg = "Dame tips y mejores prácticas para esta tarea"
-                            st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
-                            st.rerun()
-                    
-                    # Chat input
-                    user_input = st.text_input(
-                        "Escribe tu pregunta...", 
-                        key=f"chat_input_{task['id']}",
-                        placeholder="Ej: ¿Qué copy uso? ¿Qué hashtags? ¿Cómo lo hago?"
-                    )
-                    
-                    col_send, col_clear = st.columns([0.7, 0.3])
-                    
-                    with col_send:
-                        if st.button("📤 Enviar", key=f"send_{task['id']}", use_container_width=True, type="primary"):
-                            if user_input:
-                                # Add user message
-                                st.session_state[chat_history_key].append({"role": "user", "content": user_input})
-                                
-                                # Generate AI response
-                                with st.spinner("🤔 Pensando..."):
-                                    ai_response = get_task_ai_help(task, user_input, username)
-                                    st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
-                                
-                                st.rerun()
-                    
-                    with col_clear:
-                        if st.button("🗑️ Limpiar chat", key=f"clear_chat_{task['id']}", use_container_width=True):
-                            st.session_state[chat_history_key] = []
-                            st.rerun()
+                
+                with col_clear:
+                    if st.button("🗑️ Limpiar", key=f"clear_chat_{task['id']}", use_container_width=True):
+                        st.session_state[chat_history_key] = []
+                        st.rerun()
         
         st.markdown("")
 
@@ -349,8 +344,7 @@ def get_task_ai_help(task, user_question, username):
     import auth
     
     # Get user's strategy and brain data
-    user_data = auth.get_user(username)
-    estrategia = auth.get_estrategia(username) if user_data else None
+    estrategia = auth.get_estrategia(username)
     brain_data = auth.get_brain_data(username)
     
     # Build rich context
