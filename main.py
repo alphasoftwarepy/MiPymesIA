@@ -1174,6 +1174,23 @@ def wizard_page():
                             }
                             auth.save_estrategia(user['username'], estrategia_data)
                             
+                            # ========== AUTO-GENERATE TASKS FROM STRATEGY ==========
+                            try:
+                                st.info("🤖 Generando tareas ejecutables desde tu estrategia...")
+                                tasks_count, tasks_list = tasks_manager.generate_tasks_from_strategy(
+                                    username=user['username'],
+                                    estrategia_dict=estrategia_data,
+                                    business_info=business_info
+                                )
+                                
+                                if tasks_count > 0:
+                                    st.success(f"✅ {tasks_count} tareas creadas automáticamente! Ve a 'Mi Progreso' para verlas.")
+                                else:
+                                    st.warning("⚠️ No se pudieron generar tareas automáticamente. Puedes crearlas manualmente en 'Mi Progreso'.")
+                            except Exception as e:
+                                st.warning(f"⚠️ Error al generar tareas: {e}. Puedes crearlas manualmente en 'Mi Progreso'.")
+                                print(f"Error generating tasks: {e}")
+                            
                             # ========== AUTO-POPULATE BRAIN ==========
                             # Extract key information from strategy and business_info to feed the brain
                             brain_data = auth.get_brain_data(user['username'])
