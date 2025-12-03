@@ -47,6 +47,51 @@ window.addEventListener('beforeunload', function (e) {
 </script>
 """, unsafe_allow_html=True)
 
+# Global CSS for reduced spacing
+st.markdown("""
+<style>
+    /* Reducir padding general */
+    .block-container {
+        padding-top: 2rem !important;
+        padding-bottom: 2rem !important;
+        padding-left: 3rem !important;
+        padding-right: 3rem !important;
+    }
+    
+    /* Reducir espaciado entre elementos */
+    .element-container {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Reducir espaciado de headers */
+    h1, h2, h3 {
+        margin-top: 0.5rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Reducir padding de sidebar */
+    [data-testid="stSidebar"] {
+        padding-top: 2rem !important;
+    }
+    
+    /* Botones más compactos */
+    .stButton>button {
+        padding: 0.5rem 1rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Inputs más compactos */
+    .stTextInput, .stSelectbox, .stMultiSelect {
+        margin-bottom: 0.5rem !important;
+    }
+    
+    /* Cards/containers más compactos */
+    [data-testid="stVerticalBlock"] > [style*="flex-direction: column;"] > [data-testid="stVerticalBlock"] {
+        gap: 0.5rem !important;
+    }
+</style>
+""", unsafe_allow_html=True)
+
 # Session State Initialization
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
