@@ -158,40 +158,72 @@ Genera entre 25-35 tareas que cubran toda la estrategia, formando secuencias ló
         
         tasks = json.loads(tasks_json)
         
-        # POST-PROCESSING: Enforce 5 tasks per day limit
-        # Group tasks by day
-        from collections import defaultdict
-        tasks_by_day = defaultdict(list)
+        # POST-PROCESSING: Enforce balanced distribution across 7 days
+        # Separate tasks by frequency
+        weekly_tasks = []  # Tasks with specific day assignments
+        unique_tasks = []  # Tasks without day assignment
         
         for task in tasks:
             if task.get('frecuencia') == 'semanal' and task.get('dia_semana') is not None:
-                day = task['dia_semana']
-                tasks_by_day[day].append(task)
+                weekly_tasks.append(task)
             elif task.get('frecuencia') == 'unica':
-                tasks_by_day['unica'].append(task)
+                unique_tasks.append(task)
+            # Skip 'diaria' tasks as they appear every day
         
-        # Redistribute if any day has more than 5 tasks
+        # Initialize day buckets (0=Monday, 6=Sunday)
+        days_tasks = {i: [] for i in range(7)}
+        
+        # First, place weekly tasks in their assigned days
+        for task in weekly_tasks:
+            day = task['dia_semana']
+            days_tasks[day].append(task)
+        
+        # Now distribute unique tasks evenly across days
+        # Sort days by current task count (ascending)
+        for task in unique_tasks:
+            # Find day with fewest tasks
+            min_day = min(days_tasks.keys(), key=lambda d: len(days_tasks[d]))
+            # Assign task to that day as 'semanal'
+            task['frecuencia'] = 'semanal'
+            task['dia_semana'] = min_day
+            days_tasks[min_day].append(task)
+        
+        # Final redistribution: if any day has more than 5 tasks, move excess
+        max_iterations = 10  # Prevent infinite loop
+        iteration = 0
+        while iteration < max_iterations:
+            needs_redistribution = False
+            
+            for day in range(7):
+                if len(days_tasks[day]) > 5:
+                    needs_redistribution = True
+                    # Move excess tasks to days with fewer tasks
+                    while len(days_tasks[day]) > 5:
+                        # Find day with fewest tasks (excluding current day)
+                        other_days = [d for d in range(7) if d != day and len(days_tasks[d]) < 5]
+                        if not other_days:
+                            # All other days are at capacity, stop
+                            break
+                        
+                        min_day = min(other_days, key=lambda d: len(days_tasks[d]))
+                        # Move last task from current day to min_day
+                        task_to_move = days_tasks[day].pop()
+                        task_to_move['dia_semana'] = min_day
+                        days_tasks[min_day].append(task_to_move)
+            
+            if not needs_redistribution:
+                break
+            iteration += 1
+        
+        # Flatten back to list
         redistributed_tasks = []
-        for day, day_tasks in tasks_by_day.items():
-            if day == 'unica':
-                # Keep unique tasks as is
-                redistributed_tasks.extend(day_tasks)
-            elif len(day_tasks) > 5:
-                # Keep first 5, redistribute the rest
-                redistributed_tasks.extend(day_tasks[:5])
-                excess_tasks = day_tasks[5:]
-                
-                # Find days with fewer tasks
-                for excess_task in excess_tasks:
-                    # Find day with fewest tasks (excluding current day)
-                    min_day = min(
-                        [d for d in range(7) if d != day],
-                        key=lambda d: len([t for t in redistributed_tasks if t.get('dia_semana') == d])
-                    )
-                    excess_task['dia_semana'] = min_day
-                    redistributed_tasks.append(excess_task)
-            else:
-                redistributed_tasks.extend(day_tasks)
+        for day_tasks in days_tasks.values():
+            redistributed_tasks.extend(day_tasks)
+        
+        # Add back daily tasks (they weren't in the redistribution)
+        for task in tasks:
+            if task.get('frecuencia') == 'diaria':
+                redistributed_tasks.append(task)
         
         # Save tasks to database
         saved_count = 0
