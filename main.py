@@ -1044,6 +1044,7 @@ def wizard_page():
                     c.execute("DELETE FROM tareas_diarias WHERE user_id = ?", (user['username'],))
                     c.execute("DELETE FROM progreso_semanal WHERE user_id = ?", (user['username'],))
                     c.execute("DELETE FROM historial_secciones WHERE user_id = ?", (user['username'],))
+                    c.execute("DELETE FROM conversaciones_archivadas WHERE user_id = ?", (user['username'],))
                     conn.commit()
                     conn.close()
                     # ================================================================

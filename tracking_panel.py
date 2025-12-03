@@ -466,11 +466,12 @@ CONTEXTO DEL NEGOCIO:
     
     if estrategia:
         context += f"\nESTRATEGIA RELACIONADA:\n"
-        if task['seccion_origen'] == 'embudo':
+        seccion = task.get('seccion_origen', '')
+        if seccion == 'embudo':
             context += f"Embudo de contenido: {estrategia.get('embudo', '')[:500]}...\n"
-        elif task['seccion_origen'] == 'ads':
+        elif seccion == 'ads':
             context += f"Estrategia de Ads: {estrategia.get('ads', '')[:500]}...\n"
-        elif task['seccion_origen'] == 'whatsapp':
+        elif seccion == 'whatsapp':
             context += f"Flujo WhatsApp: {estrategia.get('whatsapp', '')[:500]}...\n"
     
     context += f"""

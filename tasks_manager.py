@@ -63,7 +63,11 @@ INSTRUCCIONES CRÍTICAS:
 1. Genera tareas que formen SECUENCIAS COMPLETAS (ej: "Crear copy para post TOFU" → "Diseñar flyer para post TOFU" → "Publicar post TOFU en Instagram")
 2. Cada tarea debe ser MUY ESPECÍFICA y ACCIONABLE (no genéricas como "crear contenido")
 3. Incluye tareas de SETUP inicial (configuraciones únicas) - prioridad ALTA
-4. Distribuye tareas SEMANALES balanceadamente (2-3 por día, no todas el mismo día)
+4. **DISTRIBUCIÓN SEMANAL BALANCEADA**:
+   - **MÁXIMO 5 TAREAS POR DÍA** (esto es CRÍTICO)
+   - Distribuye uniformemente: 3-5 tareas por día
+   - NO concentres todas las tareas en un solo día
+   - Usa los 7 días de la semana (Lunes=0, Domingo=6)
 5. Asigna prioridades de forma BALANCEADA:
    - alta (rojo): Setup crítico, lanzamientos, campañas importantes
    - media (amarillo): Contenido regular, seguimiento, optimización
@@ -73,6 +77,15 @@ DISTRIBUCIÓN DE PRIORIDADES:
 - Máximo 30% tareas alta (rojo)
 - Aproximadamente 50% tareas media (amarillo)
 - Aproximadamente 20% tareas baja (verde)
+
+DISTRIBUCIÓN POR DÍA (EJEMPLO):
+- Lunes (dia_semana: 0): 4 tareas
+- Martes (dia_semana: 1): 5 tareas
+- Miércoles (dia_semana: 2): 4 tareas
+- Jueves (dia_semana: 3): 5 tareas
+- Viernes (dia_semana: 4): 4 tareas
+- Sábado (dia_semana: 5): 3 tareas
+- Domingo (dia_semana: 6): 3 tareas
 
 CATEGORÍAS:
 - contenido: Creación de posts, copy, diseño
@@ -121,7 +134,7 @@ FORMATO DE RESPUESTA (JSON):
   }}
 ]
 
-Genera entre 25-35 tareas que cubran toda la estrategia, formando secuencias lógicas. RESPONDE SOLO CON EL JSON, SIN TEXTO ADICIONAL."""
+Genera entre 25-35 tareas que cubran toda la estrategia, formando secuencias lógicas y DISTRIBUYENDO MÁXIMO 5 TAREAS POR DÍA. RESPONDE SOLO CON EL JSON, SIN TEXTO ADICIONAL."""
 
     try:
         response = client.chat.completions.create(
