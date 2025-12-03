@@ -1,5 +1,6 @@
 import streamlit as st
 import auth
+from auth import DB_NAME
 import sqlite3
 from datetime import datetime
 
@@ -24,7 +25,7 @@ def admin_panel():
         search_query = st.text_input("🔍 Buscar usuario", placeholder="Buscar por nombre de usuario, email o negocio...")
         
         # Get all users
-        conn = sqlite3.connect('users.db')
+        conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         c.execute("""
             SELECT username, email, business_name, plan_actual, 
@@ -122,7 +123,7 @@ def admin_panel():
                     )
                     if st.button("➕ Extender", key=f"extend_{username}"):
                         from datetime import timedelta
-                        conn = sqlite3.connect('users.db')
+                        conn = sqlite3.connect(DB_NAME)
                         c = conn.cursor()
                         
                         # Get current expiration or use now
@@ -148,7 +149,7 @@ def admin_panel():
                         "🔄 Reset Límites",
                         key=f"reset_{username}"
                     ):
-                        conn = sqlite3.connect('users.db')
+                        conn = sqlite3.connect(DB_NAME)
                         c = conn.cursor()
                         c.execute("""UPDATE users SET 
                                    ai_requests_today = 0,
@@ -163,7 +164,7 @@ def admin_panel():
     with tab2:
         st.subheader("Estadísticas Generales")
         
-        conn = sqlite3.connect('users.db')
+        conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         
         # Total users by plan
