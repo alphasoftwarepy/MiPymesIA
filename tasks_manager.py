@@ -55,24 +55,37 @@ ACCIONES DIARIAS:
 {estrategia_dict.get('acciones_diarias', 'No disponible')}
 """
     
-    prompt = f"""Eres un asistente experto en marketing digital. Analiza esta estrategia y genera una lista de tareas CONCRETAS y EJECUTABLES para implementarla.
+    prompt = f"""Eres un asistente experto en marketing digital. Analiza esta estrategia y genera tareas CONCRETAS y EJECUTABLES que ayuden a implementarla paso a paso.
 
 {context}
 
-INSTRUCCIONES:
-1. Genera tareas MUY ESPECÍFICAS y ACCIONABLES (no genéricas)
-2. Incluye tareas de SETUP inicial (configuraciones únicas)
-3. Incluye tareas DIARIAS (contenido, respuestas, etc.)
-4. Incluye tareas SEMANALES (revisión de métricas, planificación)
-5. Asigna prioridad: alta, media, baja
-6. Asigna categoría: contenido, ads, whatsapp, metricas, setup
-7. Para tareas recurrentes, indica el día de la semana (0=Lunes, 6=Domingo)
+INSTRUCCIONES CRÍTICAS:
+1. Genera tareas que formen SECUENCIAS COMPLETAS (ej: "Crear copy para post TOFU" → "Diseñar flyer para post TOFU" → "Publicar post TOFU en Instagram")
+2. Cada tarea debe ser MUY ESPECÍFICA y ACCIONABLE (no genéricas como "crear contenido")
+3. Incluye tareas de SETUP inicial (configuraciones únicas) - prioridad ALTA
+4. Distribuye tareas SEMANALES balanceadamente (2-3 por día, no todas el mismo día)
+5. Asigna prioridades de forma BALANCEADA:
+   - alta (rojo): Setup crítico, lanzamientos, campañas importantes
+   - media (amarillo): Contenido regular, seguimiento, optimización
+   - baja (verde): Revisiones, análisis, tareas de mantenimiento
+
+DISTRIBUCIÓN DE PRIORIDADES:
+- Máximo 30% tareas alta (rojo)
+- Aproximadamente 50% tareas media (amarillo)
+- Aproximadamente 20% tareas baja (verde)
+
+CATEGORÍAS:
+- contenido: Creación de posts, copy, diseño
+- ads: Configuración y gestión de campañas
+- whatsapp: Mensajes, seguimiento, cierre de ventas
+- metricas: Análisis, reportes, optimización
+- setup: Configuraciones iniciales (pixel, perfiles, etc.)
 
 FORMATO DE RESPUESTA (JSON):
 [
   {{
     "titulo": "Configurar Pixel de Facebook en sitio web",
-    "descripcion": "Instalar el pixel de seguimiento en todas las páginas del sitio",
+    "descripcion": "Instalar el código del pixel de Facebook en el header de todas las páginas del sitio para rastrear conversiones",
     "categoria": "setup",
     "prioridad": "alta",
     "frecuencia": "unica",
@@ -80,17 +93,35 @@ FORMATO DE RESPUESTA (JSON):
     "seccion_origen": "ads"
   }},
   {{
-    "titulo": "Publicar contenido TOFU educativo",
-    "descripcion": "Post sobre [tema específico del rubro] con valor educativo",
+    "titulo": "Crear copy para post TOFU educativo sobre [tema]",
+    "descripcion": "Escribir texto educativo de 150-200 palabras con gancho, valor y CTA suave",
     "categoria": "contenido",
-    "prioridad": "alta",
+    "prioridad": "media",
     "frecuencia": "semanal",
     "dia_semana": 0,
+    "seccion_origen": "embudo"
+  }},
+  {{
+    "titulo": "Diseñar flyer para post TOFU sobre [tema]",
+    "descripcion": "Crear diseño visual atractivo en Canva con colores de marca y mensaje claro",
+    "categoria": "contenido",
+    "prioridad": "media",
+    "frecuencia": "semanal",
+    "dia_semana": 1,
+    "seccion_origen": "embudo"
+  }},
+  {{
+    "titulo": "Publicar post TOFU en Instagram y Facebook",
+    "descripcion": "Publicar el contenido creado en ambas plataformas con hashtags relevantes",
+    "categoria": "contenido",
+    "prioridad": "media",
+    "frecuencia": "semanal",
+    "dia_semana": 2,
     "seccion_origen": "embudo"
   }}
 ]
 
-Genera entre 20-30 tareas que cubran toda la estrategia. RESPONDE SOLO CON EL JSON, SIN TEXTO ADICIONAL."""
+Genera entre 25-35 tareas que cubran toda la estrategia, formando secuencias lógicas. RESPONDE SOLO CON EL JSON, SIN TEXTO ADICIONAL."""
 
     try:
         response = client.chat.completions.create(

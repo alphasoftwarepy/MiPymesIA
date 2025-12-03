@@ -159,11 +159,13 @@ def tracking_panel_page():
     with tab2:
         st.subheader("📅 Vista Semanal")
         
-        # Week calendar
+        # Week calendar - start from today
         today = datetime.now().date()
-        monday = today - timedelta(days=today.weekday())
         
-        st.markdown(f"**Semana del {monday.strftime('%d %b')} - {(monday + timedelta(days=6)).strftime('%d %b %Y')}**")
+        # Calculate end of week (6 days from today)
+        end_of_week = today + timedelta(days=6)
+        
+        st.markdown(f"**Semana del {today.strftime('%d %b')} - {end_of_week.strftime('%d %b %Y')}**")
         
         # Progress bar
         if weekly_progress.get('tareas_totales', 0) > 0:
@@ -175,30 +177,60 @@ def tracking_panel_page():
         
         st.markdown("---")
         
-        # Day-by-day breakdown
+        # Day-by-day breakdown - starting from today
         dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
         
         all_tasks = tasks_manager.get_tasks_for_week(username)
         
-        for i, dia in enumerate(dias):
-            fecha = monday + timedelta(days=i)
-            es_hoy = fecha == today
+        # Track which unique tasks we've already shown
+        shown_unique_tasks = set()
+        
+        # Show next 7 days starting from today
+        for day_offset in range(7):
+            fecha = today + timedelta(days=day_offset)
+            dia_semana_num = fecha.weekday()  # 0=Monday, 6=Sunday
+            dia_nombre = dias[dia_semana_num]
+            es_hoy = day_offset == 0
             
-            # Filter tasks for this day
-            tasks_dia = [t for t in all_tasks if (
-                (t['frecuencia'] == 'diaria') or
-                (t['frecuencia'] == 'semanal' and t['dia_semana'] == i) or
-                (t['frecuencia'] == 'unica' and not t['completada'])
-            )]
+            # Filter tasks for this specific day
+            tasks_dia = []
+            for t in all_tasks:
+                # Daily tasks appear every day
+                if t['frecuencia'] == 'diaria':
+                    tasks_dia.append(t)
+                # Weekly tasks appear on their assigned day
+                elif t['frecuencia'] == 'semanal' and t['dia_semana'] == dia_semana_num:
+                    tasks_dia.append(t)
+                # Unique tasks appear only once (on first day if not completed, or on completion day)
+                elif t['frecuencia'] == 'unica':
+                    task_id = t['id']
+                    if task_id not in shown_unique_tasks:
+                        # Show on first day if not completed
+                        if not t['completada']:
+                            tasks_dia.append(t)
+                            shown_unique_tasks.add(task_id)
+                        # Or show on completion day if completed
+                        elif t.get('fecha_completada'):
+                            try:
+                                comp_date = datetime.fromisoformat(t['fecha_completada']).date()
+                                if comp_date == fecha:
+                                    tasks_dia.append(t)
+                                    shown_unique_tasks.add(task_id)
+                            except:
+                                pass
             
-            if tasks_dia:
+            # Show day section if there are tasks OR if it's today
+            if tasks_dia or es_hoy:
                 completadas_dia = len([t for t in tasks_dia if t['completada']])
                 total_dia = len(tasks_dia)
                 
                 emoji = "📍" if es_hoy else "📅"
-                with st.expander(f"{emoji} **{dia}** {fecha.strftime('%d/%m')} - {completadas_dia}/{total_dia}", expanded=es_hoy):
-                    for task in tasks_dia:
-                        render_task_card(task, username, compact=True, day_context=i)
+                
+                # Show expander with task count
+                if total_dia > 0:
+                    with st.expander(f"{emoji} **{dia_nombre}** {fecha.strftime('%d/%m')} - {completadas_dia}/{total_dia}", expanded=es_hoy):
+                        for task in tasks_dia:
+                            render_task_card(task, username, compact=True, day_context=day_offset)
     
     # ========== TAB 3: LOGROS ==========
     with tab3:
@@ -282,7 +314,10 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
         
         with col2:
             style = "text-decoration: line-through; opacity: 0.6;" if task['completada'] else ""
-            st.markdown(f"<span style='{style}'>{priority_colors.get(task['prioridad'], '')} {cat_emoji} {task['titulo']}</span>", unsafe_allow_html=True)
+            task_text = f"{priority_colors.get(task['prioridad'], '')} {cat_emoji} {task['titulo']}"
+            if task['completada']:
+                task_text += f" (+{task['puntos']} pts)"
+            st.markdown(f"<span style='{style}'>{task_text}</span>", unsafe_allow_html=True)
     
     else:
         # Full view for today tab

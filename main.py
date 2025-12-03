@@ -1031,6 +1031,23 @@ def wizard_page():
                     import json
                     st.session_state.user['last_form_data'] = json.dumps(business_info_save)
                     
+                    # ========== CLEAR OLD DATA WHEN GENERATING NEW STRATEGY ==========
+                    # Clear section chat histories
+                    chat_keys = [key for key in st.session_state.keys() if key.startswith('chat_')]
+                    for key in chat_keys:
+                        del st.session_state[key]
+                    
+                    # Clear old tasks and progress from database
+                    import sqlite3
+                    conn = sqlite3.connect('users.db')
+                    c = conn.cursor()
+                    c.execute("DELETE FROM tareas_diarias WHERE user_id = ?", (user['username'],))
+                    c.execute("DELETE FROM progreso_semanal WHERE user_id = ?", (user['username'],))
+                    c.execute("DELETE FROM historial_secciones WHERE user_id = ?", (user['username'],))
+                    conn.commit()
+                    conn.close()
+                    # ================================================================
+                    
                     # Show loading overlay
                     try:
                         import base64
@@ -1102,7 +1119,7 @@ def wizard_page():
                                 <div class="loader-card">
                                     <img src="data:image/png;base64,{loader_b64}" class="custom-loader">
                                     <div class="loading-text">{text}</div>
-                                    <div class="step-text">PASO {step} DE 9</div>
+
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)
@@ -1136,8 +1153,8 @@ def wizard_page():
                             else:
                                 update_loader(f"✅ Generando {section_name}...", section_num)
                         
-                        # Update to Step 8 before generating tasks
-                        update_loader("🤖 Generando Mi Progreso...", 8)
+                        # Update loader for tasks generation
+                        update_loader("🎯 Generando tareas personalizadas...", 8)
                         
                         # Generate strategy progressively (this is where the real wait happens)
                         result = st.session_state.ai_agent.generate_strategy_progressive(
@@ -1183,8 +1200,8 @@ def wizard_page():
                             auth.save_estrategia(user['username'], estrategia_data)
                             
                             # ========== AUTO-GENERATE TASKS FROM STRATEGY ==========
-                            # Show step 9 loader
-                            update_loader("✨ Finalizando ajustes...", 9)
+                            # Show final loader
+                            update_loader("✅ Finalizando estrategia...", 9)
                             
                             try:
                                 tasks_count, tasks_list = tasks_manager.generate_tasks_from_strategy(
