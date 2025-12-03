@@ -1119,7 +1119,7 @@ def wizard_page():
                                 <div class="loader-card">
                                     <img src="data:image/png;base64,{loader_b64}" class="custom-loader">
                                     <div class="loading-text">{text}</div>
-
+                                    <div class="step-text">✨ Creando tu estrategia personalizada ✨</div>
                                 </div>
                             </div>
                             """, unsafe_allow_html=True)
