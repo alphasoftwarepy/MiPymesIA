@@ -8,3 +8,4 @@ passlib
 bcrypt
 python-dotenv
 pandas
+APScheduler==3.10.4

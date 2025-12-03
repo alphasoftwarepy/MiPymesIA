@@ -15,6 +15,7 @@ import urllib.parse
 from views import login_page as new_login_page
 import auto_init_db
 import db_migrations
+import scheduler
 
 # Page Config
 st.set_page_config(page_title="Generador MiPymesIA", page_icon="🚀", layout="wide")
@@ -32,6 +33,16 @@ try:
 except Exception as e:
     st.error(f"Error running database migrations: {e}")
     st.stop()
+
+# Start scheduler for automatic tasks (user expiration at 2 AM daily)
+# Initialize only once to avoid multiple scheduler instances
+if 'scheduler_started' not in st.session_state:
+    try:
+        scheduler.start_scheduler()
+        st.session_state.scheduler_started = True
+    except Exception as e:
+        # Log error but don't stop the app
+        print(f"Warning: Could not start scheduler: {e}")
 
 # Prevent accidental page refresh - show warning
 st.markdown("""
