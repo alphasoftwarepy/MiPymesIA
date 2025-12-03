@@ -8,7 +8,11 @@ from datetime import datetime, timedelta
 from openai import OpenAI
 import os
 
-DB_NAME = "users.db"
+# Use /app/data for production (Easypanel persistent volume), current dir for local dev
+DB_PATH = os.getenv("DB_PATH", "/app/data" if os.path.exists("/app/data") else ".")
+os.makedirs(DB_PATH, exist_ok=True)
+DB_NAME = os.path.join(DB_PATH, "users.db")
+
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ==================== TASK GENERATION ====================

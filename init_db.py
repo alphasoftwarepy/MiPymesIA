@@ -6,8 +6,12 @@ Run this ONCE when deploying to a new environment
 
 import sqlite3
 from datetime import datetime, timedelta
+import os
 
-DB_NAME = "users.db"
+# Use /app/data for production (Easypanel persistent volume), current dir for local dev
+DB_PATH = os.getenv("DB_PATH", "/app/data" if os.path.exists("/app/data") else ".")
+os.makedirs(DB_PATH, exist_ok=True)
+DB_NAME = os.path.join(DB_PATH, "users.db")
 
 def init_complete_database():
     """Initialize database with ALL required tables and columns."""

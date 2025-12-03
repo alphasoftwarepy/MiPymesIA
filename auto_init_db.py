@@ -5,8 +5,7 @@ This module checks if the database needs initialization and runs it automaticall
 
 import sqlite3
 import os
-
-DB_NAME = "users.db"
+from db_config import DB_NAME
 
 def needs_initialization():
     """Check if database needs initialization."""
