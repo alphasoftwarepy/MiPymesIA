@@ -3,157 +3,177 @@ import auth
 
 def business_brain_page():
     """
-    Cerebro del Negocio - Knowledge visualization panel only.
-    Chat functionality is in MiPymes IA page.
+    Cerebro del Negocio - Multi-Service Knowledge Panel
+    NEW: ChatGPT-style format with service cards and valuable insights only
     """
     st.title("🧠 Cerebro del Negocio")
-    st.caption("Visualiza y edita el conocimiento que la IA tiene sobre tu negocio")
+    st.caption("Conocimiento acumulado sobre tu negocio y servicios")
     
     user = st.session_state.user
     username = user['username']
     
     brain_data = auth.get_brain_data(username)
     
-    # Base Information Card
-    with st.expander("📊 Información del Negocio", expanded=True):
-        base_info = brain_data.get('base', {})
+    # ========== RESUMEN GENERAL DEL NEGOCIO ==========
+    with st.expander("⭐ Resumen del Negocio", expanded=True):
+        info_general = brain_data.get('info_general', {})
         
-        if base_info and base_info.get('rubro'):
-            # Narrative format - more professional
-            nombre = base_info.get('nombre', 'Tu Negocio')
-            rubro = base_info.get('rubro', '')
-            producto = base_info.get('producto', '')
-            tipo = base_info.get('tipo', '')
+        if info_general.get('nombre_negocio') or info_general.get('rubros'):
+            # Nombre del negocio
+            if info_general.get('nombre_negocio'):
+                st.markdown(f"### {info_general['nombre_negocio']}")
             
-            # Main description
-            st.markdown(f"### {nombre} – Resumen Ejecutivo")
-            st.markdown(f"**{nombre}** es un negocio de **{rubro}** enfocado en {tipo.lower()}.")
-            st.markdown("")
+            # Descripción general si existe
+            if info_general.get('descripcion_general'):
+                st.markdown(info_general['descripcion_general'])
+                st.markdown("")
             
-            # Service/Product highlight
-            st.markdown("#### 🎯 Producto/Servicio Principal")
-            st.info(f"**{producto}**")
-            
-            # Key metrics in columns
+            # Rubros, Tipos de Venta, Formas de Pago en columnas
             col1, col2, col3 = st.columns(3)
+            
             with col1:
-                st.metric("Precio", f"${base_info.get('precio', 0)}")
+                rubros = info_general.get('rubros', [])
+                if rubros:
+                    st.markdown("**Rubros:**")
+                    for rubro in rubros:
+                        st.markdown(f"• {rubro}")
+            
             with col2:
-                st.metric("Presupuesto Mensual", f"${base_info.get('presupuesto', 0)}")
+                tipos_venta = info_general.get('tipos_venta', [])
+                if tipos_venta:
+                    st.markdown("**Tipos de Venta:**")
+                    for tipo in tipos_venta:
+                        st.markdown(f"• {tipo}")
+            
             with col3:
-                st.metric("Meta", base_info.get('meta', 'N/A'))
-            
-            # Additional details
-            st.markdown("#### 📋 Detalles Operativos")
-            col_a, col_b = st.columns(2)
-            with col_a:
-                st.markdown(f"**Plataformas:** {base_info.get('plataforma', 'No especificado')}")
-            with col_b:
-                st.markdown(f"**Modalidad:** {base_info.get('modalidad_venta', 'No especificado')}")
-            
-            # Diferenciadores if available
-            diferenciadores = brain_data.get('diferenciadores', [])
-            if diferenciadores:
-                st.markdown("#### 💎 Diferenciadores Clave")
-                for dif in diferenciadores[-3:]:  # Last 3
-                    st.success(f"✓ {dif.get('principal', '')}")
-            
-            # Clear base info button with confirmation
-            st.markdown("---")
-            if 'confirm_clear_base' not in st.session_state:
-                st.session_state.confirm_clear_base = False
-            
-            if not st.session_state.confirm_clear_base:
-                if st.button("🗑️ Limpiar Información del Negocio", type="secondary"):
-                    st.session_state.confirm_clear_base = True
-                    st.rerun()
-            else:
-                st.warning("⚠️ ¿Estás seguro? Esta acción eliminará toda la información base del negocio.")
-                col_yes, col_no = st.columns(2)
-                with col_yes:
-                    if st.button("✅ Sí, limpiar", type="primary"):
-                        auth.clear_base_info(username)
-                        st.session_state.confirm_clear_base = False
-                        st.success("✅ Información base eliminada")
-                        st.rerun()
-                with col_no:
-                    if st.button("❌ Cancelar"):
-                        st.session_state.confirm_clear_base = False
-                        st.rerun()
-            
-            # Cliente Ideal - Expandible
-            if base_info.get('avatar', {}).get('descripcion'):
-                st.markdown("#### 👤 Cliente Ideal")
-                avatar_desc = base_info['avatar']['descripcion']
-                st.text_area(
-                    "Cliente Ideal",
-                    value=avatar_desc,
-                    height=200,
-                    disabled=True,
-                    label_visibility="collapsed",
-                    key="avatar_display_readonly"
-                )
-            
-            st.caption("✅ Auto-poblado y actualizado desde tus estrategias")
+                formas_pago = info_general.get('formas_pago', [])
+                if formas_pago:
+                    st.markdown("**Formas de Pago:**")
+                    for pago in formas_pago:
+                        st.markdown(f"• {pago}")
         else:
-            st.warning("⚠️ Aún no hay información base. Genera tu primera estrategia para auto-poblar el cerebro.")
+            st.info("📝 Genera tu primera estrategia para auto-poblar el cerebro")
     
-    # Insights Card
-    with st.expander("💡 Insights y Aprendizajes Recientes", expanded=True):
+    # ========== SERVICIOS Y PRODUCTOS ==========
+    servicios = brain_data.get('servicios', [])
+    
+    if servicios:
+        st.markdown("---")
+        st.subheader("📦 Servicios y Productos")
+        st.caption(f"Total: {len(servicios)} servicio(s)")
+        
+        for servicio in servicios:
+            emoji = servicio.get('emoji', '📦')
+            nombre = servicio.get('nombre', 'Servicio')
+            
+            with st.expander(f"{emoji} {nombre}", expanded=False):
+                # Descripción
+                if servicio.get('descripcion'):
+                    st.markdown(servicio['descripcion'])
+                    st.markdown("")
+                
+                # Info en columnas
+                col1, col2 = st.columns(2)
+                
+                with col1:
+                    if servicio.get('rubro'):
+                        st.markdown(f"**Rubro:** {servicio['rubro']}")
+                    if servicio.get('precio'):
+                        st.markdown(f"**Precio:** {servicio['precio']}")
+                
+                with col2:
+                    if servicio.get('tipo_venta'):
+                        st.markdown(f"**Tipo:** {servicio['tipo_venta']}")
+                    estrategias_count = servicio.get('estrategias_generadas', 0)
+                    st.markdown(f"**Estrategias:** {estrategias_count}")
+                
+                # Diferenciadores con botón de borrado individual
+                diferenciadores = servicio.get('diferenciadores', [])
+                if diferenciadores:
+                    st.markdown("**💎 Diferenciadores:**")
+                    for i, dif in enumerate(diferenciadores):
+                        col_dif, col_btn = st.columns([5, 1])
+                        with col_dif:
+                            st.markdown(f"• {dif}")
+                        with col_btn:
+                            if st.button("🗑️", key=f"del_dif_{servicio['id']}_{i}"):
+                                auth.delete_diferenciador(username, servicio['id'], dif)
+                                st.success("✅ Diferenciador eliminado")
+                                st.rerun()
+                
+                # Botón eliminar servicio completo
+                st.markdown("---")
+                if st.button(f"🗑️ Eliminar {nombre}", key=f"del_srv_{servicio['id']}", type="secondary"):
+                    auth.delete_service(username, servicio['id'])
+                    st.success(f"✅ Servicio '{nombre}' eliminado")
+                    st.rerun()
+    
+    # ========== INSIGHTS Y APRENDIZAJES ==========
+    with st.expander("💡 Insights y Aprendizajes", expanded=True):
         insights = brain_data.get('insights', [])
         
         if insights:
-            st.caption(f"Total de insights: {len(insights)}")
+            st.caption(f"Total: {len(insights)} insight(s)")
             
-            # Group by type
-            by_type = {}
-            for insight in insights:
-                tipo = insight.get('tipo', 'otro')
-                if tipo not in by_type:
-                    by_type[tipo] = []
-                by_type[tipo].append(insight)
-            
-            # Display by type
-            type_labels = {
-                'mensaje_ganador': '✅ Mensajes que Funcionan',
-                'objecion': '🛡️ Objeciones Detectadas',
-                'resultado': '📊 Resultados Obtenidos',
-                'recomendacion': '💡 Recomendaciones Clave'
+            # Emoji map for insight types
+            emoji_map = {
+                'feedback_cliente': '💬',
+                'dolor_cliente': '😖',
+                'objecion_real': '🛡️',
+                'resultado': '📊',
+                'cambio_estrategico': '🔄'
             }
             
-            for tipo, label in type_labels.items():
-                if tipo in by_type:
-                    st.markdown(f"**{label}** ({len(by_type[tipo])})")
-                    for item in by_type[tipo][-5:]:  # Show last 5
-                        st.markdown(f"- {item.get('contenido', '')}")
-                    st.markdown("")
+            # Show last 20 insights in reverse chronological order
+            for i, insight in enumerate(reversed(insights[-20:])):
+                col_content, col_btn = st.columns([5, 1])
+                
+                with col_content:
+                    emoji = emoji_map.get(insight.get('tipo', ''), '💡')
+                    contenido = insight.get('contenido', '')
+                    st.markdown(f"{emoji} {contenido}")
+                    
+                    # Metadata
+                    fuente = insight.get('fuente', 'desconocido')
+                    timestamp = insight.get('timestamp', '')[:10]
+                    st.caption(f"Fuente: {fuente} • {timestamp}")
+                
+                with col_btn:
+                    # Calculate actual index (reversed)
+                    actual_index = len(insights) - 1 - i
+                    if st.button("🗑️", key=f"del_insight_{actual_index}"):
+                        auth.delete_insight(username, actual_index)
+                        st.success("✅ Insight eliminado")
+                        st.rerun()
             
-            # Clear insights button with confirmation
+            # Botón limpiar todos los insights
+            st.markdown("---")
             if 'confirm_clear_insights' not in st.session_state:
                 st.session_state.confirm_clear_insights = False
             
             if not st.session_state.confirm_clear_insights:
-                if st.button("🗑️ Limpiar Todos los Insights", key="clear_insights_btn", type="secondary"):
+                if st.button("🗑️ Limpiar Todos los Insights", type="secondary"):
                     st.session_state.confirm_clear_insights = True
                     st.rerun()
             else:
-                st.warning("⚠️ ¿Estás seguro? Esta acción eliminará todos los insights aprendidos.")
+                st.warning("⚠️ ¿Estás seguro? Esta acción eliminará todos los insights.")
                 col_yes, col_no = st.columns(2)
                 with col_yes:
-                    if st.button("✅ Sí, limpiar", key="confirm_clear_insights_yes", type="primary"):
+                    if st.button("✅ Sí, limpiar", type="primary"):
                         brain_data['insights'] = []
                         auth.update_brain_data(username, brain_data)
                         st.session_state.confirm_clear_insights = False
                         st.success("✅ Insights eliminados")
                         st.rerun()
                 with col_no:
-                    if st.button("❌ Cancelar", key="confirm_clear_insights_no"):
+                    if st.button("❌ Cancelar"):
                         st.session_state.confirm_clear_insights = False
                         st.rerun()
         else:
-            st.info("📝 Aún no hay insights. El cerebro aprenderá automáticamente de tus interacciones.")
+            st.info("📝 El cerebro aprenderá automáticamente de tus interacciones con la IA")
+            st.caption("Solo se guardan insights valiosos: feedback real de clientes, dolores específicos, objeciones reales, resultados medibles y cambios estratégicos.")
     
-    # Manual Context Card
+    # ========== CONTEXTO MANUAL ==========
     with st.expander("✏️ Contexto Adicional Manual", expanded=False):
         st.caption("Agrega información adicional que quieras que el Cerebro recuerde")
         
@@ -163,12 +183,12 @@ def business_brain_page():
             "Contexto adicional",
             value=current_manual,
             height=200,
-            placeholder="Ejemplo: Tenemos una promoción especial de verano, nuestro público objetivo son madres trabajadoras, etc.",
+            placeholder="Ejemplo: Promoción de verano activa hasta marzo, enfoque en madres trabajadoras, etc.",
             label_visibility="collapsed",
             key="manual_context_editor"
         )
         
-        if st.button("💾 Guardar Contexto Manual", key="save_manual_context_btn"):
+        if st.button("💾 Guardar Contexto Manual"):
             brain_data['contexto_manual'] = manual_text
             from datetime import datetime
             brain_data['ultima_actualizacion'] = datetime.utcnow().isoformat()
@@ -176,7 +196,32 @@ def business_brain_page():
             st.success("✅ Contexto guardado")
             st.rerun()
     
-    # Last Update Info
+    # ========== LIMPIAR TODO ==========
+    st.markdown("---")
+    st.subheader("🗑️ Limpiar Información")
+    
+    if 'confirm_clear_all' not in st.session_state:
+        st.session_state.confirm_clear_all = False
+    
+    if not st.session_state.confirm_clear_all:
+        if st.button("🗑️ Limpiar TODA la Información del Negocio", type="secondary"):
+            st.session_state.confirm_clear_all = True
+            st.rerun()
+    else:
+        st.warning("⚠️ ¿Estás seguro? Esta acción eliminará TODOS los servicios e información general.")
+        col_yes, col_no = st.columns(2)
+        with col_yes:
+            if st.button("✅ Sí, limpiar todo", type="primary", key="confirm_clear_all_yes"):
+                auth.clear_base_info(username)
+                st.session_state.confirm_clear_all = False
+                st.success("✅ Información eliminada")
+                st.rerun()
+        with col_no:
+            if st.button("❌ Cancelar", key="confirm_clear_all_no"):
+                st.session_state.confirm_clear_all = False
+                st.rerun()
+    
+    # ========== ÚLTIMA ACTUALIZACIÓN ==========
     if brain_data.get('ultima_actualizacion'):
         from datetime import datetime as dt
         try:

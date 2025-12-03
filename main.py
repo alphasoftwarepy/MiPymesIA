@@ -1253,72 +1253,48 @@ def wizard_page():
                                 st.warning(f"⚠️ Error al generar tareas: {e}. Puedes crearlas manualmente en 'Mi Progreso'.")
                                 print(f"Error generating tasks: {e}")
                             
-                            # ========== AUTO-POPULATE BRAIN ==========
-                            # Extract key information from strategy and business_info to feed the brain
-                            brain_data = auth.get_brain_data(user['username'])
+                            # ========== AUTO-POPULATE BRAIN (MULTI-SERVICE) ==========
+                            # NEW: Add or update service, accumulate info, NO avatar storage
                             
-                            from datetime import datetime as dt
-                            
-                            # Extract avatar info
-                            avatar_text = estrategia_data.get('avatar', '')
-                            avatar_info = {
-                                'descripcion': avatar_text,  # Sin límite de caracteres
-                                'timestamp': dt.utcnow().isoformat()
+                            # Prepare service data from current strategy
+                            service_data = {
+                                'nombre': business_info.get('producto', ''),
+                                'rubro': business_info.get('rubro', ''),
+                                'precio': str(business_info.get('precio', '')),
+                                'tipo_venta': business_info.get('tipo', ''),
+                                'diferenciador': business_info.get('diferenciador', ''),
+                                'descripcion': f"{business_info.get('producto', '')} - {business_info.get('rubro', '')}"
                             }
                             
-                            # UPDATE base info (preserve existing data, only update changed fields)
-                            if 'base' not in brain_data:
-                                brain_data['base'] = {}
+                            # Add or update service
+                            auth.add_or_update_service(user['username'], service_data)
                             
-                            # Update only the fields from current strategy
-                            brain_data['base'].update({
-                                'rubro': business_info.get('rubro', ''),
-                                'nombre': business_info.get('nombre', ''),
-                                'producto': business_info.get('producto', ''),
-                                'precio': business_info.get('precio'),
-                                'tipo': business_info.get('tipo', ''),
-                                'meta': business_info.get('meta', ''),
-                                'presupuesto': business_info.get('presupuesto'),
-                                'plataforma': business_info.get('plataforma', ''),
-                                'modalidad_venta': business_info.get('modalidad_venta', ''),
-                                'avatar': avatar_info,  # Latest avatar
-                                'ultima_estrategia': dt.utcnow().isoformat()
-                            })
+                            # Update info_general (accumulate unique values)
+                            brain_data = auth.get_brain_data(user['username'])
+                            info_general = brain_data.get('info_general', {})
                             
-                            # Add diferenciador if provided
-                            if business_info.get('diferenciador'):
-                                if 'diferenciadores' not in brain_data:
-                                    brain_data['diferenciadores'] = []
-                                
-                                # Add new diferenciador
-                                brain_data['diferenciadores'].append({
-                                    'principal': business_info.get('diferenciador'),
-                                    'timestamp': dt.utcnow().isoformat(),
-                                    'fuente': 'formulario_inicial'
-                                })
-                                
-                                # Keep only last 3 diferenciadores
-                                brain_data['diferenciadores'] = brain_data['diferenciadores'][-3:]
+                            # Accumulate rubros (unique)
+                            rubros = info_general.get('rubros', [])
+                            if business_info.get('rubro') and business_info['rubro'] not in rubros:
+                                rubros.append(business_info['rubro'])
+                            info_general['rubros'] = rubros
                             
-                            # Add avatar to history (keep last 5 avatars)
-                            if 'avatares_historicos' not in brain_data:
-                                brain_data['avatares_historicos'] = []
+                            # Accumulate tipos_venta (unique)
+                            tipos_venta = info_general.get('tipos_venta', [])
+                            if business_info.get('tipo') and business_info['tipo'] not in tipos_venta:
+                                tipos_venta.append(business_info['tipo'])
+                            info_general['tipos_venta'] = tipos_venta
                             
-                            # Add current avatar to history
-                            brain_data['avatares_historicos'].append({
-                                'producto': business_info.get('producto', ''),
-                                'descripcion': avatar_text,  # Sin límite de caracteres
-                                'timestamp': dt.utcnow().isoformat()
-                            })
+                            # Update nombre_negocio if provided
+                            if business_info.get('nombre'):
+                                info_general['nombre_negocio'] = business_info['nombre']
                             
-                            # Keep only last 5 avatars
-                            brain_data['avatares_historicos'] = brain_data['avatares_historicos'][-5:]
-                            
-                            brain_data['ultima_actualizacion'] = dt.utcnow().isoformat()
+                            brain_data['info_general'] = info_general
+                            brain_data['ultima_actualizacion'] = datetime.now().isoformat()
                             
                             # Save updated brain
                             auth.update_brain_data(user['username'], brain_data)
-                            print(f"✅ Brain updated for user {user['username']}")
+                            print(f"✅ Brain updated (multi-service) for user {user['username']}")
                             # ==========================================
                             
                             # ========== CLEAR OLD SECTION CHATS ==========

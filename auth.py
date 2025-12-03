@@ -319,7 +319,13 @@ def update_business_profile(username, profile_text):
 def get_brain_data(username):
     """
     Gets the brain data as a structured dict.
-    Returns a dict with 'base', 'insights', and 'contexto_manual' keys.
+    NEW STRUCTURE: Multi-service support
+    Returns: {
+        'info_general': {...},
+        'servicios': [...],
+        'insights': [...],
+        'contexto_manual': ''
+    }
     """
     import json
     conn = sqlite3.connect(DB_NAME)
@@ -330,17 +336,33 @@ def get_brain_data(username):
     
     if result and result[0]:
         try:
-            return json.loads(result[0])
+            data = json.loads(result[0])
+            
+            # Migrate old format to new format if needed
+            if 'base' in data and 'servicios' not in data:
+                # Old format detected, migrate
+                return {
+                    "info_general": {},
+                    "servicios": [],
+                    "insights": data.get('insights', []),
+                    "contexto_manual": data.get('contexto_manual', '')
+                }
+            
+            # Return data (new or already migrated)
+            return data
         except:
-            # Old format or invalid JSON, return empty structure
+            # Invalid JSON, return empty structure
             return {
-                "base": {},
+                "info_general": {},
+                "servicios": [],
                 "insights": [],
-                "contexto_manual": result[0] if result[0] else ""
+                "contexto_manual": ""
             }
     
+    # No data, return empty structure
     return {
-        "base": {},
+        "info_general": {},
+        "servicios": [],
         "insights": [],
         "contexto_manual": ""
     }
@@ -352,8 +374,10 @@ def update_brain_data(username, brain_data):
 
 def enrich_brain_from_interaction(username, seccion, user_msg, ai_response):
     """
-    Analyzes interaction and extracts valuable insights to add to the brain.
-    Uses keyword detection to identify valuable information.
+    Analyzes interaction and extracts ONLY valuable insights.
+    NEW: Stricter patterns to avoid garbage insights.
+    Only captures: real client feedback, specific pain points, actual objections, 
+    measurable results, and strategic changes.
     """
     from datetime import datetime
     import json
@@ -365,59 +389,81 @@ def enrich_brain_from_interaction(username, seccion, user_msg, ai_response):
     if 'insights' not in brain_data:
         brain_data['insights'] = []
     
-    # Detect insights using keyword patterns
+    # Detect insights using STRICT keyword patterns
     insights_to_add = []
+    user_lower = user_msg.lower()
     
-    # Pattern 1: User mentions something "funciona" or "funcionó"
-    if any(word in user_msg.lower() for word in ['funciona', 'funcionó', 'me sirvió', 'me ayudó', 'resultó', 'funcionó bien', 'dio resultado']):
+    # ========== VALUABLE PATTERNS ONLY ==========
+    
+    # 1. REAL Client Feedback (not generic questions)
+    if any(phrase in user_lower for phrase in [
+        'mi cliente dijo', 'mi cliente me dijo', 'me dijeron', 'me preguntaron',
+        'el cliente me comentó', 'me pidieron', 'me solicitaron',
+        'el cliente preguntó', 'me consultaron'
+    ]):
         insights_to_add.append({
-            'tipo': 'mensaje_ganador',
-            'contenido': user_msg[:200],  # First 200 chars
+            'tipo': 'feedback_cliente',
+            'contenido': user_msg[:250],
             'timestamp': datetime.utcnow().isoformat(),
             'fuente': seccion
         })
     
-    # Pattern 2: User mentions new objection
-    if any(word in user_msg.lower() for word in ['objeción', 'objecion', 'me dicen que', 'problema', 'barrera', 'no quieren', 'rechazan']):
+    # 2. Specific Pain Points (not generic problems)
+    elif any(phrase in user_lower for phrase in [
+        'el problema es que', 'el dolor es', 'sufren de', 'les cuesta',
+        'no pueden', 'tienen dificultad', 'se les complica',
+        'el dolor principal', 'la mayor dificultad'
+    ]):
         insights_to_add.append({
-            'tipo': 'objecion',
-            'contenido': user_msg[:200],
+            'tipo': 'dolor_cliente',
+            'contenido': user_msg[:250],
             'timestamp': datetime.utcnow().isoformat(),
             'fuente': seccion
         })
     
-    # Pattern 3: User mentions specific results/metrics
-    if any(word in user_msg.lower() for word in ['vendí', 'vendi', 'conseguí', 'consegui', 'logré', 'logre', 'aumentó', 'aumento', 'cerré', 'cerre']):
+    # 3. REAL Objections (not hypothetical)
+    elif any(phrase in user_lower for phrase in [
+        'me rechazan porque', 'no compran porque', 'dicen que es muy',
+        'se quejan de', 'me objetan', 'no quieren porque',
+        'rechazan por', 'no aceptan porque'
+    ]):
+        insights_to_add.append({
+            'tipo': 'objecion_real',
+            'contenido': user_msg[:250],
+            'timestamp': datetime.utcnow().isoformat(),
+            'fuente': seccion
+        })
+    
+    # 4. Measurable Results (must have numbers)
+    elif (any(word in user_lower for word in [
+        'vendí', 'vendi', 'conseguí', 'consegui', 'logré', 'logre',
+        'aumenté', 'aumento', 'cerré', 'cerre', 'generé', 'genere'
+    ]) and any(char.isdigit() for char in user_msg)):
         insights_to_add.append({
             'tipo': 'resultado',
-            'contenido': user_msg[:200],
+            'contenido': user_msg[:250],
             'timestamp': datetime.utcnow().isoformat(),
             'fuente': seccion
         })
     
-    # Pattern 4: User asks about specific strategies or tactics (NEW)
-    if any(word in user_msg.lower() for word in ['cómo', 'como', 'quiero', 'necesito', 'puedo', 'debo']):
-        # This is a question/need - save as insight
+    # 5. Strategic Changes (actual changes made)
+    elif any(phrase in user_lower for phrase in [
+        'ahora uso', 'ahora utilizo', 'cambié a', 'cambie a',
+        'empecé a', 'empece a', 'dejé de', 'deje de',
+        'implementé', 'implemente', 'adopté', 'adopte'
+    ]):
         insights_to_add.append({
-            'tipo': 'recomendacion',
-            'contenido': f"Pregunta: {user_msg[:180]}",
+            'tipo': 'cambio_estrategico',
+            'contenido': user_msg[:250],
             'timestamp': datetime.utcnow().isoformat(),
             'fuente': seccion
         })
     
-    # Pattern 5: AI provides important recommendation
-    if any(word in ai_response.lower() for word in ['recomiendo', 'sugiero', 'deberías', 'deberias', 'importante', 'clave', 'fundamental']):
-        # Extract first sentence with recommendation
-        sentences = ai_response.split('.')
-        for sentence in sentences[:3]:  # Check first 3 sentences
-            if any(word in sentence.lower() for word in ['recomiendo', 'sugiero', 'deberías', 'deberias', 'importante', 'clave']):
-                insights_to_add.append({
-                    'tipo': 'recomendacion',
-                    'contenido': sentence.strip()[:200],
-                    'timestamp': datetime.utcnow().isoformat(),
-                    'fuente': seccion
-                })
-                break
+    # ========== IGNORE EVERYTHING ELSE ==========
+    # - Generic questions ("¿Cómo hago...?")
+    # - AI responses
+    # - Avatar information
+    # - Generic recommendations
     
     # Add new insights
     for insight in insights_to_add:
@@ -1105,12 +1151,141 @@ def track_tokens(username, tokens_used):
 
 def clear_base_info(username):
     """
-    Clears the base business information from the brain.
+    Clears ALL business information from the brain (servicios + info_general).
     """
     brain_data = get_brain_data(username)
-    brain_data['base'] = {}
+    brain_data['info_general'] = {}
+    brain_data['servicios'] = []
     update_brain_data(username, brain_data)
     return True
+
+def delete_insight(username, insight_index):
+    """
+    Deletes a single insight by index.
+    """
+    brain_data = get_brain_data(username)
+    insights = brain_data.get('insights', [])
+    
+    if 0 <= insight_index < len(insights):
+        del insights[insight_index]
+        brain_data['insights'] = insights
+        update_brain_data(username, brain_data)
+        return True
+    return False
+
+def delete_service(username, service_id):
+    """
+    Deletes a complete service by ID.
+    """
+    brain_data = get_brain_data(username)
+    servicios = brain_data.get('servicios', [])
+    
+    brain_data['servicios'] = [s for s in servicios if s.get('id') != service_id]
+    update_brain_data(username, brain_data)
+    return True
+
+def delete_diferenciador(username, service_id, diferenciador_text):
+    """
+    Deletes a single diferenciador from a service.
+    """
+    brain_data = get_brain_data(username)
+    servicios = brain_data.get('servicios', [])
+    
+    for servicio in servicios:
+        if servicio.get('id') == service_id:
+            difs = servicio.get('diferenciadores', [])
+            servicio['diferenciadores'] = [d for d in difs if d != diferenciador_text]
+            break
+    
+    brain_data['servicios'] = servicios
+    update_brain_data(username, brain_data)
+    return True
+
+def generate_service_id(nombre_servicio):
+    """
+    Generates a unique ID for a service based on its name.
+    """
+    import re
+    # Remove special chars, convert to lowercase, replace spaces with underscores
+    service_id = re.sub(r'[^a-z0-9\s]', '', nombre_servicio.lower())
+    service_id = service_id.replace(' ', '_')
+    return service_id[:50]  # Limit length
+
+def add_or_update_service(username, service_data):
+    """
+    Adds a new service or updates existing one.
+    service_data should include: nombre, rubro, precio, tipo_venta, diferenciador, etc.
+    """
+    from datetime import datetime
+    
+    brain_data = get_brain_data(username)
+    servicios = brain_data.get('servicios', [])
+    
+    # Generate service ID
+    service_id = generate_service_id(service_data['nombre'])
+    
+    # Check if service already exists
+    existing_service = next((s for s in servicios if s['id'] == service_id), None)
+    
+    if existing_service:
+        # UPDATE existing service
+        existing_service['precio'] = service_data.get('precio', existing_service.get('precio'))
+        existing_service['rubro'] = service_data.get('rubro', existing_service.get('rubro'))
+        existing_service['tipo_venta'] = service_data.get('tipo_venta', existing_service.get('tipo_venta'))
+        existing_service['estrategias_generadas'] = existing_service.get('estrategias_generadas', 0) + 1
+        existing_service['ultima_estrategia'] = datetime.utcnow().isoformat()
+        
+        # Add diferenciador if new
+        if service_data.get('diferenciador'):
+            difs = existing_service.get('diferenciadores', [])
+            if service_data['diferenciador'] not in difs:
+                difs.append(service_data['diferenciador'])
+            existing_service['diferenciadores'] = difs
+    else:
+        # ADD new service
+        new_service = {
+            'id': service_id,
+            'nombre': service_data['nombre'],
+            'emoji': detect_emoji_for_service(service_data.get('rubro', '')),
+            'descripcion': service_data.get('descripcion', ''),
+            'rubro': service_data.get('rubro', ''),
+            'precio': service_data.get('precio', ''),
+            'tipo_venta': service_data.get('tipo_venta', ''),
+            'diferenciadores': [service_data.get('diferenciador')] if service_data.get('diferenciador') else [],
+            'estrategias_generadas': 1,
+            'ultima_estrategia': datetime.utcnow().isoformat()
+        }
+        servicios.append(new_service)
+    
+    brain_data['servicios'] = servicios
+    update_brain_data(username, brain_data)
+    return True
+
+def detect_emoji_for_service(rubro):
+    """
+    Detects appropriate emoji based on service rubro/category.
+    """
+    rubro_lower = rubro.lower()
+    
+    emoji_map = {
+        'software': '💻',
+        'tecnología': '⚙️',
+        'web': '🌐',
+        'marketing': '📊',
+        'automatización': '🤖',
+        'consultoría': '💼',
+        'educación': '🎓',
+        'capacitación': '📚',
+        'diseño': '🎨',
+        'ventas': '💰',
+        'desarrollo': '🔧'
+    }
+    
+    for key, emoji in emoji_map.items():
+        if key in rubro_lower:
+            return emoji
+    
+    return '📦'  # Default emoji
 
 # Auto-initialize database when module is imported
 # This ensures the database and table exist before any operations
