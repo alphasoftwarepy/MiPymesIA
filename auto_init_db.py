@@ -5,7 +5,11 @@ This module checks if the database needs initialization and runs it automaticall
 
 import sqlite3
 import os
-from db_config import DB_NAME
+
+# Use /app/data for production (Easypanel persistent volume), current dir for local dev
+DB_PATH = os.getenv("DB_PATH", "/app/data" if os.path.exists("/app/data") else ".")
+os.makedirs(DB_PATH, exist_ok=True)
+DB_NAME = os.path.join(DB_PATH, "users.db")
 
 def needs_initialization():
     """Check if database needs initialization."""
