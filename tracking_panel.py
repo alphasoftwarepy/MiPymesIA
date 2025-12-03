@@ -79,50 +79,29 @@ def tracking_panel_page():
             pending_tasks = [t for t in all_tasks if not t['completada']]
             completed_tasks = [t for t in all_tasks if t['completada']]
             
-            # Group pending tasks by date
-            from collections import defaultdict
-            tasks_by_date = defaultdict(list)
-            
+            # Filter ONLY today's tasks (not future days)
             today = datetime.now().date()
+            today_weekday = today.weekday()
             
+            today_tasks = []
             for task in pending_tasks:
-                # Determine task date
+                # Include task if it's for today
                 if task['frecuencia'] == 'diaria':
-                    task_date = today
-                elif task['frecuencia'] == 'semanal' and task['dia_semana'] is not None:
-                    # Calculate next occurrence
-                    days_ahead = task['dia_semana'] - today.weekday()
-                    if days_ahead < 0:
-                        days_ahead += 7
-                    task_date = today + timedelta(days=days_ahead)
-                else:  # unica
-                    task_date = today
-                
-                tasks_by_date[task_date].append(task)
+                    today_tasks.append(task)
+                elif task['frecuencia'] == 'semanal' and task['dia_semana'] == today_weekday:
+                    today_tasks.append(task)
+                elif task['frecuencia'] == 'unica':
+                    today_tasks.append(task)
             
-            # Sort dates
-            sorted_dates = sorted(tasks_by_date.keys())
-            
-            # Display tasks grouped by date
-            for task_date in sorted_dates:
-                # Format date label
-                days_diff = (task_date - today).days
-                if days_diff == 0:
-                    date_label = f"📍 Hoy, {task_date.strftime('%d %B')}"
-                elif days_diff == 1:
-                    date_label = f"📅 Mañana, {task_date.strftime('%d %B')}"
-                else:
-                    weekday_names = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
-                    weekday = weekday_names[task_date.weekday()]
-                    date_label = f"📅 {weekday}, {task_date.strftime('%d %B')}"
+            # Display today's tasks
+            if today_tasks:
+                st.markdown(f"### 📍 Tareas de Hoy - {today.strftime('%d %B %Y')}")
                 
-                st.markdown(f"### {date_label}")
+                # Sort by priority
+                today_tasks_sorted = sorted(today_tasks, 
+                                          key=lambda x: {'alta': 0, 'media': 1, 'baja': 2}.get(x['prioridad'], 3))
                 
-                # Sort by priority within date
-                day_tasks = sorted(tasks_by_date[task_date], 
-                                 key=lambda x: {'alta': 0, 'media': 1, 'baja': 2}.get(x['prioridad'], 3))
-                
-                for task in day_tasks:
+                for task in today_tasks_sorted:
                     render_task_card(task, username, show_date=False)
             
             # Completed tasks section

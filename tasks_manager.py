@@ -158,9 +158,44 @@ Genera entre 25-35 tareas que cubran toda la estrategia, formando secuencias ló
         
         tasks = json.loads(tasks_json)
         
+        # POST-PROCESSING: Enforce 5 tasks per day limit
+        # Group tasks by day
+        from collections import defaultdict
+        tasks_by_day = defaultdict(list)
+        
+        for task in tasks:
+            if task.get('frecuencia') == 'semanal' and task.get('dia_semana') is not None:
+                day = task['dia_semana']
+                tasks_by_day[day].append(task)
+            elif task.get('frecuencia') == 'unica':
+                tasks_by_day['unica'].append(task)
+        
+        # Redistribute if any day has more than 5 tasks
+        redistributed_tasks = []
+        for day, day_tasks in tasks_by_day.items():
+            if day == 'unica':
+                # Keep unique tasks as is
+                redistributed_tasks.extend(day_tasks)
+            elif len(day_tasks) > 5:
+                # Keep first 5, redistribute the rest
+                redistributed_tasks.extend(day_tasks[:5])
+                excess_tasks = day_tasks[5:]
+                
+                # Find days with fewer tasks
+                for excess_task in excess_tasks:
+                    # Find day with fewest tasks (excluding current day)
+                    min_day = min(
+                        [d for d in range(7) if d != day],
+                        key=lambda d: len([t for t in redistributed_tasks if t.get('dia_semana') == d])
+                    )
+                    excess_task['dia_semana'] = min_day
+                    redistributed_tasks.append(excess_task)
+            else:
+                redistributed_tasks.extend(day_tasks)
+        
         # Save tasks to database
         saved_count = 0
-        for task in tasks:
+        for task in redistributed_tasks:
             success = create_task(
                 username=username,
                 titulo=task['titulo'],
@@ -174,7 +209,7 @@ Genera entre 25-35 tareas que cubran toda la estrategia, formando secuencias ló
             if success:
                 saved_count += 1
         
-        return saved_count, tasks
+        return saved_count, redistributed_tasks
         
     except Exception as e:
         print(f"Error generating tasks: {e}")
