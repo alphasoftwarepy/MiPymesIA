@@ -68,13 +68,9 @@ def tracking_panel_page():
     
     # ========== TAB 1: TAREAS ==========
     with tab1:
-        col_header, col_btn = st.columns([3, 1])
-        with col_header:
-            st.subheader("📋 Tareas")
-        with col_btn:
-            if st.button("➕ Crear Tarea", key="btn_create_task_tab1"):
-                st.session_state.show_create_task = True
-                st.rerun()
+        if st.button("➕ Crear Tarea", key="btn_create_task_tab1"):
+            st.session_state.show_create_task = True
+            st.rerun()
         
         # Get all tasks for the week
         all_tasks = tasks_manager.get_tasks_for_week(username)
@@ -147,7 +143,7 @@ def tracking_panel_page():
     
     # ========== TAB 2: VISTA SEMANAL ==========
     with tab2:
-        st.subheader("📅 Vista Semanal")
+
         
         # Week calendar - start from today
         today = datetime.now().date()
@@ -224,7 +220,7 @@ def tracking_panel_page():
     
     # ========== TAB 3: LOGROS ==========
     with tab3:
-        st.subheader("🏆 Logros y Estadísticas")
+
         
         # Achievements
         achievements = tasks_manager.get_user_achievements(username)
