@@ -15,6 +15,11 @@ def tracking_panel_page():
     user = st.session_state.user
     username = user['username']
     
+    # Check if we should show create task form
+    if st.session_state.get('show_create_task', False):
+        show_create_task_form(username)
+        return
+    
     # Get user stats
     stats = tasks_manager.get_user_stats(username)
     weekly_progress = tasks_manager.get_weekly_progress(username)
@@ -63,7 +68,13 @@ def tracking_panel_page():
     
     # ========== TAB 1: TAREAS ==========
     with tab1:
-        st.subheader("📋 Tareas")
+        col_header, col_btn = st.columns([3, 1])
+        with col_header:
+            st.subheader("📋 Tareas")
+        with col_btn:
+            if st.button("➕ Crear Tarea", key="btn_create_task_tab1"):
+                st.session_state.show_create_task = True
+                st.rerun()
         
         # Get all tasks for the week
         all_tasks = tasks_manager.get_tasks_for_week(username)
