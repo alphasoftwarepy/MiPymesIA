@@ -552,6 +552,20 @@ def get_user_stats(username):
     
     user_data = c.fetchone()
     
+    # If user doesn't have gamification data, return defaults
+    if not user_data:
+        conn.close()
+        return {
+            'puntos': 0,
+            'nivel': 1,
+            'racha_actual': 0,
+            'racha_maxima': 0,
+            'total_tareas': 0,
+            'completadas': 0,
+            'pendientes': 0,
+            'por_categoria': []
+        }
+    
     # Get task stats
     c.execute("""
         SELECT 

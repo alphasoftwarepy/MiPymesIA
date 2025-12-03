@@ -27,8 +27,8 @@ def admin_panel():
         conn = sqlite3.connect('users.db')
         c = conn.cursor()
         c.execute("""
-            SELECT username, email, business_name, is_active, plan_actual, 
-                   fecha_vencimiento, requests_today, daily_request_limit,
+            SELECT username, email, business_name, plan_actual, 
+                   fecha_vencimiento,
                    ai_requests_today, ai_request_limit, tokens_total,
                    tokens_mes_actual, tokens_dia_actual
             FROM users
@@ -53,8 +53,8 @@ def admin_panel():
         st.markdown(f"**Total de usuarios:** {len(users)}")
         
         for user in users:
-            username, email, business_name, is_active, plan_actual, fecha_venc, \
-            req_today, req_limit, ai_today, ai_limit, tokens_total, tokens_mes, tokens_dia = user
+            username, email, business_name, plan_actual, fecha_venc, \
+            ai_today, ai_limit, tokens_total, tokens_mes, tokens_dia = user
             
             with st.expander(f"👤 {username} - {plan_actual or 'prueba'}"):
                 col1, col2, col3 = st.columns(3)
@@ -63,7 +63,6 @@ def admin_panel():
                     st.markdown("**Información Básica**")
                     st.text(f"Email: {email or 'No especificado'}")
                     st.text(f"Negocio: {business_name or 'No especificado'}")
-                    st.text(f"Estado: {'✅ Activo' if is_active else '❌ Inactivo'}")
                 
                 with col2:
                     st.markdown("**Suscripción**")
@@ -90,7 +89,6 @@ def admin_panel():
                 
                 with col3:
                     st.markdown("**Uso Actual**")
-                    st.text(f"Estrategias: {req_today or 0}/{req_limit or 5}")
                     st.text(f"Consultas IA: {ai_today or 0}/{ai_limit or 10}")
                     st.text(f"Tokens hoy: {tokens_dia or 0}")
                     st.text(f"Tokens mes: {tokens_mes or 0}")
@@ -145,18 +143,21 @@ def admin_panel():
                         st.rerun()
                 
                 with col_c:
-                    # Toggle active status
+                    # Reset daily limits
                     if st.button(
-                        "🔴 Desactivar" if is_active else "🟢 Activar",
-                        key=f"toggle_{username}"
+                        "🔄 Reset Límites",
+                        key=f"reset_{username}"
                     ):
                         conn = sqlite3.connect('users.db')
                         c = conn.cursor()
-                        c.execute("UPDATE users SET is_active = ? WHERE username = ?",
-                                (not is_active, username))
+                        c.execute("""UPDATE users SET 
+                                   ai_requests_today = 0,
+                                   tokens_dia_actual = 0
+                                   WHERE username = ?""",
+                                (username,))
                         conn.commit()
                         conn.close()
-                        st.success(f"✅ Usuario {'desactivado' if is_active else 'activado'}")
+                        st.success(f"✅ Límites diarios reseteados")
                         st.rerun()
     
     with tab2:
@@ -191,15 +192,12 @@ def admin_panel():
         with col3:
             st.metric("Hoy", f"{dia_tokens or 0:,}")
         
-        # Active users
-        c.execute("SELECT COUNT(*) FROM users WHERE is_active = 1")
-        active_count = c.fetchone()[0]
-        
+        # Total users
         c.execute("SELECT COUNT(*) FROM users")
         total_count = c.fetchone()[0]
         
         st.markdown("---")
-        st.markdown(f"**Usuarios Activos:** {active_count}/{total_count}")
+        st.markdown(f"**Total de Usuarios:** {total_count}")
         
         conn.close()
     
