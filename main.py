@@ -1039,12 +1039,31 @@ def wizard_page():
                     
                     # Clear old tasks and progress from database
                     import sqlite3
-                    conn = sqlite3.connect('users.db')
+                    import os
+                    
+                    # Use correct database path
+                    DB_PATH = os.getenv("DB_PATH", "/app/data" if os.path.exists("/app/data") else ".")
+                    DB_NAME = os.path.join(DB_PATH, "users.db")
+                    
+                    conn = sqlite3.connect(DB_NAME)
                     c = conn.cursor()
-                    c.execute("DELETE FROM tareas_diarias WHERE user_id = ?", (user['username'],))
-                    c.execute("DELETE FROM progreso_semanal WHERE user_id = ?", (user['username'],))
-                    c.execute("DELETE FROM historial_secciones WHERE user_id = ?", (user['username'],))
-                    c.execute("DELETE FROM conversaciones_archivadas WHERE user_id = ?", (user['username'],))
+                    
+                    # Safe deletion - only delete if tables exist
+                    tables_to_clear = [
+                        'tareas_diarias',
+                        'progreso_semanal', 
+                        'historial_secciones',
+                        'conversaciones_archivadas'
+                    ]
+                    
+                    for table in tables_to_clear:
+                        try:
+                            c.execute(f"DELETE FROM {table} WHERE user_id = ?", (user['username'],))
+                        except sqlite3.OperationalError:
+                            # Table doesn't exist yet, skip
+                            print(f"⚠️ Table {table} doesn't exist, skipping cleanup")
+                            pass
+                    
                     conn.commit()
                     conn.close()
                     # ================================================================
