@@ -15,6 +15,7 @@ def needs_initialization():
     """Check if database needs initialization."""
     # If database doesn't exist, needs init
     if not os.path.exists(DB_NAME):
+        print(f"📍 Database not found at {DB_NAME}, needs initialization")
         return True
     
     # If database exists but is empty or missing tables, needs init
@@ -22,11 +23,14 @@ def needs_initialization():
         conn = sqlite3.connect(DB_NAME)
         c = conn.cursor()
         
-        # Check if users table exists
-        c.execute("SELECT name FROM sqlite_master WHERE type='table' AND name='users'")
-        if not c.fetchone():
-            conn.close()
-            return True
+        # Check if critical tables exist
+        critical_tables = ['users', 'tareas_diarias', 'estrategias', 'progreso_semanal']
+        for table in critical_tables:
+            c.execute(f"SELECT name FROM sqlite_master WHERE type='table' AND name='{table}'")
+            if not c.fetchone():
+                print(f"⚠️ Table '{table}' missing, needs initialization")
+                conn.close()
+                return True
         
         # Check if users table has required columns
         c.execute("PRAGMA table_info(users)")
@@ -38,14 +42,16 @@ def needs_initialization():
         }
         
         if not required_columns.issubset(columns):
+            print(f"⚠️ Users table missing required columns, needs initialization")
             conn.close()
             return True
         
         conn.close()
+        print(f"✅ All critical tables found in {DB_NAME}")
         return False
         
     except Exception as e:
-        print(f"Error checking database: {e}")
+        print(f"❌ Error checking database: {e}")
         return True
 
 def auto_initialize():
