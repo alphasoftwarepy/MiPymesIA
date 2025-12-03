@@ -261,6 +261,23 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
     # Calculate points based on priority
     puntos = {"alta": 10, "media": 5, "baja": 3}.get(prioridad, 5)
     
+    # Calculate day number for weekly tasks (1-7 for week, or specific day number for monthly)
+    dia_numero = None
+    if frecuencia == 'semanal' and dia_semana is not None:
+        # For weekly tasks, calculate which occurrence this is
+        # Count existing tasks with same title and day
+        c.execute("""
+            SELECT COUNT(*) FROM tareas_diarias 
+            WHERE user_id = ? AND titulo LIKE ? AND dia_semana = ?
+        """, (username, f"{titulo}%", dia_semana))
+        count = c.fetchone()[0]
+        # Day number is: (week * 7) + day_of_week + 1
+        # For first week: 1-7, second week: 8-14, etc.
+        dia_numero = (count * 7) + dia_semana + 1
+        
+        # Append day identifier to title to make it unique
+        titulo = f"{titulo} - Día {dia_numero}"
+    
     try:
         c.execute("""
             INSERT INTO tareas_diarias 
