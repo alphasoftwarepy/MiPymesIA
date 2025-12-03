@@ -261,22 +261,37 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
     # Calculate points based on priority
     puntos = {"alta": 10, "media": 5, "baja": 3}.get(prioridad, 5)
     
-    # Calculate day number for weekly tasks (1-7 for week, or specific day number for monthly)
-    dia_numero = None
+    # Calculate actual date for weekly tasks to append to title
     if frecuencia == 'semanal' and dia_semana is not None:
-        # For weekly tasks, calculate which occurrence this is
-        # Count existing tasks with same title and day
+        # Get current date
+        today = datetime.now().date()
+        current_weekday = today.weekday()
+        
+        # Calculate days until target weekday
+        days_ahead = dia_semana - current_weekday
+        if days_ahead < 0:
+            days_ahead += 7
+        
+        # Calculate target date
+        target_date = today + timedelta(days=days_ahead)
+        
+        # Count how many weeks ahead this task is (for recurring tasks)
         c.execute("""
             SELECT COUNT(*) FROM tareas_diarias 
             WHERE user_id = ? AND titulo LIKE ? AND dia_semana = ?
         """, (username, f"{titulo}%", dia_semana))
         count = c.fetchone()[0]
-        # Day number is: (week * 7) + day_of_week + 1
-        # For first week: 1-7, second week: 8-14, etc.
-        dia_numero = (count * 7) + dia_semana + 1
         
-        # Append day identifier to title to make it unique
-        titulo = f"{titulo} - Día {dia_numero}"
+        # Add weeks to target date
+        target_date = target_date + timedelta(weeks=count)
+        
+        # Format date in Spanish: "3 Dic 2025"
+        meses = ["Ene", "Feb", "Mar", "Abr", "May", "Jun", 
+                 "Jul", "Ago", "Sep", "Oct", "Nov", "Dic"]
+        fecha_str = f"{target_date.day} {meses[target_date.month - 1]} {target_date.year}"
+        
+        # Append date identifier to title to make it unique
+        titulo = f"{titulo} - {fecha_str}"
     
     try:
         c.execute("""
