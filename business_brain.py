@@ -58,7 +58,6 @@ def business_brain_page():
     servicios = brain_data.get('servicios', [])
     
     if servicios:
-        st.markdown("---")
         st.subheader("📦 Servicios y Productos")
         st.caption(f"Total: {len(servicios)} servicio(s)")
         
@@ -107,6 +106,9 @@ def business_brain_page():
                     auth.delete_service(username, servicio['id'])
                     st.success(f"✅ Servicio '{nombre}' eliminado")
                     st.rerun()
+        
+        # Separador visual después de Servicios y Productos
+        st.markdown("---")
     
     # ========== INSIGHTS Y APRENDIZAJES ==========
     with st.expander("💡 Insights y Aprendizajes", expanded=True):
