@@ -1963,7 +1963,7 @@ def pricing_page():
     
     with col1:
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 400px; display: flex; flex-direction: column; justify-content: space-between;'>
+        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 500px; display: flex; flex-direction: column; justify-content: space-between;'>
             <div>
                 <h3 style='font-size: 1.5em; margin-bottom: 10px;'>Plan Mensual</h3>
                 <h1 style='font-size: 3em; margin: 20px 0;'>$10 USD</h1>
@@ -1981,9 +1981,8 @@ def pricing_page():
     
     with col2:
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 400px; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid white;'>
+        <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 500px; display: flex; flex-direction: column; justify-content: space-between;'>
             <div>
-                <div style='background: white; color: #f5576c; padding: 5px 15px; border-radius: 20px; font-size: 0.8em; font-weight: bold; display: inline-block; margin-bottom: 10px;'>MÁS POPULAR</div>
                 <h3 style='font-size: 1.5em; margin-bottom: 10px;'>Plan Trimestral</h3>
                 <h1 style='font-size: 3em; margin: 10px 0;'>$29 USD</h1>
                 <p style='font-size: 1.1em; margin-bottom: 10px;'>Facturado cada 3 meses</p>
@@ -2000,7 +1999,7 @@ def pricing_page():
     
     with col3:
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 400px; display: flex; flex-direction: column; justify-content: space-between;'>
+        <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 500px; display: flex; flex-direction: column; justify-content: space-between;'>
             <div>
                 <h3 style='font-size: 1.5em; margin-bottom: 10px;'>Plan Anual</h3>
                 <h1 style='font-size: 3em; margin: 20px 0;'>$99 USD</h1>
