@@ -157,13 +157,53 @@ def render():
         </div>
         """, unsafe_allow_html=True)
     
+    col3, col4 = st.columns(2)
+
+    with col3:
+        st.markdown("""
+        <div style='background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 20px; border-left: 5px solid #ff4b4b;'>
+            <h3 style='color: #1a5276; margin-bottom: 15px;'>🎯 MiProgreso</h3>
+            <p style='color: #555; line-height: 1.6; margin: 0;'>
+                Seguimiento intuitivo de tareas y objetivos para mantenerte enfocado.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div style='background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 20px; border-left: 5px solid #28a745;'>
+            <h3 style='color: #1a5276; margin-bottom: 15px;'>🧠 Cerebro del Negocio</h3>
+            <p style='color: #555; line-height: 1.6; margin: 0;'>
+                Define el contexto y la personalidad de tu marca para respuestas IA alineadas.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    with col4:
+        st.markdown("""
+        <div style='background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); margin-bottom: 20px; border-left: 5px solid #ffc107;'>
+            <h3 style='color: #1a5276; margin-bottom: 15px;\'>💬 Chat MiPymes IA</h3>
+            <p style=\'color: #555; line-height: 1.6; margin: 0;\'>
+                Tu asistente de marketing inteligente para consultas rápidas y estratégicas.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        st.markdown("""
+        <div style='background: white; padding: 30px; border-radius: 15px; box-shadow: 0 5px 15px rgba(0,0,0,0.08); border-left: 5px solid #17a2b8;'>
+            <h3 style='color: #1a5276; margin-bottom: 15px;\'>📚 Chat IA por Sección</h3>
+            <p style=\'color: #555; line-height: 1.6; margin: 0;\'>
+                Profundiza en cada parte de tu estrategia con un chat contextualizado.
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+    
     st.markdown("<br><br>", unsafe_allow_html=True)
     
     # 5️⃣ CTA SECUNDARIO
     st.markdown("""
     <div style='text-align: center; padding: 50px 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 20px; margin: 40px 0;'>
-        <h2 style='color: white; font-size: 2em; margin-bottom: 20px;'>¿Listo para transformar tu negocio?</h2>
-        <p style='color: #f0f0f0; font-size: 1.1em; margin-bottom: 30px;'>Comienza ahora y obtén resultados en minutos</p>
+        <h2 style='color: white; font-size: 2em; margin-bottom: 20px;\'>¿Listo para transformar tu negocio?</h2>
+        <p style=\'color: #f0f0f0; font-size: 1.1em; margin-bottom: 30px;\'>Comienza ahora y obtén resultados en minutos</p>
     </div>
     """, unsafe_allow_html=True)
     

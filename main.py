@@ -229,6 +229,52 @@ def login_page():
             st.session_state.page = 'login_form'
             st.rerun()
     
+    # Segunda fila de características personalizadas
+    col4, col5, col6, col7 = st.columns(4)
+    with col4:
+        st.markdown("""
+        ### 🎯 MiProgreso
+        Seguimiento de tareas y objetivos
+        """)
+    with col5:
+        st.markdown("""
+        ### 🧠 Cerebro del Negocio
+        Contexto y personalidad de tu marca
+        """)
+    with col6:
+        st.markdown("""
+        ### 💬 Chat MiPymes IA
+        Asistente de marketing inteligente
+        """)
+    with col7:
+        st.markdown("""
+        ### 📚 Chat IA por Sección
+        Profundiza en cada parte de tu estrategia
+        """)
+    st.markdown("<br>", unsafe_allow_html=True) # Add a break for spacing
+    
+    # Segunda fila de características personalizadas (4 nuevos items)
+    col4, col5, col6, col7 = st.columns(4)
+    with col4:
+        st.markdown("""
+        ### 🎯 MiProgreso
+        Seguimiento de tareas y objetivos
+        """)
+    with col5:
+        st.markdown("""
+        ### 🧠 Cerebro del Negocio
+        Contexto y personalidad de tu marca
+        """)
+    with col6:
+        st.markdown("""
+        ### 💬 Chat MiPymes IA
+        Asistente de marketing inteligente
+        """)
+    with col7:
+        st.markdown("""
+        ### 📚 Chat IA por Sección
+        Profundiza en cada parte de tu estrategia
+        """)
     st.divider()
     
     # Hero Section - Compact version
@@ -272,6 +318,30 @@ def login_page():
         KPIs y acciones de optimización para mejorar resultados.
         """)
     
+    st.markdown("<br>", unsafe_allow_html=True) # Add a break for spacing
+    
+    # Segunda fila de características personalizadas
+    col4, col5, col6, col7 = st.columns(4)
+    with col4:
+        st.markdown("""
+        ### 🎯 MiProgreso
+        Seguimiento de tareas y objetivos
+        """)
+    with col5:
+        st.markdown("""
+        ### 🧠 Cerebro del Negocio
+        Contexto y personalidad de tu marca
+        """)
+    with col6:
+        st.markdown("""
+        ### 💬 Chat MiPymes IA
+        Asistente de marketing inteligente
+        """)
+    with col7:
+        st.markdown("""
+        ### 📚 Chat IA por Sección
+        Profundiza en cada parte de tu estrategia
+        """)
     st.divider()
     
     # Video Section
@@ -1445,7 +1515,7 @@ def wizard_page():
             st.caption(f"Se renueva en {hours_until_renewal} horas")
             
             # Payment link
-            st.markdown("[💳 Pagar Suscripción](https://wa.link/qf8pf2)")
+            st.markdown("[💳 Pagar Suscripción](https://wa.link/7q1i5z)")
             
             # Strategy Status Indicator
             if auth.has_estrategia(user['username']):
@@ -2025,67 +2095,116 @@ def pricing_page():
     
     # What's included section - Redesigned
     st.markdown("""
-    <div style='background: #f8f9fa; padding: 40px; border-radius: 15px; margin: 40px 0;'>
-        <h2 style='text-align: center; color: #1a5276; margin-bottom: 40px;'>🎁 ¿Qué Incluyen Todos los Planes?</h2>
+    <div style='background: #f8f9fa; padding: 20px; border-radius: 15px; margin: 0px 0;'>
+        <h2 style='text-align: center; color: #1a5276; margin-bottom: 0px;'>🎁 ¿Qué Incluyen Todos los Planes?</h2>
         <div style='max-width: 1000px; margin: 0 auto;'>
     """, unsafe_allow_html=True)
     
+    st.markdown("<br>", unsafe_allow_html=True)
+
     # Grid layout for features
-    col_f1, col_f2, col_f3, col_f4 = st.columns(4)
-    
-    with col_f1:
+    # Row 1
+    col_f1_1, col_f1_2, col_f1_3, col_f1_4 = st.columns(4)
+    with col_f1_1:
         st.markdown("""
         <div style='text-align: center; padding: 10px;'>
             <div style='font-size: 2.5em; margin-bottom: 10px;'>👤</div>
             <h4 style='color: #2c3e50; margin-bottom: 5px;'>Avatar IA</h4>
             <p style='font-size: 0.9em; color: #7f8c8d;'>Perfil de cliente ideal detallado</p>
         </div>
-        <div style='text-align: center; padding: 10px; margin-top: 20px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>🛡️</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Objeciones</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Manejo profesional de rechazos</p>
-        </div>
         """, unsafe_allow_html=True)
-        
-    with col_f2:
+    with col_f1_2:
         st.markdown("""
         <div style='text-align: center; padding: 10px;'>
             <div style='font-size: 2.5em; margin-bottom: 10px;'>📢</div>
             <h4 style='color: #2c3e50; margin-bottom: 5px;'>Contenido</h4>
             <p style='font-size: 0.9em; color: #7f8c8d;'>Embudo semanal completo</p>
         </div>
-        <div style='text-align: center; padding: 10px; margin-top: 20px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>✅</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Checklist</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Acciones diarias de venta</p>
-        </div>
         """, unsafe_allow_html=True)
-        
-    with col_f3:
+    with col_f1_3:
         st.markdown("""
         <div style='text-align: center; padding: 10px;'>
             <div style='font-size: 2.5em; margin-bottom: 10px;'>💰</div>
             <h4 style='color: #2c3e50; margin-bottom: 5px;'>Publicidad</h4>
             <p style='font-size: 0.9em; color: #7f8c8d;'>Estrategia de Ads pagada</p>
         </div>
-        <div style='text-align: center; padding: 10px; margin-top: 20px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>📈</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Métricas</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>KPIs y optimización</p>
+        """, unsafe_allow_html=True)
+    with col_f1_4:
+        st.markdown("""
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>🛡️</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Objeciones</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Manejo profesional de rechazos</p>
         </div>
         """, unsafe_allow_html=True)
-        
-    with col_f4:
+
+    # Row 2
+    col_f2_1, col_f2_2, col_f2_3, col_f2_4 = st.columns(4)
+    with col_f2_1:
+        st.markdown("""
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>🎯</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>MiProgreso</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Seguimiento de tareas y objetivos</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_f2_2:
+        st.markdown("""
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>🧠</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Cerebro del Negocio</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Contexto y personalidad de tu marca</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_f2_3:
         st.markdown("""
         <div style='text-align: center; padding: 10px;'>
             <div style='font-size: 2.5em; margin-bottom: 10px;'>💬</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>WhatsApp</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Flujo de cierre de 7 días</p>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Chat MiPymes IA</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Asistente de marketing inteligente</p>
         </div>
-        <div style='text-align: center; padding: 10px; margin-top: 20px;'>
+        """, unsafe_allow_html=True)
+    with col_f2_4:
+        st.markdown("""
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>📚</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Chat IA por Sección</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Profundiza en cada parte de tu estrategia</p>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # Row 3
+    col_f3_1, col_f3_2, col_f3_3, col_f3_4 = st.columns(4)
+    with col_f3_1:
+        st.markdown("""
+        <div style='text-align: center; padding: 10px;'>
             <div style='font-size: 2.5em; margin-bottom: 10px;'>📄</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>PDF Export</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Reportes profesionales</p>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>PDF Profesional</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Exporta tus estrategias en PDF</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_f3_2:
+        st.markdown("""
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>📈</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Métricas</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Análisis y optimización de resultados</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_f3_3:
+        st.markdown("""
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>🔄</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Actualizaciones</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Acceso a nuevas funciones constantes</p>
+        </div>
+        """, unsafe_allow_html=True)
+    with col_f3_4:
+        st.markdown("""
+        <div style='text-align: center; padding: 10px;'>
+            <div style='font-size: 2.5em; margin-bottom: 10px;'>🔒</div>
+            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Seguridad</h4>
+            <p style='font-size: 0.9em; color: #7f8c8d;'>Tus datos siempre protegidos</p>
         </div>
         """, unsafe_allow_html=True)
     
@@ -2097,7 +2216,7 @@ def pricing_page():
         <h3 style='color: #1a5276; margin-bottom: 20px;'>💳 Métodos de Pago</h3>
         <p style='font-size: 1.1em; color: #5d6d7e;'>Transferencia bancaria • Tarjetas de crédito/débito</p>
         <br>
-        <a href='https://wa.link/qf8pf2' target='_blank' style='background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: white; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 1.1em; display: inline-block;'>
+        <a href='https://wa.link/7q1i5z' target='_blank' style='background: linear-gradient(135deg, #25D366 0%, #128C7E 100%); color: white; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 1.1em; display: inline-block;'>
             📱 Contactar por WhatsApp
         </a>
     </div>

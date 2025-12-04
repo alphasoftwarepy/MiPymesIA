@@ -66,7 +66,10 @@ Elige el plan que mejor se adapte a las necesidades de tu negocio.
 - Estrategia de publicidad pagada (Facebook/Instagram, Google Ads)
 - Flujo de cierre por WhatsApp (7 días)
 - Manejo de objeciones
-- Checklist de acciones diarias
+- MiProgreso
+- Cerebro del Negocio
+- Chat MiPymes IA
+- Chat IA por Seccion
 - Métricas y optimización
 
 📄 **Exportación a PDF Profesional**
