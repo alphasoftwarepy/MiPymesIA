@@ -108,7 +108,7 @@ def business_brain_page():
                     st.rerun()
         
         # Separador visual después de Servicios y Productos
-        st.markdown("---")
+        #st.markdown("---")
     
     # ========== INSIGHTS Y APRENDIZAJES ==========
     with st.expander("💡 Insights y Aprendizajes", expanded=True):
@@ -149,7 +149,7 @@ def business_brain_page():
                         st.rerun()
             
             # Botón limpiar todos los insights
-            st.markdown("---")
+            #st.markdown("---")
             if 'confirm_clear_insights' not in st.session_state:
                 st.session_state.confirm_clear_insights = False
             
@@ -199,8 +199,8 @@ def business_brain_page():
             st.rerun()
     
     # ========== LIMPIAR TODO ==========
-    st.markdown("---")
-    st.subheader("🗑️ Limpiar Información")
+    #st.markdown("---")
+    #st.subheader("🗑️ Limpiar Información")
     
     if 'confirm_clear_all' not in st.session_state:
         st.session_state.confirm_clear_all = False
