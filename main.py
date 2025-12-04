@@ -1969,11 +1969,13 @@ def pricing_page():
                 <h1 style='font-size: 3em; margin: 20px 0;'>$10 USD</h1>
                 <p style='font-size: 1.1em; margin-bottom: 10px;'>Facturado cada mes</p>
                 <hr style='border-color: rgba(255,255,255,0.3); margin: 15px 0;'>
-                <ul style='list-style: none; padding: 0; margin-bottom: 20px;'>
-                    <li style='margin-bottom: 8px;'>✅ 3 Estrategias por día</li>
-                    <li style='margin-bottom: 8px;'>✅ 10 Consultas IA por día</li>
-                    <li style='margin-bottom: 8px;'>✅ Acceso a todas las herramientas</li>
-                </ul>
+                <div style='display: flex; justify-content: center;'>
+                    <ul style='list-style: none; padding: 0; margin-bottom: 20px; text-align: left;'>
+                        <li style='margin-bottom: 8px;'>✅ 3 Estrategias por día</li>
+                        <li style='margin-bottom: 8px;'>✅ 10 Consultas IA por día</li>
+                        <li style='margin-bottom: 8px;'>✅ Acceso a todas las herramientas</li>
+                    </ul>
+                </div>
             </div>
             <p style='font-style: italic; font-size: 0.9em;'>Ideal para comenzar</p>
         </div>
@@ -1987,11 +1989,13 @@ def pricing_page():
                 <h1 style='font-size: 3em; margin: 10px 0;'>$20 USD</h1>
                 <p style='font-size: 1.1em; margin-bottom: 10px;'>Facturado cada 3 meses</p>
                 <hr style='border-color: rgba(255,255,255,0.3); margin: 15px 0;'>
-                <ul style='list-style: none; padding: 0; margin-bottom: 20px;'>
-                    <li style='margin-bottom: 8px;'>✅ 5 Estrategias por día</li>
-                    <li style='margin-bottom: 8px;'>✅ 20 Consultas IA por día</li>
-                    <li style='margin-bottom: 8px;'>✅ 1 Mes GRATIS</li>
-                </ul>
+                <div style='display: flex; justify-content: center;'>
+                    <ul style='list-style: none; padding: 0; margin-bottom: 20px; text-align: left;'>
+                        <li style='margin-bottom: 8px;'>✅ 5 Estrategias por día</li>
+                        <li style='margin-bottom: 8px;'>✅ 20 Consultas IA por día</li>
+                        <li style='margin-bottom: 8px;'>✅ 1 Mes GRATIS</li>
+                    </ul>
+                </div>
             </div>
             <p style='font-style: italic; font-size: 0.9em;'>Ahorra y crece más rápido</p>
         </div>
@@ -2005,11 +2009,13 @@ def pricing_page():
                 <h1 style='font-size: 3em; margin: 20px 0;'>$99 USD</h1>
                 <p style='font-size: 1.1em; margin-bottom: 10px;'>Facturado cada 12 meses</p>
                 <hr style='border-color: rgba(255,255,255,0.3); margin: 15px 0;'>
-                <ul style='list-style: none; padding: 0; margin-bottom: 20px;'>
-                    <li style='margin-bottom: 8px;'>✅ 10 Estrategias por día</li>
-                    <li style='margin-bottom: 8px;'>✅ 30 Consultas IA por día</li>
-                    <li style='margin-bottom: 8px;'>✅ 2 Meses GRATIS</li>
-                </ul>
+                <div style='display: flex; justify-content: center;'>
+                    <ul style='list-style: none; padding: 0; margin-bottom: 20px; text-align: left;'>
+                        <li style='margin-bottom: 8px;'>✅ 10 Estrategias por día</li>
+                        <li style='margin-bottom: 8px;'>✅ 30 Consultas IA por día</li>
+                        <li style='margin-bottom: 8px;'>✅ 2 Meses GRATIS</li>
+                    </ul>
+                </div>
             </div>
             <p style='font-style: italic; font-size: 0.9em;'>La mejor inversión a largo plazo</p>
         </div>
