@@ -91,11 +91,20 @@ def create_user(username, password, email, business_name="", is_active=False, is
                      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, ?, 0, NULL)""",
                   (username, hashed_password, email, business_name, is_active, is_admin, start_date, expiration_date, daily_request_limit))
         conn.commit()
+        
+        # Apply full plan configuration (including AI limits)
+        if not is_admin:
+            # We need to close this connection before calling set_user_plan to avoid locking if it opens its own
+            conn.close()
+            from auth_subscription import set_user_plan
+            set_user_plan(username, 'prueba')
+            return True
+            
+        conn.close()
         return True
     except sqlite3.IntegrityError:
-        return False
-    finally:
         conn.close()
+        return False
 
 def login_user(username, password):
     """Checks credentials, updates subscription status, and returns the user object if valid."""

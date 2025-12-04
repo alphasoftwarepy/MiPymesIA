@@ -10,27 +10,22 @@ PLAN_CONFIGS = {
     },
     'prueba': {
         'duracion_dias': 7,
-        'estrategias_dia': 5,
+        'estrategias_dia': 3,
         'consultas_ia_dia': 10
     },
     'mensual': {
         'duracion_dias': 30,
-        'estrategias_dia': 5,
+        'estrategias_dia': 3,
         'consultas_ia_dia': 10
     },
     'trimestral': {
         'duracion_dias': 90,
-        'estrategias_dia': 10,
+        'estrategias_dia': 5,
         'consultas_ia_dia': 20
-    },
-    'semestral': {
-        'duracion_dias': 180,
-        'estrategias_dia': 15,
-        'consultas_ia_dia': 30
     },
     'anual': {
         'duracion_dias': 360,
-        'estrategias_dia': 15,
+        'estrategias_dia': 10,
         'consultas_ia_dia': 30
     }
 }

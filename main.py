@@ -1958,61 +1958,61 @@ def pricing_page():
     
     st.markdown("<br>", unsafe_allow_html=True)
     
-    # First row - 3 cards
+    # First row - 3 cards centered
     col1, col2, col3 = st.columns(3)
     
     with col1:
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px;'>
-            <h3 style='font-size: 1.5em; margin-bottom: 10px;'>🆓 Prueba Gratuita</h3>
-            <h1 style='font-size: 3em; margin: 20px 0;'>$0 USD</h1>
-            <p style='font-size: 1.1em; margin-bottom: 20px;'>7 días • 5 solicitudes/día</p>
-            <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para probar la plataforma</p>
+        <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 400px; display: flex; flex-direction: column; justify-content: space-between;'>
+            <div>
+                <h3 style='font-size: 1.5em; margin-bottom: 10px;'>Plan Mensual</h3>
+                <h1 style='font-size: 3em; margin: 20px 0;'>$10 USD</h1>
+                <p style='font-size: 1.1em; margin-bottom: 10px;'>Facturado cada mes</p>
+                <hr style='border-color: rgba(255,255,255,0.3); margin: 15px 0;'>
+                <ul style='list-style: none; padding: 0; text-align: left; margin-bottom: 20px;'>
+                    <li style='margin-bottom: 8px;'>✅ 3 Estrategias por día</li>
+                    <li style='margin-bottom: 8px;'>✅ 10 Consultas IA por día</li>
+                    <li style='margin-bottom: 8px;'>✅ Acceso a todas las herramientas</li>
+                </ul>
+            </div>
+            <p style='font-style: italic; font-size: 0.9em;'>Ideal para comenzar</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col2:
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px;'>
-            <h3 style='font-size: 1.5em; margin-bottom: 10px;'>💼 Plan Básico</h3>
-            <h1 style='font-size: 3em; margin: 20px 0;'>$7 USD</h1>
-            <p style='font-size: 1.1em; margin-bottom: 20px;'>30 días • 10 solicitudes/día</p>
-            <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para emprendedores</p>
+        <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 400px; display: flex; flex-direction: column; justify-content: space-between; border: 2px solid white;'>
+            <div>
+                <div style='background: white; color: #f5576c; padding: 5px 15px; border-radius: 20px; font-size: 0.8em; font-weight: bold; display: inline-block; margin-bottom: 10px;'>MÁS POPULAR</div>
+                <h3 style='font-size: 1.5em; margin-bottom: 10px;'>Plan Trimestral</h3>
+                <h1 style='font-size: 3em; margin: 10px 0;'>$29 USD</h1>
+                <p style='font-size: 1.1em; margin-bottom: 10px;'>Facturado cada 3 meses</p>
+                <hr style='border-color: rgba(255,255,255,0.3); margin: 15px 0;'>
+                <ul style='list-style: none; padding: 0; text-align: left; margin-bottom: 20px;'>
+                    <li style='margin-bottom: 8px;'>✅ 5 Estrategias por día</li>
+                    <li style='margin-bottom: 8px;'>✅ 20 Consultas IA por día</li>
+                    <li style='margin-bottom: 8px;'>✅ Soporte Prioritario</li>
+                </ul>
+            </div>
+            <p style='font-style: italic; font-size: 0.9em;'>Ahorra y crece más rápido</p>
         </div>
         """, unsafe_allow_html=True)
     
     with col3:
         st.markdown("""
-        <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px;'>
-            <h3 style='font-size: 1.5em; margin-bottom: 10px;'>🚀 Plan Estándar</h3>
-            <h1 style='font-size: 3em; margin: 20px 0;'>$21 USD</h1>
-            <p style='font-size: 1.1em; margin-bottom: 20px;'>90 días • 15 solicitudes/día</p>
-            <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para negocios en crecimiento</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    st.markdown("<br><br>", unsafe_allow_html=True)
-    
-    # Second row - 2 cards centered
-    col_left, col4, col5, col_right = st.columns([0.5, 1, 1, 0.5])
-    
-    with col4:
-        st.markdown("""
-        <div style='background: linear-gradient(135deg, #fa709a 0%, #fee140 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px;'>
-            <h3 style='font-size: 1.5em; margin-bottom: 10px;'>💎 Plan Profesional</h3>
-            <h1 style='font-size: 3em; margin: 20px 0;'>$42 USD</h1>
-            <p style='font-size: 1.1em; margin-bottom: 20px;'>180 días • 20 solicitudes/día</p>
-            <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para PYMEs establecidas</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
-    with col5:
-        st.markdown("""
-        <div style='background: linear-gradient(135deg, #30cfd0 0%, #330867 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 350px; border: 3px solid gold;'>
-            <h3 style='font-size: 1.5em; margin-bottom: 10px;'>👑 Plan Empresarial</h3>
-            <h1 style='font-size: 3em; margin: 20px 0;'>$84 USD</h1>
-            <p style='font-size: 1.1em; margin-bottom: 20px;'>360 días • 25 solicitudes/día</p>
-            <p style='margin-top: 40px; font-style: italic; font-size: 0.9em;'>Ideal para empresas grandes</p>
+        <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 400px; display: flex; flex-direction: column; justify-content: space-between;'>
+            <div>
+                <h3 style='font-size: 1.5em; margin-bottom: 10px;'>Plan Anual</h3>
+                <h1 style='font-size: 3em; margin: 20px 0;'>$99 USD</h1>
+                <p style='font-size: 1.1em; margin-bottom: 10px;'>Facturado cada 12 meses</p>
+                <hr style='border-color: rgba(255,255,255,0.3); margin: 15px 0;'>
+                <ul style='list-style: none; padding: 0; text-align: left; margin-bottom: 20px;'>
+                    <li style='margin-bottom: 8px;'>✅ 10 Estrategias por día</li>
+                    <li style='margin-bottom: 8px;'>✅ 30 Consultas IA por día</li>
+                    <li style='margin-bottom: 8px;'>✅ 2 Meses GRATIS</li>
+                </ul>
+            </div>
+            <p style='font-style: italic; font-size: 0.9em;'>La mejor inversión a largo plazo</p>
         </div>
         """, unsafe_allow_html=True)
     
