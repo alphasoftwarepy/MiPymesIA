@@ -9,6 +9,7 @@ import chat_brain
 from admin_panel import admin_panel
 import tracking_panel
 import tasks_manager
+import strategy_selector
 from datetime import datetime, timedelta
 import time
 import urllib.parse
@@ -822,8 +823,37 @@ def get_section_content(text, section_name):
         return "Error al cargar contenido."
 
 def wizard_page():
-    st.title("🚀 Generador MiPymesIA")
-    st.caption("Estrategias de Marketing y de Publicidad")
+    # Detectar modo de edición
+    editing_id = st.session_state.get('editing_strategy_id')
+    creating_new = st.session_state.get('creating_new_strategy')
+    
+    # Botón volver al selector
+    if editing_id or creating_new:
+        if st.button("⬅️ Volver al Selector"):
+            st.session_state.creating_new_strategy = False
+            st.session_state.editing_strategy_id = None
+            st.rerun()
+    
+    # Título según modo
+    if editing_id:
+        estrategia = auth.get_estrategia_by_id(editing_id, st.session_state.user['username'])
+        if estrategia:
+            st.title(f"📝 Editando: {estrategia['nombre']}")
+            st.caption(f"Producto: {estrategia['producto']}")
+        else:
+            st.error("❌ Estrategia no encontrada")
+            return
+    elif creating_new:
+        # Mostrar nombre si ya fue guardado
+        if st.session_state.get('current_strategy_name'):
+            st.title(f"🆕 {st.session_state.current_strategy_name}")
+            st.caption("Generando estrategia personalizada...")
+        else:
+            st.title("🆕 Nueva Estrategia")
+            st.caption("Crea una estrategia de marketing personalizada")
+    else:
+        st.title("🚀 Generador MiPymesIA")
+        st.caption("Estrategias de Marketing y de Publicidad")
     
     if st.session_state.step == 1:
         st.subheader("📋 Diagnóstico y Contexto")
@@ -1002,8 +1032,30 @@ def wizard_page():
                     auth.save_last_form_data(user['username'], {})
                     user['last_form_data'] = ""
                     st.rerun()
-        
         with st.form("diagnosis_form"):
+            # ========== STRATEGY IDENTIFICATION ==========
+            st.markdown("### 🎯 Identificación de la Estrategia")
+            st.caption("Dale un nombre único a esta estrategia")
+            
+            col_strat1, col_strat2 = st.columns(2)
+            with col_strat1:
+                nombre_estrategia = st.text_input(
+                    "📝 Nombre de la Estrategia",
+                    value=saved_data.get('nombre_estrategia', ''),
+                    placeholder="ej: Sistema Principal, Hotmart",
+                    help="Nombre descriptivo para esta estrategia"
+                )
+            with col_strat2:
+                producto_servicio_desc = st.text_input(
+                    "📦 Producto/Servicio",
+                    value=saved_data.get('producto_servicio_desc', ''),
+                    placeholder="ej: Software SaaS, Curso Online",
+                    help="Descripción del producto/servicio"
+                )
+            
+            st.markdown("---")
+            # ================================================
+            
             col1, col2 = st.columns(2)
             
             with col1:
@@ -1019,7 +1071,6 @@ def wizard_page():
             
             with col2:
                 st.markdown("### 🎯 Objetivos y Presupuesto")
-                producto = st.text_input("⭐ Producto/Servicio Estrella", value=saved_data.get('producto', ''), placeholder="ej: Curso de Marketing Digital")
                 
                 # NEW: Diferenciador clave
                 diferenciador = st.text_input(
@@ -2279,7 +2330,17 @@ else:
                 page = st.radio("Menú", ["Generador", "Mi Progreso", "Cerebro del Negocio", "MiPymes IA"])
         
         if page == "Generador":
-            wizard_page()
+            # Check if user is creating/editing a strategy
+            if st.session_state.get('creating_new_strategy') or st.session_state.get('editing_strategy_id'):
+                wizard_page()
+            elif st.session_state.get('deleting_strategy_id'):
+                # Show deletion confirmation
+                strategy_selector.handle_strategy_deletion()
+                # Also show the selector
+                strategy_selector.strategy_selector_page()
+            else:
+                # Show strategy selector
+                strategy_selector.strategy_selector_page()
         elif page == "Mi Progreso":
             tracking_panel.tracking_panel_page()
         elif page == "Cerebro del Negocio":

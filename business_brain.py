@@ -143,10 +143,26 @@ def business_brain_page():
                 with col_btn:
                     # Calculate actual index (reversed)
                     actual_index = len(insights) - 1 - i
-                    if st.button("🗑️", key=f"del_insight_{actual_index}"):
-                        auth.delete_insight(username, actual_index)
-                        st.success("✅ Insight eliminado")
-                        st.rerun()
+                    
+                    # Check if this insight is being deleted
+                    confirm_key = f"confirming_del_insight_{actual_index}"
+                    if confirm_key not in st.session_state:
+                        st.session_state[confirm_key] = False
+                    
+                    if not st.session_state[confirm_key]:
+                        if st.button("🗑️", key=f"del_insight_{actual_index}"):
+                            st.session_state[confirm_key] = True
+                            st.rerun()
+                    else:
+                        # Show confirmation
+                        if st.button("✅", key=f"confirm_del_insight_{actual_index}", help="Confirmar eliminación"):
+                            auth.delete_insight(username, actual_index)
+                            st.session_state[confirm_key] = False
+                            st.success("✅ Insight eliminado")
+                            st.rerun()
+                        if st.button("❌", key=f"cancel_del_insight_{actual_index}", help="Cancelar"):
+                            st.session_state[confirm_key] = False
+                            st.rerun()
             
             # Botón limpiar todos los insights
             #st.markdown("---")

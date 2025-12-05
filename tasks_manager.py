@@ -265,6 +265,24 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
     # Calculate points based on priority
     puntos = {"alta": 10, "media": 5, "baja": 3}.get(prioridad, 5)
     
+    # ========== AGREGAR PREFIJO DEBUG PARA ESTRATEGIAS ==========
+    # Formato: E{id}-{num} ; titulo original
+    if estrategia_id:
+        # Contar tareas existentes para esta estrategia
+        c.execute("""
+            SELECT COUNT(*) FROM tareas_diarias 
+            WHERE user_id = ? AND estrategia_id = ?
+        """, (username, estrategia_id))
+        task_count = c.fetchone()[0]
+        task_num = task_count + 1
+        
+        # Agregar prefijo
+        titulo_con_prefijo = f"E{estrategia_id}-{task_num} ; {titulo}"
+    else:
+        titulo_con_prefijo = titulo
+    # ============================================================
+    
+    
     # Calculate actual date for weekly tasks to append to title
     if frecuencia == 'semanal' and dia_semana is not None:
         # Get current date
@@ -295,7 +313,7 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
         fecha_str = f"{target_date.day} {meses[target_date.month - 1]} {target_date.year}"
         
         # Append date identifier to title to make it unique
-        titulo = f"{titulo} - {fecha_str}"
+        titulo_con_prefijo = f"{titulo_con_prefijo} - {fecha_str}"
     
     try:
         c.execute("""
@@ -303,7 +321,7 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
             (user_id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, 
              fecha_creacion, seccion_origen, puntos)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (username, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana,
+        """, (username, titulo_con_prefijo, descripcion, categoria, prioridad, frecuencia, dia_semana,
               now, seccion_origen, puntos))
         
         conn.commit()

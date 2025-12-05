@@ -7,13 +7,46 @@ import tasks_manager
 from datetime import datetime, timedelta
 
 def tracking_panel_page():
-    """Main tracking panel page with tasks and progress visualization."""
-    
+    """Main tracking panel page with tabs for multiple strategies"""
     st.title("📊 Mi Progreso")
-    st.caption("Gestiona tus tareas y visualiza tu progreso semanal")
     
     user = st.session_state.user
     username = user['username']
+    
+    # Obtener todas las estrategias del usuario
+    import auth
+    estrategias = auth.get_all_estrategias(username)
+    
+    if not estrategias:
+        st.info("No tienes estrategias creadas aún. Ve a 'Generador' para crear una.")
+        return
+    
+    # Si hay múltiples estrategias, mostrar tabs
+    if len(estrategias) > 1:
+        # Crear tabs: "Todas" + una por cada estrategia
+        tab_names = ["📋 Todas"] + [f"🎯 {e['producto'][:20]}..." if len(e['producto']) > 20 else f"🎯 {e['producto']}" for e in estrategias]
+        tabs = st.tabs(tab_names)
+        
+        # Tab "Todas" - mostrar todas las tareas
+        with tabs[0]:
+            show_tasks_for_strategy(username, None, "Todas las Estrategias")
+        
+        # Tabs por estrategia
+        for idx, estrategia in enumerate(estrategias):
+            with tabs[idx + 1]:
+                show_tasks_for_strategy(username, estrategia['id'], estrategia['producto'])
+    else:
+        # Una sola estrategia, sin tabs
+        show_tasks_for_strategy(username, estrategias[0]['id'], estrategias[0]['producto'])
+
+
+def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
+    """
+    Muestra las tareas de una estrategia específica.
+    Si estrategia_id es None, muestra TODAS las tareas.
+    """
+    
+    st.caption("Gestiona tus tareas y visualiza tu progreso semanal")
     
     # Check if we should show create task form
     if st.session_state.get('show_create_task', False):
@@ -72,8 +105,8 @@ def tracking_panel_page():
             st.session_state.show_create_task = True
             st.rerun()
         
-        # Get all tasks for the week
-        all_tasks = tasks_manager.get_tasks_for_week(username)
+        # Get all tasks for the week (filtered by estrategia_id)
+        all_tasks = tasks_manager.get_tasks_for_week(username, estrategia_id)
         
         if not all_tasks:
             st.info("🎉 ¡No tienes tareas pendientes! Puedes crear tareas manualmente o generar una nueva estrategia.")
@@ -166,7 +199,7 @@ def tracking_panel_page():
         # Day-by-day breakdown - starting from today
         dias = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
         
-        all_tasks = tasks_manager.get_tasks_for_week(username)
+        all_tasks = tasks_manager.get_tasks_for_week(username, estrategia_id)
         
         # Track which unique tasks we've already shown
         shown_unique_tasks = set()
@@ -263,7 +296,6 @@ def tracking_panel_page():
                 st.markdown("")
         else:
             st.info("No hay estadísticas por categoría aún")
-
 
 def render_task_card(task, username, is_completed=False, compact=False, day_context=None, show_date=True, completion_date=None):
     """Render a single task card with actions."""
