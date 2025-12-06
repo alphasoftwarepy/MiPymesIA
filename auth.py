@@ -129,6 +129,14 @@ def init_db():
             FOREIGN KEY (estrategia_id) REFERENCES estrategias_v2(id)
         )
     ''')
+
+    # Migration: Add estrategia_id to tareas_diarias if not exists
+    try:
+        c.execute("SELECT estrategia_id FROM tareas_diarias LIMIT 1")
+    except sqlite3.OperationalError:
+        print("Adding estrategia_id column to tareas_diarias table...")
+        c.execute("ALTER TABLE tareas_diarias ADD COLUMN estrategia_id INTEGER")
+        print("Migration completed successfully.")
     
     # Create logros_usuario table
     c.execute('''
