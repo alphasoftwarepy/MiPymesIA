@@ -757,11 +757,13 @@ def get_estrategia_by_id(estrategia_id, username):
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("""
-        SELECT id, nombre_estrategia, producto_servicio, activa,
-               avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis,
-               created_at, updated_at
-        FROM estrategias_v2 
-        WHERE id = ? AND user_id = ?
+        SELECT e.id, e.nombre_estrategia, e.producto_servicio, e.activa,
+               e.avatar, e.embudo, e.ads, e.objeciones, e.whatsapp, e.acciones_diarias, e.kpis,
+               e.created_at, e.updated_at,
+               (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id) as num_tareas,
+               (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id AND completada = 1) as tareas_completadas
+        FROM estrategias_v2 e
+        WHERE e.id = ? AND e.user_id = ?
     """, (estrategia_id, username))
     
     result = c.fetchone()
@@ -782,7 +784,9 @@ def get_estrategia_by_id(estrategia_id, username):
                 'acciones_diarias': json.loads(result[9]) if result[9] else '',
                 'kpis': json.loads(result[10]) if result[10] else '',
                 'created_at': result[11],
-                'updated_at': result[12]
+                'updated_at': result[12],
+                'num_tareas': result[13] or 0,
+                'tareas_completadas': result[14] or 0
             }
         except json.JSONDecodeError:
             return None
