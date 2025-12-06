@@ -1,0 +1,49 @@
+personas que necesitan crear una estrategia de marketing y publicidad pero que no tienen conocimento y/o tiempo para hacerlo, o que no pueden contratar a una empresa para que hagan el servicios, necesitan un sistema que le agilice y le guie paso a paso
+
+ademas de crear la estrategia te crea las tareas diarias a realizar para llegar al resultado, no solo eso, tambien tendras ayuda de la ia en todo momento
+
+---
+
+personas que necesiten agiliar el proceso de facturacion, antes hacian a mano, algunos ya precisan de facturacion electronica, ademas la mayoria necesitan ayuda con el inventario, control de caja, cuentas de clientes y proveedores, entre otros para eliminar el excel o el cuaderno que producen muchos errores y es lento
+
+----
+
+cambiar el texto del menu bar "Generador" por "Selector de Estrategias" 
+
+---
+
+el campo de texto de 💎 ¿Qué te hace diferente de la competencia? que sea amplio para escritura como 👤 Buyer Persona (Opcional) que puedo leer todo lo que escribo (ahora va todo a la derecha)
+
+---
+
+(espera 3.5s)
+1. "✨ Creando tu estrategia personalizada ✨"
+(espera 4s)
+2. "✅ Generando Avatar de Cliente..." 
+3. "✅ Generando Embudo de Contenido..."
+4. "✅ Generando Estrategia de Ads..."
+5. "✅ Generando Flujo de WhatsApp..."
+6. "✅ Generando Manejo de Objeciones..."
+(espera 4.5s)
+7. "✅ Generando tareas personalizadas..."
+8. "✅ x Tareas fueron creadas..."
+9. "✅ Generando Métricas..."
+10. "✅ Finalizando estrategia..."
+(aqui la espera real)
+11. ✅ Ajustando ultimos detalles...
+
+el nuevo subtitulo "Este proceso puede tardar entre 30 a 60 segundos.."
+
+---
+
+💡 Insights y Aprendizajes YA NO GUARDA.. VERIFICAR 
+
+---
+
+✅ Borrar Diferenciador Sin Confirmación
+Problema: Borra diferenciador sin pedir confirmación Causa: Botón ejecuta auth.delete_diferenciador() directamente Solución: Agregar confirmación como en insights
+
+---
+
+✅ Admin Panel - Crear Usuario Desapareció
+Problema: No aparece opción para crear usuario Causa: Posible cambio en el código del admin panel Solución: Verificar y restaurar funcionalidad

@@ -832,6 +832,12 @@ def wizard_page():
         if st.button("⬅️ Volver al Selector"):
             st.session_state.creating_new_strategy = False
             st.session_state.editing_strategy_id = None
+            st.session_state.step = 1  # Resetear a paso 1
+            # Limpiar estados adicionales
+            if 'current_strategy_name' in st.session_state:
+                del st.session_state.current_strategy_name
+            if 'strategy_result' in st.session_state:
+                del st.session_state.strategy_result
             st.rerun()
     
     # Título según modo
@@ -855,6 +861,102 @@ def wizard_page():
         st.title("🚀 Generador MiPymesIA")
         st.caption("Estrategias de Marketing y de Publicidad")
     
+    # ========== LOAD STRATEGY IF EDITING (BEFORE STEP CHECK) ==========
+    # This runs BEFORE checking step, but only when editing and going to step 2
+    editing_id = st.session_state.get('editing_strategy_id')
+    if editing_id and st.session_state.step == 2:
+        # User is editing a specific strategy, load it
+        user = st.session_state.user
+        estrategia = auth.get_estrategia_by_id(editing_id, user['username'])
+        
+        if estrategia:
+            # Reconstruct the strategy_result format
+            strategy_sections = []
+            
+            # Add each section with markers
+            if estrategia.get('avatar'):
+                strategy_sections.append(f"<<<SECTION_START: AVATAR>>>\n{estrategia['avatar']}")
+            
+            # Parse embudo back into subsections
+            if estrategia.get('embudo'):
+                embudo_text = estrategia['embudo']
+                if 'TOFU:' in embudo_text and 'MOFU:' in embudo_text and 'BOFU:' in embudo_text:
+                    parts = embudo_text.split('MOFU:')
+                    tofu = parts[0].replace('TOFU:', '').strip()
+                    mofu_bofu = parts[1].split('BOFU:')
+                    mofu = mofu_bofu[0].strip()
+                    bofu = mofu_bofu[1].strip() if len(mofu_bofu) > 1 else ''
+                    
+                    strategy_sections.append(f"<<<SECTION_START: EMBUDO_TOFU>>>\n{tofu}")
+                    strategy_sections.append(f"<<<SECTION_START: EMBUDO_MOFU>>>\n{mofu}")
+                    strategy_sections.append(f"<<<SECTION_START: EMBUDO_BOFU>>>\n{bofu}")
+                else:
+                    strategy_sections.append(f"<<<SECTION_START: EMBUDO_TOFU>>>\n{embudo_text}")
+            
+            # Parse ads back into subsections
+            if estrategia.get('ads'):
+                ads_text = estrategia['ads']
+                if 'FRÍO:' in ads_text and 'TIBIO:' in ads_text and 'CALIENTE:' in ads_text:
+                    parts = ads_text.split('TIBIO:')
+                    frio = parts[0].replace('FRÍO:', '').strip()
+                    tibio_caliente = parts[1].split('CALIENTE:')
+                    tibio = tibio_caliente[0].strip()
+                    caliente = tibio_caliente[1].strip() if len(tibio_caliente) > 1 else ''
+                    
+                    strategy_sections.append(f"<<<SECTION_START: ADS_FRIO>>>\n{frio}")
+                    strategy_sections.append(f"<<<SECTION_START: ADS_TIBIO>>>\n{tibio}")
+                    strategy_sections.append(f"<<<SECTION_START: ADS_CALIENTE>>>\n{caliente}")
+                else:
+                    strategy_sections.append(f"<<<SECTION_START: ADS_FRIO>>>\n{ads_text}")
+            
+            # WhatsApp days
+            if estrategia.get('whatsapp'):
+                whatsapp_text = estrategia['whatsapp']
+                days = whatsapp_text.split('\n\n')
+                for i, day_content in enumerate(days[:7], 1):
+                    strategy_sections.append(f"<<<SECTION_START: WHATSAPP_DIA{i}>>>\n{day_content}")
+            
+            # Objeciones
+            if estrategia.get('objeciones'):
+                objeciones_text = estrategia['objeciones']
+                objeciones = objeciones_text.split('\n\n')
+                tipos = ["COSTO", "TIEMPO", "PERSONAL", "INTEGRACION", "MIEDO"]
+                for i, objecion_content in enumerate(objeciones[:5]):
+                    if i < len(tipos):
+                        strategy_sections.append(f"<<<SECTION_START: OBJECION_{tipos[i]}>>>\n{objecion_content}")
+            
+            # Acciones diarias
+            if estrategia.get('acciones_diarias'):
+                strategy_sections.append(f"<<<SECTION_START: ACCIONES_DIARIAS>>>\n{estrategia['acciones_diarias']}")
+            
+            # KPIs/Métricas
+            if estrategia.get('kpis'):
+                strategy_sections.append(f"<<<SECTION_START: METRICAS>>>\n{estrategia['kpis']}")
+            
+            # Reconstruct full strategy text
+            st.session_state.strategy_result = '\n\n'.join(strategy_sections)
+            
+            # Also populate business_info if we have saved form data
+            if user.get('last_form_data'):
+                try:
+                    import json
+                    if isinstance(user['last_form_data'], str):
+                        st.session_state.business_info = json.loads(user['last_form_data'])
+                    else:
+                        st.session_state.business_info = user['last_form_data']
+                    
+                    # Normalize plataforma field for PDF generation
+                    if 'plataforma' in st.session_state.business_info:
+                        plat = st.session_state.business_info['plataforma']
+                        if isinstance(plat, list):
+                            st.session_state.business_info['plataforma'] = ', '.join(plat)
+                except:
+                    st.session_state.business_info = {}
+        else:
+            st.error("❌ Estrategia no encontrada")
+            return
+    # ===================================================================
+    
     if st.session_state.step == 1:
         st.subheader("📋 Diagnóstico y Contexto")
         
@@ -862,7 +964,8 @@ def wizard_page():
         user = st.session_state.user
         saved_estrategia = auth.get_estrategia(user['username'])
         
-        if saved_estrategia:
+        # Skip intermediate step if user explicitly clicked "Nueva estrategia" or "Editar" from selector
+        if saved_estrategia and not st.session_state.get('creating_new_strategy', False) and not st.session_state.get('editing_strategy_id'):
             # User has a saved strategy - offer choice
             st.success("✅ Tienes una estrategia guardada")
             
@@ -1126,7 +1229,7 @@ def wizard_page():
             generate = st.form_submit_button("🧠 Generar Estrategia Completa", use_container_width=True, type="primary")
             
             if generate:
-                if not rubro or not nombre or not producto or not plataforma:
+                if not rubro or not nombre or not producto_servicio_desc or not plataforma:
                     st.warning("⚠️ Por favor completa todos los campos obligatorios.")
                 else:
                     # Check subscription status and request limits
@@ -1147,10 +1250,12 @@ def wizard_page():
                     
                     # Save form data
                     business_info_save = {
+                        "nombre_estrategia": nombre_estrategia,
+                        "producto_servicio_desc": producto_servicio_desc,
                         "rubro": rubro,
                         "nombre": nombre,
                         "tipo": tipo,
-                        "producto": producto,
+                        "producto": producto_servicio_desc,
                         "diferenciador": diferenciador,  # NEW
                         "precio": precio,
                         "meta": meta,
@@ -1284,7 +1389,7 @@ def wizard_page():
                             "rubro": rubro,
                             "nombre": nombre,
                             "tipo": tipo,
-                            "producto": producto,
+                            "producto": producto_servicio_desc,
                             "precio": precio if precio > 0 else None,
                             "meta": meta,
                             "presupuesto": presupuesto,
@@ -1349,7 +1454,21 @@ def wizard_page():
                                 'acciones_diarias': get_section_content(result, "ACCIONES_DIARIAS"),
                                 'kpis': get_section_content(result, "METRICAS")
                             }
-                            auth.save_estrategia(user['username'], estrategia_data)
+                            # Create new strategy (don't use save_estrategia as it updates the first one)
+                            success, message, estrategia_id = auth.create_estrategia(
+                                user['username'], 
+                                nombre_estrategia if nombre_estrategia else "Estrategia Sin Nombre",
+                                producto_servicio_desc if producto_servicio_desc else "Producto/Servicio",
+                                estrategia_data
+                            )
+                            
+                            if not success:
+                                st.error(f"❌ Error al guardar estrategia: {message}")
+                                return
+                            
+                            # Set editing_strategy_id so title updates correctly
+                            st.session_state.editing_strategy_id = estrategia_id
+                            st.session_state.creating_new_strategy = False
                             
                             # ========== AUTO-GENERATE TASKS FROM STRATEGY ==========
                             # Show final loader
@@ -1359,7 +1478,8 @@ def wizard_page():
                                 tasks_count, tasks_list = tasks_manager.generate_tasks_from_strategy(
                                     username=user['username'],
                                     estrategia_dict=estrategia_data,
-                                    business_info=business_info
+                                    business_info=business_info,
+                                    estrategia_id=estrategia_id
                                 )
                                 
                                 # Clear loader before showing success message
@@ -1573,6 +1693,9 @@ def wizard_page():
                 estrategia = auth.get_estrategia(user['username'])
                 if estrategia:
                     st.success("✅ Estrategia Guardada")
+                    st.success("✅ Estrategia Guardada")
+                    # Guardar estrategia activa en session_state
+                    st.session_state['estrategia_activa_id'] = estrategia.get('id')
                     if estrategia.get('created_at'):
                         from datetime import datetime as dt
                         try:

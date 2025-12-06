@@ -17,7 +17,7 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # ==================== TASK GENERATION ====================
 
-def generate_tasks_from_strategy(username, estrategia_dict, business_info):
+def generate_tasks_from_strategy(username, estrategia_dict, business_info, estrategia_id=None):
     """
     Uses AI to analyze strategy and generate actionable daily/weekly tasks.
     
@@ -240,7 +240,8 @@ Genera entre 25-35 tareas que cubran toda la estrategia, formando secuencias ló
                 prioridad=task.get('prioridad', 'media'),
                 frecuencia=task.get('frecuencia', 'unica'),
                 dia_semana=task.get('dia_semana'),
-                seccion_origen=task.get('seccion_origen', '')
+                seccion_origen=task.get('seccion_origen', ''),
+                estrategia_id=estrategia_id
             )
             if success:
                 saved_count += 1
@@ -255,7 +256,7 @@ Genera entre 25-35 tareas que cubran toda la estrategia, formando secuencias ló
 # ==================== TASK CRUD ====================
 
 def create_task(username, titulo, descripcion="", categoria="general", prioridad="media", 
-                frecuencia="unica", dia_semana=None, seccion_origen=""):
+                frecuencia="unica", dia_semana=None, seccion_origen="", estrategia_id=None):
     """Create a new task."""
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
@@ -319,10 +320,10 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
         c.execute("""
             INSERT INTO tareas_diarias 
             (user_id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, 
-             fecha_creacion, seccion_origen, puntos)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             fecha_creacion, seccion_origen, puntos, estrategia_id)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (username, titulo_con_prefijo, descripcion, categoria, prioridad, frecuencia, dia_semana,
-              now, seccion_origen, puntos))
+              now, seccion_origen, puntos, estrategia_id))
         
         conn.commit()
         conn.close()
@@ -333,74 +334,29 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
         return False
 
 
-def get_tasks_for_today(username):
-    """Get all tasks for today (unique + recurring for this day)."""
+def get_tasks_for_today(username, estrategia_id=None):
+    """Get tasks scheduled for today (based on day of week), optionally filtered by strategy."""
+    # 1 = Monday, 7 = Sunday
+    today_iso = datetime.now().isoweekday()
+    
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     
-    today_weekday = datetime.now().weekday()  # 0=Monday, 6=Sunday
+    query = """
+        SELECT id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, completada, puntos, fecha_completada, seccion_origen
+        FROM tareas_diarias 
+        WHERE user_id = ? AND dia_semana = ?
+    """
+    params = [username, today_iso]
     
-    c.execute("""
-        SELECT id, titulo, descripcion, categoria, prioridad, completada, puntos, seccion_origen
-        FROM tareas_diarias
-        WHERE user_id = ?
-        AND (
-            (frecuencia = 'unica' AND completada = 0)
-            OR (frecuencia = 'diaria')
-            OR (frecuencia = 'semanal' AND dia_semana = ?)
-        )
-        ORDER BY 
-            CASE prioridad 
-                WHEN 'alta' THEN 1
-                WHEN 'media' THEN 2
-                WHEN 'baja' THEN 3
-            END,
-            fecha_creacion ASC
-    """, (username, today_weekday))
+    if estrategia_id:
+        query += " AND estrategia_id = ?"
+        params.append(estrategia_id)
     
-    rows = c.fetchall()
-    conn.close()
+    c.execute(query, tuple(params))
     
     tasks = []
-    for row in rows:
-        tasks.append({
-            'id': row[0],
-            'titulo': row[1],
-            'descripcion': row[2],
-            'categoria': row[3],
-            'prioridad': row[4],
-            'completada': bool(row[5]),
-            'puntos': row[6],
-            'seccion_origen': row[7]
-        })
-    
-    return tasks
-
-
-def get_tasks_for_week(username):
-    """Get all tasks for the current week."""
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    
-    c.execute("""
-        SELECT id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, 
-               completada, puntos, fecha_creacion
-        FROM tareas_diarias
-        WHERE user_id = ?
-        ORDER BY 
-            CASE prioridad 
-                WHEN 'alta' THEN 1
-                WHEN 'media' THEN 2
-                WHEN 'baja' THEN 3
-            END,
-            dia_semana ASC NULLS FIRST
-    """, (username,))
-    
-    rows = c.fetchall()
-    conn.close()
-    
-    tasks = []
-    for row in rows:
+    for row in c.fetchall():
         tasks.append({
             'id': row[0],
             'titulo': row[1],
@@ -411,9 +367,48 @@ def get_tasks_for_week(username):
             'dia_semana': row[6],
             'completada': bool(row[7]),
             'puntos': row[8],
-            'fecha_creacion': row[9]
+            'fecha_completada': row[9],
+            'seccion_origen': row[10]
         })
     
+    conn.close()
+    return tasks
+
+def get_tasks_for_week(username, estrategia_id=None):
+    """Get all tasks for the user, optionally filtered by strategy."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    query = """
+        SELECT id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, completada, puntos, fecha_completada, seccion_origen
+        FROM tareas_diarias 
+        WHERE user_id = ?
+    """
+    params = [username]
+    
+    if estrategia_id:
+        query += " AND estrategia_id = ?"
+        params.append(estrategia_id)
+    
+    c.execute(query, tuple(params))
+    
+    tasks = []
+    for row in c.fetchall():
+        tasks.append({
+            'id': row[0],
+            'titulo': row[1],
+            'descripcion': row[2],
+            'categoria': row[3],
+            'prioridad': row[4],
+            'frecuencia': row[5],
+            'dia_semana': row[6],
+            'completada': bool(row[7]),
+            'puntos': row[8],
+            'fecha_completada': row[9],
+            'seccion_origen': row[10]
+        })
+    
+    conn.close()
     return tasks
 
 
@@ -507,53 +502,19 @@ def delete_task(username, task_id):
 
 # ==================== PROGRESS TRACKING ====================
 
-def get_weekly_progress(username):
-    """Get progress for current week."""
-    # Get Monday of current week
-    today = datetime.now().date()
-    monday = today - timedelta(days=today.weekday())
-    semana_inicio = monday.isoformat()
+def get_weekly_progress(username, estrategia_id=None):
+    """Calculate weekly progress percentage, optionally filtered by strategy."""
+    tasks = get_tasks_for_week(username, estrategia_id)
     
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
+    if not tasks:
+        return 0, 0, 0
     
-    # Get or create weekly progress
-    c.execute("""
-        SELECT tareas_completadas, tareas_totales, racha_dias, puntos_ganados
-        FROM progreso_semanal
-        WHERE user_id = ? AND semana_inicio = ?
-    """, (username, semana_inicio))
+    total = len(tasks)
+    completed = sum(1 for t in tasks if t['completada'])
     
-    result = c.fetchone()
+    percentage = int((completed / total) * 100)
     
-    if not result:
-        # Create new week entry
-        c.execute("""
-            INSERT INTO progreso_semanal (user_id, semana_inicio)
-            VALUES (?, ?)
-        """, (username, semana_inicio))
-        conn.commit()
-        result = (0, 0, 0, 0)
-    
-    # Count actual tasks for this week
-    c.execute("""
-        SELECT COUNT(*) as total,
-               SUM(CASE WHEN completada = 1 THEN 1 ELSE 0 END) as completadas
-        FROM tareas_diarias
-        WHERE user_id = ?
-    """, (username,))
-    
-    counts = c.fetchone()
-    conn.close()
-    
-    return {
-        'semana_inicio': semana_inicio,
-        'tareas_completadas': counts[1] or 0,
-        'tareas_totales': counts[0] or 0,
-        'racha_dias': result[2],
-        'puntos_ganados': result[3]
-    }
-
+    return percentage, completed, total
 
 def update_streak(username):
     """Update user's streak based on task completion."""
@@ -703,12 +664,12 @@ def get_user_achievements(username):
     return achievements
 
 
-def get_user_stats(username):
-    """Get comprehensive user statistics."""
+def get_user_stats(username, estrategia_id=None):
+    """Get comprehensive user statistics. Optionally filter by estrategia_id."""
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     
-    # Get user gamification data
+    # Get user gamification data (global, not filtered by strategy)
     c.execute("""
         SELECT puntos_totales, nivel, racha_actual, racha_maxima
         FROM users
@@ -731,27 +692,35 @@ def get_user_stats(username):
             'por_categoria': []
         }
     
+    # Base query for stats
+    base_where = "WHERE user_id = ?"
+    params = [username]
+    
+    if estrategia_id:
+        base_where += " AND estrategia_id = ?"
+        params.append(estrategia_id)
+    
     # Get task stats
-    c.execute("""
+    c.execute(f"""
         SELECT 
             COUNT(*) as total,
             SUM(CASE WHEN completada = 1 THEN 1 ELSE 0 END) as completadas,
             SUM(CASE WHEN completada = 0 THEN 1 ELSE 0 END) as pendientes
         FROM tareas_diarias
-        WHERE user_id = ?
-    """, (username,))
+        {base_where}
+    """, tuple(params))
     
     task_stats = c.fetchone()
     
     # Get category breakdown
-    c.execute("""
+    c.execute(f"""
         SELECT categoria, 
                COUNT(*) as total,
                SUM(CASE WHEN completada = 1 THEN 1 ELSE 0 END) as completadas
         FROM tareas_diarias
-        WHERE user_id = ?
+        {base_where}
         GROUP BY categoria
-    """, (username,))
+    """, tuple(params))
     
     category_stats = c.fetchall()
     

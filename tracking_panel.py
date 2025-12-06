@@ -21,24 +21,85 @@ def tracking_panel_page():
         st.info("No tienes estrategias creadas aún. Ve a 'Generador' para crear una.")
         return
     
-    # Si hay múltiples estrategias, mostrar tabs
-    if len(estrategias) > 1:
-        # Crear tabs: "Todas" + una por cada estrategia
-        tab_names = ["📋 Todas"] + [f"🎯 {e['producto'][:20]}..." if len(e['producto']) > 20 else f"🎯 {e['producto']}" for e in estrategias]
-        tabs = st.tabs(tab_names)
-        
-        # Tab "Todas" - mostrar todas las tareas
-        with tabs[0]:
-            show_tasks_for_strategy(username, None, "Todas las Estrategias")
-        
-        # Tabs por estrategia
-        for idx, estrategia in enumerate(estrategias):
-            with tabs[idx + 1]:
-                show_tasks_for_strategy(username, estrategia['id'], estrategia['producto'])
-    else:
-        # Una sola estrategia, sin tabs
-        show_tasks_for_strategy(username, estrategias[0]['id'], estrategias[0]['producto'])
+    # Determinar qué estrategia mostrar por defecto
+    estrategia_activa_id = st.session_state.get('estrategia_activa_id')
+    default_index = 0
+    
+    # Si hay estrategia activa guardada, buscar su índice
+    if estrategia_activa_id:
+        for idx, e in enumerate(estrategias):
+            if e['id'] == estrategia_activa_id:
+                default_index = idx
+                break
+    
+    # Si NO hay estrategia activa guardada, auto-seleccionar la primera
+    if not estrategia_activa_id or estrategia_activa_id not in [e['id'] for e in estrategias]:
+        estrategia_activa_id = estrategias[0]['id']
+        st.session_state['estrategia_activa_id'] = estrategia_activa_id
 
+    # Si hay múltiples estrategias, mostrar selector de cards
+    if len(estrategias) > 1:
+        st.markdown("### 🎯 Selecciona una Estrategia")
+        
+        # Calcular cuántas columnas según cantidad de estrategias
+        num_cols = min(len(estrategias), 4)  # Máximo 4 columnas
+        cols = st.columns(num_cols)
+        
+        # Crear un card por cada estrategia
+        for idx, estrategia in enumerate(estrategias):
+            with cols[idx % num_cols]:
+                # Verificar si esta estrategia está activa
+                is_active = (estrategia['id'] == estrategia_activa_id)
+                
+                # Estilo del card (diferente si está activo)
+                if is_active:
+                    border_color = "#3498db"
+                    bg_color = "#e8f4f8"
+                    button_type = "primary"
+                else:
+                    border_color = "#ddd"
+                    bg_color = "#f8f9fa"
+                    button_type = "secondary"
+                
+                # Card visual
+                st.markdown(f"""
+                <div style='
+                    background: {bg_color};
+                    border: 3px solid {border_color};
+                    border-radius: 12px;
+                    padding: 15px;
+                    margin-bottom: 10px;
+                    text-align: center;
+                    min-height: 100px;
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                '>
+                    <h4 style='margin: 0; color: #2c3e50;'>🎯 {estrategia['producto']}</h4>
+                    <p style='margin: 5px 0 0 0; color: #7f8c8d; font-size: 0.9em;'>{estrategia.get('nombre', 'Estrategia')}</p>
+                </div>
+                """, unsafe_allow_html=True)
+                
+                # Botón para seleccionar esta estrategia
+                if st.button(
+                    "✅ Activa" if is_active else "Ver Tareas",
+                    key=f"select_estrategia_{estrategia['id']}",
+                    use_container_width=True,
+                    type=button_type,
+                    disabled=is_active  # Deshabilitar si ya está activa
+                ):
+                    # Guardar como estrategia activa y recargar
+                    st.session_state['estrategia_activa_id'] = estrategia['id']
+                    st.rerun()
+        
+        st.markdown("---")
+        
+        # Mostrar tareas de la estrategia activa
+        estrategia_activa = next((e for e in estrategias if e['id'] == estrategia_activa_id), estrategias[0])
+        show_tasks_for_strategy(username, estrategia_activa['id'], estrategia_activa['producto'])
+    else:
+        # Una sola estrategia, sin selector
+        show_tasks_for_strategy(username, estrategias[0]['id'], estrategias[0]['producto'])
 
 def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
     """
@@ -54,8 +115,7 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
         return
     
     # Get user stats
-    stats = tasks_manager.get_user_stats(username)
-    weekly_progress = tasks_manager.get_weekly_progress(username)
+    stats = tasks_manager.get_user_stats(username, estrategia_id)
     
     # Provide default values if stats are None
     if stats is None:
@@ -65,6 +125,9 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
             'nivel': 1,
             'por_categoria': []
         }
+    
+    # Get weekly progress
+    weekly_progress = tasks_manager.get_weekly_progress(username, estrategia_id)
     
     if weekly_progress is None:
         weekly_progress = {
@@ -87,21 +150,20 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
         nivel = stats.get('nivel', 1)
         st.metric("👑 Nivel", nivel)
     
-    with col4:
-        progreso_semana = 0
-        if weekly_progress.get('tareas_totales', 0) > 0:
-            progreso_semana = int((weekly_progress['tareas_completadas'] / weekly_progress['tareas_totales']) * 100)
-        st.metric("📈 Progreso Semana", f"{progreso_semana}%")
-    
     st.markdown("---")
     
+    with col4:
+        # Obtener progreso solo para mostrar porcentaje
+        prog_pct, _, _ = tasks_manager.get_weekly_progress(username, estrategia_id)
+        st.metric("📈 Progreso Semana", f"{prog_pct}%")
+
     # ========== TABS ==========
     tab1, tab2, tab3 = st.tabs(["📋 Tareas de Hoy", "📅 Vista Semanal", "🏆 Logros"])
     
     
     # ========== TAB 1: TAREAS ==========
     with tab1:
-        if st.button("➕ Crear Tarea", key="btn_create_task_tab1"):
+        if st.button("➕ Crear Tarea", key=f"btn_create_task_{estrategia_id or 'todas'}"):
             st.session_state.show_create_task = True
             st.rerun()
         
@@ -111,7 +173,7 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
         if not all_tasks:
             st.info("🎉 ¡No tienes tareas pendientes! Puedes crear tareas manualmente o generar una nueva estrategia.")
             
-            if st.button("➕ Crear Tarea Manual"):
+            if st.button("➕ Crear Tarea Manual", key=f"btn_create_task_manual_{estrategia_id or 'todas'}"):
                 st.session_state.show_create_task = True
                 st.rerun()
         else:
@@ -142,7 +204,7 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
                                           key=lambda x: {'alta': 0, 'media': 1, 'baja': 2}.get(x['prioridad'], 3))
                 
                 for task in today_tasks_sorted:
-                    render_task_card(task, username, show_date=False)
+                    render_task_card(task, username, show_date=False, estrategia_id=estrategia_id)
             
             # Completed tasks section
             if completed_tasks:
@@ -177,8 +239,7 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
     # ========== TAB 2: VISTA SEMANAL ==========
     with tab2:
 
-        
-        # Week calendar - start from today
+                # Week calendar - start from today
         today = datetime.now().date()
         
         # Calculate end of week (6 days from today)
@@ -187,10 +248,11 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
         st.markdown(f"**Semana del {today.strftime('%d %b')} - {end_of_week.strftime('%d %b %Y')}**")
         
         # Progress bar
-        if weekly_progress.get('tareas_totales', 0) > 0:
-            progress_pct = weekly_progress.get('tareas_completadas', 0) / weekly_progress.get('tareas_totales', 1)
-            st.progress(progress_pct)
-            st.caption(f"{weekly_progress.get('tareas_completadas', 0)} de {weekly_progress.get('tareas_totales', 0)} tareas completadas ({int(progress_pct * 100)}%)")
+        percentage, completed, total = tasks_manager.get_weekly_progress(username, estrategia_id)
+        
+        if total > 0:
+            st.progress(percentage / 100)
+            st.caption(f"{completed} de {total} tareas completadas ({percentage}%)")
         else:
             st.info("No hay tareas para esta semana")
         
@@ -249,11 +311,10 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
                 if total_dia > 0:
                     with st.expander(f"{emoji} **{dia_nombre}** {fecha.strftime('%d/%m')} - {completadas_dia}/{total_dia}", expanded=es_hoy):
                         for task in tasks_dia:
-                            render_task_card(task, username, compact=True, day_context=day_offset)
+                            render_task_card(task, username, compact=True, day_context=day_offset, estrategia_id=estrategia_id)
     
     # ========== TAB 3: LOGROS ==========
     with tab3:
-
         
         # Achievements
         achievements = tasks_manager.get_user_achievements(username)
@@ -297,7 +358,7 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
         else:
             st.info("No hay estadísticas por categoría aún")
 
-def render_task_card(task, username, is_completed=False, compact=False, day_context=None, show_date=True, completion_date=None):
+def render_task_card(task, username, is_completed=False, compact=False, day_context=None, show_date=True, completion_date=None, estrategia_id=None):
     """Render a single task card with actions."""
     
     # Priority color
@@ -344,7 +405,7 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
             
             with col1:
                 if not is_completed:
-                    checked = st.checkbox("", value=task['completada'], key=f"task_{task['id']}")
+                    checked = st.checkbox("", value=task['completada'], key=f"task_{task['id']}_e{estrategia_id or 'todas'}")
                     if checked != task['completada']:
                         if checked:
                             success = tasks_manager.complete_task(username, task['id'])
@@ -371,7 +432,7 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
             
             with col3:
                 if not task['completada']:
-                    if st.button("🗑️", key=f"delete_{task['id']}", help="Eliminar tarea"):
+                    if st.button("🗑️", key=f"delete_{task['id']}_e{estrategia_id or 'todas'}", help="Eliminar tarea"):
                         tasks_manager.delete_task(username, task['id'])
                         st.rerun()
         
@@ -390,7 +451,7 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                     with col1:
                         st.caption(f"📝 {len(st.session_state[chat_history_key]) // 2} mensajes")
                     with col2:
-                        if st.button("🗑️ Limpiar", key=f"clear_chat_{task['id']}", help="Reiniciar conversación"):
+                        if st.button("🗑️ Limpiar", key=f"clear_chat_{task['id']}_e{estrategia_id or 'todas'}", help="Reiniciar conversación"):
                             st.session_state[chat_history_key] = []
                             st.rerun()
                 
@@ -404,7 +465,7 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                 col_s1, col_s2, col_s3 = st.columns(3)
                 
                 with col_s1:
-                    if st.button("📝 Dame un ejemplo", key=f"sugg1_{task['id']}", use_container_width=True):
+                    if st.button("📝 Dame un ejemplo", key=f"sugg1_{task['id']}_e{estrategia_id or 'todas'}", use_container_width=True):
                         user_msg = "Dame un ejemplo concreto de cómo hacer esta tarea"
                         st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
                         # Generate AI response immediately
@@ -414,7 +475,7 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                         st.rerun()
                 
                 with col_s2:
-                    if st.button("⏰ ¿Cuándo hacerlo?", key=f"sugg2_{task['id']}", use_container_width=True):
+                    if st.button("⏰ ¿Cuándo hacerlo?", key=f"sugg2_{task['id']}_e{estrategia_id or 'todas'}", use_container_width=True):
                         user_msg = "¿Cuál es el mejor momento para hacer esta tarea?"
                         st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
                         with st.spinner("🤔 Pensando..."):
@@ -423,7 +484,7 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                         st.rerun()
                 
                 with col_s3:
-                    if st.button("🎯 Tips y trucos", key=f"sugg3_{task['id']}", use_container_width=True):
+                    if st.button("🎯 Tips y trucos", key=f"sugg3_{task['id']}_e{estrategia_id or 'todas'}", use_container_width=True):
                         user_msg = "Dame tips y mejores prácticas para esta tarea"
                         st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
                         with st.spinner("🤔 Pensando..."):
@@ -432,7 +493,7 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                         st.rerun()
                 
                 # Chat input (like sections - supports Enter key)
-                prompt = st.chat_input("Pregunta sobre esta tarea...", key=f"chat_input_{task['id']}")
+                prompt = st.chat_input("Pregunta sobre esta tarea...", key=f"chat_input_{task['id']}_e{estrategia_id or 'todas'}")
                 
                 if prompt:
                     # Add user message

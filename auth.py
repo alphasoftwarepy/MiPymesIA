@@ -6,7 +6,6 @@ import pandas as pd
 # Password hashing configuration
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
-#DB_NAME = "users.db"
 import os
 
 # Use /app/data for production (Easypanel persistent volume), current dir for local dev
@@ -36,7 +35,18 @@ def init_db():
             daily_request_limit INTEGER DEFAULT 20,
             failed_login_attempts INTEGER DEFAULT 0,
             lockout_until TEXT,
-            business_profile TEXT DEFAULT ''
+            business_profile TEXT DEFAULT '',
+            last_form_data TEXT DEFAULT '',
+            plan_actual TEXT DEFAULT 'gratuito',
+            fecha_registro TEXT,
+            fecha_ultimo_pago TEXT,
+            fecha_vencimiento TEXT,
+            ai_requests_today INTEGER DEFAULT 0,
+            ai_request_limit INTEGER DEFAULT 10,
+            tokens_total INTEGER DEFAULT 0,
+            tokens_mes_actual INTEGER DEFAULT 0,
+            tokens_dia_actual INTEGER DEFAULT 0,
+            tokens_last_reset TEXT
         )
     ''')
     
@@ -44,7 +54,6 @@ def init_db():
     try:
         c.execute("SELECT business_profile FROM users LIMIT 1")
     except sqlite3.OperationalError:
-        # Column doesn't exist, add it
         print("Adding business_profile column to users table...")
         c.execute("ALTER TABLE users ADD COLUMN business_profile TEXT DEFAULT ''")
         print("Migration completed successfully.")
@@ -53,10 +62,84 @@ def init_db():
     try:
         c.execute("SELECT last_form_data FROM users LIMIT 1")
     except sqlite3.OperationalError:
-        # Column doesn't exist, add it
         print("Adding last_form_data column to users table...")
         c.execute("ALTER TABLE users ADD COLUMN last_form_data TEXT DEFAULT ''")
         print("Migration completed successfully.")
+    
+    # Create estrategias_v2 table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS estrategias_v2 (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            nombre_estrategia TEXT NOT NULL,
+            producto_servicio TEXT,
+            activa BOOLEAN DEFAULT 1,
+            avatar TEXT,
+            embudo TEXT,
+            ads TEXT,
+            objeciones TEXT,
+            whatsapp TEXT,
+            acciones_diarias TEXT,
+            kpis TEXT,
+            created_at TEXT,
+            updated_at TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(username),
+            UNIQUE(user_id, nombre_estrategia)
+        )
+    ''')
+    
+    # Create historial_secciones table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS historial_secciones (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            seccion TEXT NOT NULL,
+            tipo TEXT NOT NULL,
+            contenido TEXT,
+            timestamp TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(username)
+        )
+    ''')
+    
+    # Create conversaciones_archivadas table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS conversaciones_archivadas (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            seccion TEXT NOT NULL,
+            resumen TEXT,
+            mensajes_count INTEGER,
+            timestamp TEXT,
+            expandible BOOLEAN DEFAULT 1,
+            FOREIGN KEY (user_id) REFERENCES users(username)
+        )
+    ''')
+    
+    # Create tareas_diarias table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS tareas_diarias (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            estrategia_id INTEGER,
+            descripcion TEXT,
+            completada BOOLEAN DEFAULT 0,
+            fecha_creacion TEXT,
+            fecha_completado TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(username),
+            FOREIGN KEY (estrategia_id) REFERENCES estrategias_v2(id)
+        )
+    ''')
+    
+    # Create logros_usuario table
+    c.execute('''
+        CREATE TABLE IF NOT EXISTS logros_usuario (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT NOT NULL,
+            tipo_logro TEXT,
+            fecha_obtenido TEXT,
+            FOREIGN KEY (user_id) REFERENCES users(username)
+        )
+    ''')
     
     conn.commit()
     conn.close()
@@ -74,16 +157,17 @@ def create_user(username, password, email, business_name="", is_active=False, is
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     hashed_password = get_password_hash(password)
+    
     # Set trial period of 7 days for new users if not explicitly active
     start_date = None
     expiration_date = None
     if not is_active and not is_admin:
-        # New user will start trial automatically
         from datetime import datetime, timedelta
         start_date = datetime.utcnow().strftime('%Y-%m-%d')
         expiration_date = (datetime.utcnow() + timedelta(days=7)).strftime('%Y-%m-%d')
         is_active = True  # trial users are active until expiration
         daily_request_limit = 5  # Free trial gets 5 requests
+    
     try:
         c.execute("""INSERT INTO users 
                      (username, password, email, business_name, is_active, is_admin, start_date, expiration_date, 
@@ -94,7 +178,6 @@ def create_user(username, password, email, business_name="", is_active=False, is
         
         # Apply full plan configuration (including AI limits)
         if not is_admin:
-            # We need to close this connection before calling set_user_plan to avoid locking if it opens its own
             conn.close()
             from auth_subscription import set_user_plan
             set_user_plan(username, 'prueba')
@@ -135,9 +218,6 @@ def login_user(username, password):
     user = c.fetchone()
 
     if user:
-        # user structure: (username, password_hash, business_name, is_active, is_admin, start_date, expiration_date, 
-        #                  requests_today, last_request_date, email, daily_request_limit, business_profile, last_form_data,
-        #                  plan_actual, fecha_registro, fecha_ultimo_pago, fecha_vencimiento, ai_requests_today, ai_request_limit)
         if verify_password(password, user[1]):
             # Reset failed attempts on successful login
             c.execute("UPDATE users SET failed_login_attempts = 0, lockout_until = NULL WHERE username = ?", (username,))
@@ -173,8 +253,6 @@ def login_user(username, password):
                 "ai_requests_today": user[17] or 0,
                 "ai_request_limit": user[18] or 10
             }
-
-
         else:
             # Increment failed attempts
             failed_attempts = (lockout_data[1] if lockout_data else 0) + 1
@@ -253,7 +331,7 @@ def extend_subscription(username, days):
 def get_all_users():
     """Returns a list of all users for the admin panel."""
     conn = sqlite3.connect(DB_NAME)
-    df = pd.read_sql_query("SELECT username, business_name, email, is_active, is_admin, daily_request_limit FROM users", conn)
+    df = pd.read_sql_query("SELECT username, email, business_name, plan_actual, fecha_vencimiento, ai_requests_today, ai_request_limit, tokens_total, tokens_mes_actual, tokens_dia_actual FROM users", conn)
     conn.close()
     return df
 
@@ -272,7 +350,6 @@ def create_default_admin():
     c = conn.cursor()
     c.execute("SELECT count(*) FROM users WHERE is_admin = 1")
     if c.fetchone()[0] == 0:
-        # Create default admin: rvargas91 / alphaSoftware!
         print("Creating default admin user...")
         create_user("rvargas91", "alphaSoftware!", "alphasoftpy@gmail.com", "System Admin", is_active=True, is_admin=True, daily_request_limit=30)
     conn.close()
@@ -349,7 +426,6 @@ def get_brain_data(username):
             
             # Migrate old format to new format if needed
             if 'base' in data and 'servicios' not in data:
-                # Old format detected, migrate
                 return {
                     "info_general": {},
                     "servicios": [],
@@ -357,10 +433,8 @@ def get_brain_data(username):
                     "contexto_manual": data.get('contexto_manual', '')
                 }
             
-            # Return data (new or already migrated)
             return data
         except:
-            # Invalid JSON, return empty structure
             return {
                 "info_general": {},
                 "servicios": [],
@@ -368,7 +442,6 @@ def get_brain_data(username):
                 "contexto_manual": ""
             }
     
-    # No data, return empty structure
     return {
         "info_general": {},
         "servicios": [],
@@ -401,8 +474,6 @@ def enrich_brain_from_interaction(username, seccion, user_msg, ai_response):
     # Detect insights using STRICT keyword patterns
     insights_to_add = []
     user_lower = user_msg.lower()
-    
-    # ========== VALUABLE PATTERNS ONLY ==========
     
     # 1. REAL Client Feedback (not generic questions)
     if any(phrase in user_lower for phrase in [
@@ -468,12 +539,6 @@ def enrich_brain_from_interaction(username, seccion, user_msg, ai_response):
             'fuente': seccion
         })
     
-    # ========== IGNORE EVERYTHING ELSE ==========
-    # - Generic questions ("¿Cómo hago...?")
-    # - AI responses
-    # - Avatar information
-    # - Generic recommendations
-    
     # Add new insights
     for insight in insights_to_add:
         brain_data['insights'].append(insight)
@@ -518,12 +583,106 @@ def get_last_form_data(username):
             return None
     return None
 
-# ========== ESTRATEGIAS FUNCTIONS ==========
+# ========== ESTRATEGIAS FUNCTIONS (MULTI-STRATEGY SUPPORT) ==========
 
-def save_estrategia(username, estrategia_data):
+# Plan limits for strategies
+PLAN_ESTRATEGIAS_LIMIT = {
+    'gratuito': 1,
+    'prueba': 3,
+    'mensual': 3,
+    'trimestral': 5,
+    'anual': 10
+}
+
+def get_user_estrategias_limit(username):
+    """Get the maximum number of strategies allowed for a user based on their plan."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT plan_actual FROM users WHERE username = ?", (username,))
+    result = c.fetchone()
+    conn.close()
+    
+    if result:
+        plan = result[0] or 'gratuito'
+        return PLAN_ESTRATEGIAS_LIMIT.get(plan, 1)
+    return 1
+
+def create_estrategia(username, nombre_estrategia, producto_servicio, estrategia_data):
     """
-    Saves or updates a user's complete strategy.
-    estrategia_data should be a dict with keys: avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis
+    Creates a new strategy for a user.
+    
+    Args:
+        username: user's username
+        nombre_estrategia: name of the strategy (e.g., "Sistema Principal", "Hotmart")
+        producto_servicio: description of the product/service
+        estrategia_data: dict with keys: avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis
+    
+    Returns:
+        (success, message, estrategia_id)
+    """
+    import json
+    from datetime import datetime
+    
+    # Check user's limit
+    limit = get_user_estrategias_limit(username)
+    current_count = count_user_estrategias(username)
+    
+    if current_count >= limit:
+        return (False, f"Has alcanzado el límite de {limit} estrategias de tu plan", None)
+    
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    # Check if strategy name already exists for this user
+    c.execute("SELECT id FROM estrategias_v2 WHERE user_id = ? AND nombre_estrategia = ?", 
+             (username, nombre_estrategia))
+    if c.fetchone():
+        conn.close()
+        return (False, f"Ya existe una estrategia con el nombre '{nombre_estrategia}'", None)
+    
+    now = datetime.utcnow().isoformat()
+    
+    # Convert dict values to JSON strings
+    avatar_json = json.dumps(estrategia_data.get('avatar', ''), ensure_ascii=False)
+    embudo_json = json.dumps(estrategia_data.get('embudo', ''), ensure_ascii=False)
+    ads_json = json.dumps(estrategia_data.get('ads', ''), ensure_ascii=False)
+    objeciones_json = json.dumps(estrategia_data.get('objeciones', ''), ensure_ascii=False)
+    whatsapp_json = json.dumps(estrategia_data.get('whatsapp', ''), ensure_ascii=False)
+    acciones_json = json.dumps(estrategia_data.get('acciones_diarias', ''), ensure_ascii=False)
+    kpis_json = json.dumps(estrategia_data.get('kpis', ''), ensure_ascii=False)
+    
+    try:
+        c.execute("""
+            INSERT INTO estrategias_v2 
+            (user_id, nombre_estrategia, producto_servicio, activa,
+             avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis,
+             created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, (username, nombre_estrategia, producto_servicio, 1,
+              avatar_json, embudo_json, ads_json, objeciones_json, whatsapp_json,
+              acciones_json, kpis_json, now, now))
+        
+        estrategia_id = c.lastrowid
+        conn.commit()
+        conn.close()
+        return (True, "Estrategia creada exitosamente", estrategia_id)
+    except Exception as e:
+        conn.close()
+        return (False, f"Error al crear estrategia: {str(e)}", None)
+
+def update_estrategia(estrategia_id, username, estrategia_data, nombre_estrategia=None, producto_servicio=None):
+    """
+    Updates an existing strategy.
+    
+    Args:
+        estrategia_id: ID of the strategy to update
+        username: user's username (for verification)
+        estrategia_data: dict with strategy sections
+        nombre_estrategia: optional new name
+        producto_servicio: optional new product/service description
+    
+    Returns:
+        (success, message)
     """
     import json
     from datetime import datetime
@@ -531,118 +690,201 @@ def save_estrategia(username, estrategia_data):
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     
-    # Check if user already has a strategy
-    c.execute("SELECT id FROM estrategias WHERE user_id = ?", (username,))
-    existing = c.fetchone()
+    # Verify ownership
+    c.execute("SELECT id FROM estrategias_v2 WHERE id = ? AND user_id = ?", (estrategia_id, username))
+    if not c.fetchone():
+        conn.close()
+        return (False, "Estrategia no encontrada o no tienes permisos")
     
     now = datetime.utcnow().isoformat()
     
     # Convert dict values to JSON strings
-    avatar_json = json.dumps(estrategia_data.get('avatar', ''))
-    embudo_json = json.dumps(estrategia_data.get('embudo', ''))
-    ads_json = json.dumps(estrategia_data.get('ads', ''))
-    objeciones_json = json.dumps(estrategia_data.get('objeciones', ''))
-    whatsapp_json = json.dumps(estrategia_data.get('whatsapp', ''))
-    acciones_json = json.dumps(estrategia_data.get('acciones_diarias', ''))
-    kpis_json = json.dumps(estrategia_data.get('kpis', ''))
+    avatar_json = json.dumps(estrategia_data.get('avatar', ''), ensure_ascii=False)
+    embudo_json = json.dumps(estrategia_data.get('embudo', ''), ensure_ascii=False)
+    ads_json = json.dumps(estrategia_data.get('ads', ''), ensure_ascii=False)
+    objeciones_json = json.dumps(estrategia_data.get('objeciones', ''), ensure_ascii=False)
+    whatsapp_json = json.dumps(estrategia_data.get('whatsapp', ''), ensure_ascii=False)
+    acciones_json = json.dumps(estrategia_data.get('acciones_diarias', ''), ensure_ascii=False)
+    kpis_json = json.dumps(estrategia_data.get('kpis', ''), ensure_ascii=False)
     
-    if existing:
-        # Update existing strategy
-        c.execute("""
-            UPDATE estrategias 
-            SET avatar = ?, embudo = ?, ads = ?, objeciones = ?, whatsapp = ?, 
-                acciones_diarias = ?, kpis = ?, updated_at = ?
-            WHERE user_id = ?
-        """, (avatar_json, embudo_json, ads_json, objeciones_json, whatsapp_json, 
-              acciones_json, kpis_json, now, username))
-    else:
-        # Insert new strategy
-        c.execute("""
-            INSERT INTO estrategias 
-            (user_id, avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        """, (username, avatar_json, embudo_json, ads_json, objeciones_json, whatsapp_json,
-              acciones_json, kpis_json, now, now))
-    
-    conn.commit()
-    conn.close()
-    return True
+    try:
+        if nombre_estrategia and producto_servicio:
+            c.execute("""
+                UPDATE estrategias_v2 
+                SET nombre_estrategia = ?, producto_servicio = ?,
+                    avatar = ?, embudo = ?, ads = ?, objeciones = ?, whatsapp = ?, 
+                    acciones_diarias = ?, kpis = ?, updated_at = ?
+                WHERE id = ? AND user_id = ?
+            """, (nombre_estrategia, producto_servicio,
+                  avatar_json, embudo_json, ads_json, objeciones_json, whatsapp_json,
+                  acciones_json, kpis_json, now, estrategia_id, username))
+        else:
+            c.execute("""
+                UPDATE estrategias_v2 
+                SET avatar = ?, embudo = ?, ads = ?, objeciones = ?, whatsapp = ?, 
+                    acciones_diarias = ?, kpis = ?, updated_at = ?
+                WHERE id = ? AND user_id = ?
+            """, (avatar_json, embudo_json, ads_json, objeciones_json, whatsapp_json,
+                  acciones_json, kpis_json, now, estrategia_id, username))
+        
+        conn.commit()
+        conn.close()
+        return (True, "Estrategia actualizada exitosamente")
+    except Exception as e:
+        conn.close()
+        return (False, f"Error al actualizar estrategia: {str(e)}")
 
-def get_estrategia(username):
+def get_estrategia_by_id(estrategia_id, username):
     """
-    Retrieves a user's complete strategy.
-    Returns a dict with keys: avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis, created_at, updated_at
-    Returns None if no strategy exists.
+    Retrieves a specific strategy by ID.
+    
+    Returns:
+        Dict with strategy data or None if not found
     """
     import json
     
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     c.execute("""
-        SELECT avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis, created_at, updated_at
-        FROM estrategias WHERE user_id = ?
-    """, (username,))
+        SELECT id, nombre_estrategia, producto_servicio, activa,
+               avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis,
+               created_at, updated_at
+        FROM estrategias_v2 
+        WHERE id = ? AND user_id = ?
+    """, (estrategia_id, username))
+    
     result = c.fetchone()
     conn.close()
     
     if result:
         try:
             return {
-                'avatar': json.loads(result[0]) if result[0] else '',
-                'embudo': json.loads(result[1]) if result[1] else '',
-                'ads': json.loads(result[2]) if result[2] else '',
-                'objeciones': json.loads(result[3]) if result[3] else '',
-                'whatsapp': json.loads(result[4]) if result[4] else '',
-                'acciones_diarias': json.loads(result[5]) if result[5] else '',
-                'kpis': json.loads(result[6]) if result[6] else '',
-                'created_at': result[7],
-                'updated_at': result[8]
+                'id': result[0],
+                'nombre': result[1],
+                'producto': result[2],
+                'activa': bool(result[3]),
+                'avatar': json.loads(result[4]) if result[4] else '',
+                'embudo': json.loads(result[5]) if result[5] else '',
+                'ads': json.loads(result[6]) if result[6] else '',
+                'objeciones': json.loads(result[7]) if result[7] else '',
+                'whatsapp': json.loads(result[8]) if result[8] else '',
+                'acciones_diarias': json.loads(result[9]) if result[9] else '',
+                'kpis': json.loads(result[10]) if result[10] else '',
+                'created_at': result[11],
+                'updated_at': result[12]
             }
         except json.JSONDecodeError:
             return None
     return None
 
-def update_estrategia_section(username, section_name, section_content):
+def get_all_estrategias(username):
     """
-    Updates a specific section of the user's strategy.
-    section_name should be one of: avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis
+    Retrieves all strategies for a user.
+    
+    Returns:
+        List of strategy dicts with basic info + task counts
     """
     import json
-    from datetime import datetime
-    
-    valid_sections = ['avatar', 'embudo', 'ads', 'objeciones', 'whatsapp', 'acciones_diarias', 'kpis']
-    if section_name not in valid_sections:
-        return False
     
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     
-    now = datetime.utcnow().isoformat()
-    content_json = json.dumps(section_content)
+    c.execute("""
+        SELECT e.id, e.nombre_estrategia, e.producto_servicio, e.activa,
+               e.created_at, e.updated_at,
+               (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id) as num_tareas,
+               (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id AND completada = 1) as tareas_completadas
+        FROM estrategias_v2 e
+        WHERE e.user_id = ?
+        ORDER BY e.created_at DESC
+    """, (username,))
     
-    # Check if strategy exists
-    c.execute("SELECT id FROM estrategias WHERE user_id = ?", (username,))
-    if c.fetchone():
-        # Update specific section
-        query = f"UPDATE estrategias SET {section_name} = ?, updated_at = ? WHERE user_id = ?"
-        c.execute(query, (content_json, now, username))
+    results = c.fetchall()
+    conn.close()
+    
+    estrategias = []
+    for row in results:
+        estrategias.append({
+            'id': row[0],
+            'nombre': row[1],
+            'producto': row[2],
+            'activa': bool(row[3]),
+            'created_at': row[4],
+            'updated_at': row[5],
+            'num_tareas': row[6] or 0,
+            'tareas_completadas': row[7] or 0
+        })
+    
+    return estrategias
+
+def count_user_estrategias(username):
+    """Count how many strategies a user has."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT COUNT(*) FROM estrategias_v2 WHERE user_id = ?", (username,))
+    count = c.fetchone()[0]
+    conn.close()
+    return count
+
+def delete_estrategia(estrategia_id, username):
+    """
+    Deletes a strategy and all its associated tasks.
+    
+    Returns:
+        (success, message)
+    """
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    # Verify ownership
+    c.execute("SELECT id FROM estrategias_v2 WHERE id = ? AND user_id = ?", (estrategia_id, username))
+    if not c.fetchone():
+        conn.close()
+        return (False, "Estrategia no encontrada o no tienes permisos")
+    
+    try:
+        # Delete associated tasks first
+        c.execute("DELETE FROM tareas_diarias WHERE estrategia_id = ?", (estrategia_id,))
+        
+        # Delete strategy
+        c.execute("DELETE FROM estrategias_v2 WHERE id = ?", (estrategia_id,))
+        
         conn.commit()
         conn.close()
-        return True
-    else:
-        # No strategy exists yet, create one with this section
+        return (True, "Estrategia eliminada exitosamente")
+    except Exception as e:
         conn.close()
-        estrategia_data = {section_name: section_content}
-        return save_estrategia(username, estrategia_data)
+        return (False, f"Error al eliminar estrategia: {str(e)}")
+
+# ========== LEGACY FUNCTIONS (for backward compatibility) ==========
+
+def save_estrategia(username, estrategia_data):
+    """
+    LEGACY: Saves or updates user's first strategy.
+    Kept for backward compatibility with existing code.
+    """
+    estrategias = get_all_estrategias(username)
+    
+    if estrategias:
+        # Update first strategy
+        return update_estrategia(estrategias[0]['id'], username, estrategia_data)
+    else:
+        # Create first strategy
+        return create_estrategia(username, "Estrategia Principal", "Producto/Servicio Principal", estrategia_data)
+
+def get_estrategia(username):
+    """
+    LEGACY: Retrieves user's first strategy.
+    Kept for backward compatibility.
+    """
+    estrategias = get_all_estrategias(username)
+    if estrategias:
+        return get_estrategia_by_id(estrategias[0]['id'], username)
+    return None
 
 def has_estrategia(username):
-    """Checks if a user has a saved strategy."""
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    c.execute("SELECT id FROM estrategias WHERE user_id = ?", (username,))
-    result = c.fetchone()
-    conn.close()
-    return result is not None
+    """LEGACY: Checks if user has any strategy."""
+    return count_user_estrategias(username) > 0
 
 # ========== HISTORIAL SECCIONES FUNCTIONS ==========
 
@@ -1296,8 +1538,44 @@ def detect_emoji_for_service(rubro):
     
     return '📦'  # Default emoji
 
+def delete_user(username):
+    """
+    Deletes a user completely from the database.
+    Also deletes all associated data (strategies, tasks, etc.).
+    
+    Returns:
+        (success, message)
+    """
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    try:
+        # Delete associated tasks
+        c.execute("DELETE FROM tareas_diarias WHERE user_id = ?", (username,))
+        
+        # Delete associated strategies
+        c.execute("DELETE FROM estrategias_v2 WHERE user_id = ?", (username,))
+        
+        # Delete section history
+        c.execute("DELETE FROM historial_secciones WHERE user_id = ?", (username,))
+        
+        # Delete archived conversations
+        c.execute("DELETE FROM conversaciones_archivadas WHERE user_id = ?", (username,))
+        
+        # Delete achievements
+        c.execute("DELETE FROM logros_usuario WHERE user_id = ?", (username,))
+        
+        # Delete the user
+        c.execute("DELETE FROM users WHERE username = ?", (username,))
+        
+        conn.commit()
+        conn.close()
+        return (True, "Usuario eliminado exitosamente")
+    except Exception as e:
+        conn.close()
+        return (False, f"Error al eliminar usuario: {str(e)}")
+
 # Auto-initialize database when module is imported
-# This ensures the database and table exist before any operations
 try:
     init_db()
     create_default_admin()

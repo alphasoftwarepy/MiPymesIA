@@ -34,8 +34,18 @@ def strategy_selector_page():
     with col2:
         if num_estrategias < limite:
             if st.button("➕ Nueva", type="primary", use_container_width=True):
+                # Limpiar cualquier estado previo
+                if 'editing_strategy_id' in st.session_state:
+                    del st.session_state.editing_strategy_id
+                if 'deleting_strategy_id' in st.session_state:
+                    del st.session_state.deleting_strategy_id
+                if 'current_strategy_name' in st.session_state:
+                    del st.session_state.current_strategy_name
+                if 'strategy_result' in st.session_state:
+                    del st.session_state.strategy_result
+                # Setear modo creación
                 st.session_state.creating_new_strategy = True
-                st.session_state.editing_strategy_id = None
+                st.session_state.step = 1  # Forzar paso 1 para formulario de creación
                 st.rerun()
         else:
             st.button(f"🔒 Límite ({limite})", disabled=True, use_container_width=True, 
@@ -45,8 +55,18 @@ def strategy_selector_page():
     if num_estrategias == 0:
         st.info("👋 ¡Bienvenido! Crea tu primera estrategia de marketing")
         if st.button("🚀 Crear Mi Primera Estrategia", type="primary", use_container_width=True):
+            # Limpiar cualquier estado previo
+            if 'editing_strategy_id' in st.session_state:
+                del st.session_state.editing_strategy_id
+            if 'deleting_strategy_id' in st.session_state:
+                del st.session_state.deleting_strategy_id
+            if 'current_strategy_name' in st.session_state:
+                del st.session_state.current_strategy_name
+            if 'strategy_result' in st.session_state:
+                del st.session_state.strategy_result
+            # Setear modo creación
             st.session_state.creating_new_strategy = True
-            st.session_state.editing_strategy_id = None
+            st.session_state.step = 1  # Forzar paso 1 para formulario de creación
             st.rerun()
         return
     
@@ -132,6 +152,7 @@ def render_strategy_card_full(estrategia, username):
             if st.button("📝 Editar", key=f"edit_{estrategia['id']}", use_container_width=True):
                 st.session_state.editing_strategy_id = estrategia['id']
                 st.session_state.creating_new_strategy = False
+                st.session_state.step = 2  # Forzar paso 2 para vista de resultados
                 st.rerun()
         with col2:
             if st.button("🗑️ Eliminar", key=f"del_{estrategia['id']}", use_container_width=True):
@@ -170,6 +191,7 @@ def render_strategy_card_compact(estrategia, username):
             if st.button("📝", key=f"edit_{estrategia['id']}", use_container_width=True, help="Editar"):
                 st.session_state.editing_strategy_id = estrategia['id']
                 st.session_state.creating_new_strategy = False
+                st.session_state.step = 2  # Forzar paso 2 para vista de resultados
                 st.rerun()
         with col2:
             if st.button("🗑️", key=f"del_{estrategia['id']}", use_container_width=True, help="Eliminar"):
