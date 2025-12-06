@@ -79,6 +79,11 @@ Assistant:"""
             verbose=False
         )
 
+    def update_context(self, new_context):
+        """Updates the business context and refreshes the chain, preserving memory."""
+        self.business_context = new_context
+        self.setup_chain(new_context)
+
     def generate_section(self, section_name, business_info):
         """
         Generates a single section of the strategy on-demand.

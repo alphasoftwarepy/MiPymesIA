@@ -605,7 +605,7 @@ def section_chat(section_name, section_content, section_key):
             with col1:
                 st.caption(f"📝 {len(st.session_state[chat_key]) // 2} interacciones guardadas")
             with col2:
-                if st.button("🗑️ Limpiar", key=f"clear_{section_key}", help="Compactar y reiniciar conversación"):
+                if st.button("📥 Compactar Conversación", key=f"clear_{section_key}", help="Compactar y reiniciar conversación"):
                     username = st.session_state.user['username']
                     
                     # ========== COMPACT BEFORE CLEARING ==========
@@ -808,6 +808,185 @@ def clean_section_content(content, section_name):
     content = re.sub(r"(\n)([A-Z][^:\n]{10,}:)", r"\n\n\2", content)
     
     return content.strip()
+
+def format_whatsapp_content(text):
+    """
+    Formats the WhatsApp content with better line breaks and separation.
+    Specific improvement for readability of Messages and Conditional Responses.
+    Handles existing formatting to avoid duplication.
+    """
+    if not text: return text
+    
+    import re
+    
+    # 1. Format Headers (Mensaje and Respuestas condicionadas) with Bold and newlines
+    # Pattern matches optional ** before and after the keyword to capture just the keyword text
+    # Result strips old ** and enforces new \n\n**KEYWORD** format
+    
+    # Mensaje
+    text = re.sub(r"(?:\*\*|)?(Mensaje:)(?:\*\*|)?", r"\n\n**\1**", text, flags=re.IGNORECASE)
+    
+    # Respuestas condicionadas
+    text = re.sub(r"(?:\*\*|)?(Respuestas condicionadas:)(?:\*\*|)?", r"\n\n**\1**", text, flags=re.IGNORECASE)
+    
+    # 2. Format Conditions "Si dice..."
+    text = re.sub(r"(Si dice)", r"\n\n\1", text)
+    
+    # 3. Cleanup multiple newlines (max 2)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    
+    return text.strip()
+
+def format_objections_content(text):
+    """
+    Formats the Objections content with better line breaks and separation.
+    Specific improvement for readability of Objection handling structure.
+    Handles existing formatting.
+    """
+    if not text: return text
+    
+    import re
+    
+    # Format common headers in Objections section
+    # Objeción, Respuesta, Explicación, Mini Cierre, etc.
+    patterns = [
+        r"(Objeción:)", 
+        r"(Respuesta:)", 
+        r"(Respuesta Sugerida:)", 
+        r"(Respuesta sugerida:)",
+        r"(Explicación:)",
+        r"(Mini Cierre:)", 
+        r"(Por qué funciona:)",
+        r"(Reframing:)",
+        r"(Propuesta:)",
+        r"(Pregunta:)"
+    ]
+    
+    for pattern in patterns:
+        # Construct regex: optional ** + keyword + optional **
+        # pattern is like (Objeción:) including capturing group
+        # we need to strip parens from pattern to build the regex correctly or use it as is?
+        # pattern has capturing parens e.g. (Objeción:)
+        # We need to construct: (?:\*\*|)?(Objeción:)(?:\*\*|)?
+        
+        # Strip parens from predefined pattern for cleaner construction
+        clean_pat = pattern.replace('(', '').replace(')', '')
+        
+        # Regex: Optional ** -> Capture Keyword -> Optional **
+        full_regex = f"(?:\\*\\*|)?({clean_pat})(?:\\*\\*|)?"
+        
+        text = re.sub(full_regex, r"\n\n**\1**", text, flags=re.IGNORECASE)
+    
+    # Cleanup multiple newlines (max 2)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    
+    return text.strip()
+
+def get_tasks_text_summary(estrategia_id):
+    """Generates a text summary of dynamic tasks for AI context."""
+    user = st.session_state.user
+    if not user: return ""
+    
+    tasks = tasks_manager.get_tasks_for_week(user['username'], estrategia_id)
+    if not tasks: return "No hay tareas dinámicas generadas."
+    
+    summary = ["\n\n--- LISTA ACTUALIZADA DE TAREAS (BASE DE DATOS) ---"]
+    
+    # Sort by day
+    days_es = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    tasks_by_day = {i: [] for i in range(7)}
+    for task in tasks:
+        if task.get('dia_semana') is not None:
+            tasks_by_day[task['dia_semana']].append(task)
+            
+    today_idx = datetime.now().weekday()
+    
+    for i in range(7):
+        day_idx = (today_idx + i) % 7
+        day_tasks = tasks_by_day.get(day_idx, [])
+        if day_tasks:
+            summary.append(f"\n[{days_es[day_idx]}]")
+            for t in day_tasks:
+                status = "✅ COMPLETADA" if t['completada'] else "PENDIENTE"
+                summary.append(f"- {t['titulo']} ({status})")
+                
+    return "\n".join(summary)
+
+def render_daily_tasks(estrategia_id):
+    """
+    Renders the tasks for the current strategy grouped by day.
+    Replaces static text with dynamic database content.
+    """
+    user = st.session_state.user
+    if not user: return
+
+    # fetches all tasks for this strategy
+    tasks = tasks_manager.get_tasks_for_week(user['username'], estrategia_id)
+    
+    if not tasks:
+        st.info("ℹ️ No hay tareas generadas para esta estrategia aún.")
+        return
+
+    # Helper: Map day index to Spanish Name
+    days_es = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+    
+    # Organize tasks by day
+    # dict: { day_index: [task1, task2...] }
+    tasks_by_day = {i: [] for i in range(7)}
+    
+    for task in tasks:
+        day_idx = task.get('dia_semana')
+        if day_idx is not None and 0 <= day_idx <= 6:
+            tasks_by_day[day_idx].append(task)
+            
+    # Calculate dates for the upcoming week starting from today
+    # We want to show "Today" -> "Today + 6"
+    today = datetime.now()
+    current_day_idx = today.weekday() # 0=Monday
+    
+    ordered_days = []
+    for i in range(7):
+        day_offset = (current_day_idx + i) % 7
+        target_date = today + timedelta(days=i)
+        ordered_days.append((day_offset, target_date))
+        
+    # Render
+    for day_idx, date_obj in ordered_days:
+        day_name = days_es[day_idx]
+        formatted_date = f"{day_name} {date_obj.day:02d}/{date_obj.month:02d}"
+        
+        day_tasks = tasks_by_day[day_idx]
+        total_day = len(day_tasks)
+        completed_day = sum(1 for t in day_tasks if t['completada'])
+        
+        # Header: "📅 Lunes 08/12 - 0/7"
+        icon = "📍" if i == 0 else "📅"
+        
+        st.markdown(f"### {icon} {formatted_date} - {completed_day}/{total_day}")
+        
+        if not day_tasks:
+            st.caption("No hay tareas programadas.")
+        
+        for task in day_tasks:
+            # Priority Color
+            prio_color = "🟢" # baja
+            if task['prioridad'] == 'media': prio_color = "🟡"
+            elif task['prioridad'] == 'alta': prio_color = "🔴"
+            
+            # Category Icon
+            cat_icon = "📝" # contenido default
+            cat = task.get('categoria', '').lower()
+            if 'ads' in cat: cat_icon = "📢"
+            elif 'whatsapp' in cat: cat_icon = "💬"
+            elif 'setup' in cat: cat_icon = "⚙️"
+            elif 'metricas' in cat: cat_icon = "📊"
+            
+            check_icon = "✅" if task['completada'] else prio_color
+            
+            # Task format: ICON TYPE ID ; Title
+            st.markdown(f"{check_icon} {cat_icon} {task['titulo']}")
+            
+        st.markdown("<br>", unsafe_allow_html=True)
 
 def get_section_content(text, section_name):
     try:
@@ -1427,54 +1606,62 @@ def wizard_page():
                         
                         # Step 2
                         update_loader("🧠 Analizando ADN de tu negocio...", 2)
-                        time.sleep(3.5)
+                        time.sleep(4)
                         
                         # Step 3
                         update_loader("🔍 Detectando oportunidades de mercado...", 3)
-                        time.sleep(3.5)
+                        time.sleep(4)
 
                         # Step 4
                         update_loader("✅ Generando Avatar de Cliente...", 4)
-                        time.sleep(3.5)
+                        time.sleep(4)
 
                         # Step 5
-                        update_loader("📝 Estructurando pilares de contenido...", 5)
+                        update_loader("📝 Estructurando Estrategia...", 5)
                         time.sleep(3.5)
                         
                         # Step 6
-                        update_loader("✅ Generando Embudo de Ventas...", 6)
-                        time.sleep(3.5)
+                        update_loader("🎯 Diseñando Embudos de Ventas...", 6)
+                        time.sleep(3)
+
+                        # Step 6-A
+                        update_loader("✅ Estrategias TOFU, MOFU y BOFU Listas...", 7)
+                        time.sleep(3)
                         
                         # Step 7
-                        update_loader("🎯 Diseñando segmentación de anuncios...", 7)
+                        update_loader("🎯 Diseñando Estrategia de Ads...", 8)
                         time.sleep(3.5)
                         
                         # Step 8
-                        update_loader("✅ Generando Estrategia de Ads...", 8)
-                        time.sleep(3.5)
+                        update_loader("✅ Segmentación de anuncios Lista...", 9)
+                        time.sleep(3)
+
+                        # Step 8-A
+                        update_loader("✅ Generación de contenidos Lista...", 10)
+                        time.sleep(3)
 
                         # Step 9
-                        update_loader("📲 Configurando secuencias de mensajes...", 9)
+                        update_loader("📲 Configurando secuencias de mensajes...", 11)
                         time.sleep(3.5)
                         
                         # Step 10
-                        update_loader("✅ Generando Flujo de WhatsApp...", 10)
-                        time.sleep(3.5)
+                        update_loader("✅ Flujo de WhatsApp Listo...", 12)
+                        time.sleep(3)
                         
                         # Step 11
-                        update_loader("🛡️ Blindando contra objeciones...", 11)
+                        update_loader("🛡️ Blindando contra objeciones...", 13)
                         time.sleep(3.5)
                         
                         # Step 12
-                        update_loader("✅ Generando Manejo de Objeciones...", 12)
-                        time.sleep(3.5)
+                        update_loader("✅ Manejo de Objeciones Listo...", 14)
+                        time.sleep(3)
                         
                         # Step 13
-                        update_loader("✅ Generando tareas personalizadas...", 13)
+                        update_loader("✅ Generando tareas personalizadas...", 15)
                         time.sleep(3.5)
                         
                         # Step 14 - Final Wait
-                        update_loader("✅ Ajustando ultimos detalles...", 14)
+                        update_loader("✅ Ajustando ultimos detalles...", 16)
                         
                         # 4. Wait for AI to finish (if it hasn't already)
                         try:
@@ -1913,7 +2100,8 @@ def wizard_page():
             tabs = st.tabs(["Día 1", "Día 2", "Día 3", "Día 4", "Día 5", "Día 6", "Día 7"])
             for i, tab in enumerate(tabs):
                 with tab:
-                    st.markdown(get_section_content(strategy_text, f"WHATSAPP_DIA{i+1}"))
+                    content = get_section_content(strategy_text, f"WHATSAPP_DIA{i+1}")
+                    st.markdown(format_whatsapp_content(content))
             
             # Add contextual chat for this section
             whatsapp_content = "\n\n".join([f"DÍA {i+1}:\n{get_section_content(strategy_text, f'WHATSAPP_DIA{i+1}')}" for i in range(7)])
@@ -1932,7 +2120,8 @@ def wizard_page():
             
             for tab, key in zip(tabs, obj_keys):
                 with tab:
-                    st.markdown(get_section_content(strategy_text, f"OBJECION_{key}"))
+                    content = get_section_content(strategy_text, f"OBJECION_{key}")
+                    st.markdown(format_objections_content(content))
             
             # Add contextual chat for this section
             objeciones_content = "\n\n".join([f"{key}:\n{get_section_content(strategy_text, f'OBJECION_{key}')}" for key in obj_keys])
@@ -1940,14 +2129,27 @@ def wizard_page():
 
         # 6. ACCIONES DIARIAS
         elif "Acciones" in selected_section:
-            st.subheader("✅ 6. Checklist de Acciones Diarias")
-            
+            st.success("🎯 Acciones diarias para optimizar tus resultados.")
+
             # Load section on-demand
             # load_section_on_demand("ACCIONES_DIARIAS")
             
+            # Retrieve content for chat context (and fallback)
             content = get_section_content(strategy_text, "ACCIONES_DIARIAS")
-            st.success("🔥 Rutina de Alto Rendimiento para vender todos los días.")
-            st.markdown(content)
+            
+            # Determine current strategy ID
+            current_strat_id = st.session_state.get('editing_strategy_id') or st.session_state.get('estrategia_activa_id')
+            
+            if current_strat_id:
+                render_daily_tasks(current_strat_id)
+                # Append real tasks to context so AI knows about them
+                tasks_context = get_tasks_text_summary(current_strat_id)
+                # FORCE PRIORITY to dynamic tasks
+                content = f"⚠️ INSTRUCCIÓN CLAVE: La siguiente es la LISTA REAL DE TAREAS programadas en la agenda del usuario. Úsala como fuente VERDADERA para 'hoy' o 'esta semana'. Ignora el checklist genérico si contradice estas tareas.\n\n{tasks_context}\n\n--- CHECKLIST GENÉRICO (REFERENCIA) ---\n{content}"
+            else:
+                st.warning("⚠️ No se identificó la estrategia activa para mostrar las tareas.")
+                 # Fallback to static content if no ID found
+                st.markdown(content)
             
             # Add contextual chat for this section
             section_chat("Acciones Diarias", content, "acciones")

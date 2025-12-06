@@ -404,19 +404,17 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
             col1, col2, col3 = st.columns([0.1, 0.8, 0.1])
             
             with col1:
-                if not is_completed:
-                    checked = st.checkbox("", value=task['completada'], key=f"task_{task['id']}_e{estrategia_id or 'todas'}")
-                    if checked != task['completada']:
-                        if checked:
-                            success = tasks_manager.complete_task(username, task['id'])
-                            if success:
-                                st.success(f"✅ +{task['puntos']} puntos!")
-                                st.rerun()
-                        else:
-                            tasks_manager.uncomplete_task(username, task['id'])
+                # Unified checkbox for both pending and completed tasks
+                checked = st.checkbox("", value=task['completada'], key=f"task_{task['id']}_e{estrategia_id or 'todas'}")
+                if checked != task['completada']:
+                    if checked:
+                        success = tasks_manager.complete_task(username, task['id'])
+                        if success:
+                            st.success(f"✅ +{task['puntos']} puntos!")
                             st.rerun()
-                else:
-                    st.markdown("✅")
+                    else:
+                        tasks_manager.uncomplete_task(username, task['id'])
+                        st.rerun()
             
             with col2:
                 style = "text-decoration: line-through; opacity: 0.6;" if task['completada'] else ""
