@@ -475,6 +475,9 @@ def enrich_brain_from_interaction(username, seccion, user_msg, ai_response):
     insights_to_add = []
     user_lower = user_msg.lower()
     
+    # DEBUG: Print analysis attempt
+    print(f"🔍 Analyzing for insights: '{user_lower[:50]}...'")
+    
     # 1. REAL Client Feedback (not generic questions)
     if any(phrase in user_lower for phrase in [
         'mi cliente dijo', 'mi cliente me dijo', 'me dijeron', 'me preguntaron',

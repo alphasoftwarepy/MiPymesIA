@@ -1176,11 +1176,12 @@ def wizard_page():
                 st.markdown("### 🎯 Objetivos y Presupuesto")
                 
                 # NEW: Diferenciador clave
-                diferenciador = st.text_input(
+                diferenciador = st.text_area(
                     "💎 ¿Qué te hace diferente de la competencia?",
                     value=saved_data.get('diferenciador', ''),
                     placeholder="ej: Entrega en 24hs, Garantía de por vida, Atención 24/7",
-                    help="Tu ventaja competitiva única"
+                    help="Tu ventaja competitiva única",
+                    height=100
                 )
                 
                 precio = st.number_input("💵 Precio del Producto/Servicio (USD) - Opcional", min_value=0.0, value=float(saved_data.get('precio', 0.0)) if saved_data.get('precio') else 0.0, step=1.0)
@@ -1376,12 +1377,9 @@ def wizard_page():
                                     <div class="loading-text">{text}</div>
                                 </div>
                             </div>
-                            """, unsafe_allow_html=True)
-
-                        # Step 1 - Show initial loader with 3.5 second delay
-                        update_loader("⏳ Generando Avatar de Cliente...", 1)
-                        time.sleep(3.5)  # 3.5 second delay for user to see progress start
+                            """, unsafe_allow_html=True)                      
                         
+                        # Define business_info HERE before using it anywhere (FIXED NameError)
                         business_info = {
                             "rubro": rubro,
                             "nombre": nombre,
@@ -1395,26 +1393,98 @@ def wizard_page():
                             "modalidad_venta": modalidad,
                             "buyer_persona": buyer_persona if buyer_persona else None
                         }
-                        
+
                         # Create progress container
                         progress_container = st.empty()
+
+                        # --- PARALLEL EXECUTION: AI + VISUALS ---
+                        import concurrent.futures
+
+                        # Capture agent instance in MAIN THREAD to avoid context issues in worker thread
+                        agent = st.session_state.ai_agent
                         
-                        def on_section_complete(section_name, section_content, section_num, total):
-                            """Callback called after each section is generated"""
-                            # Update loader with current section and step count
-                            if "Finalizando" in section_name:
-                                update_loader(f"✨ {section_name}...", section_num)
-                            else:
-                                update_loader(f"✅ Generando {section_name}...", section_num)
+                        # 1. Define the AI task wrapper (to run in background)
+                        def run_ai_generation():
+                            # Use captured 'agent' instance
+                            # Pass None as callback to disable ai_logic's internal sleeps/simulation
+                            # This ensures purely computational execution
+                            return agent.generate_strategy_progressive(
+                                business_info, 
+                                None
+                            )
+
+                        # 2. Launch AI in background thread
+                        # This starts the heavy processing RIGHT NOW
+                        executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
+                        future = executor.submit(run_ai_generation)
+
+                        # 3. Run the "Movie" (Visual Sequence) in the Main Thread
+                        # While the AI is working in the background, we entertain the user
                         
-                        # Update loader for tasks generation
-                        update_loader("🎯 Generando tareas personalizadas...", 8)
+                        # Step 1
+                        update_loader("✨ Creando tu estrategia personalizada ✨", 1)
+                        time.sleep(3.5)
                         
-                        # Generate strategy progressively (this is where the real wait happens)
-                        result = st.session_state.ai_agent.generate_strategy_progressive(
-                            business_info, 
-                            on_section_complete
-                        )
+                        # Step 2
+                        update_loader("🧠 Analizando ADN de tu negocio...", 2)
+                        time.sleep(3.5)
+                        
+                        # Step 3
+                        update_loader("🔍 Detectando oportunidades de mercado...", 3)
+                        time.sleep(3.5)
+
+                        # Step 4
+                        update_loader("✅ Generando Avatar de Cliente...", 4)
+                        time.sleep(3.5)
+
+                        # Step 5
+                        update_loader("📝 Estructurando pilares de contenido...", 5)
+                        time.sleep(3.5)
+                        
+                        # Step 6
+                        update_loader("✅ Generando Embudo de Ventas...", 6)
+                        time.sleep(3.5)
+                        
+                        # Step 7
+                        update_loader("🎯 Diseñando segmentación de anuncios...", 7)
+                        time.sleep(3.5)
+                        
+                        # Step 8
+                        update_loader("✅ Generando Estrategia de Ads...", 8)
+                        time.sleep(3.5)
+
+                        # Step 9
+                        update_loader("📲 Configurando secuencias de mensajes...", 9)
+                        time.sleep(3.5)
+                        
+                        # Step 10
+                        update_loader("✅ Generando Flujo de WhatsApp...", 10)
+                        time.sleep(3.5)
+                        
+                        # Step 11
+                        update_loader("🛡️ Blindando contra objeciones...", 11)
+                        time.sleep(3.5)
+                        
+                        # Step 12
+                        update_loader("✅ Generando Manejo de Objeciones...", 12)
+                        time.sleep(3.5)
+                        
+                        # Step 13
+                        update_loader("✅ Generando tareas personalizadas...", 13)
+                        time.sleep(3.5)
+                        
+                        # Step 14 - Final Wait
+                        update_loader("✅ Ajustando ultimos detalles...", 14)
+                        
+                        # 4. Wait for AI to finish (if it hasn't already)
+                        try:
+                            result = future.result()
+                            executor.shutdown(wait=False)
+                        except Exception as e:
+                            # CRITICAL: Clear loader so user can see the error
+                            overlay_placeholder.empty()
+                            st.error(f"Error en generación: {e}")
+                            st.stop()
                         
                         # Check if result is an error message
                         if result and result.startswith("Error:"):
@@ -1468,8 +1538,8 @@ def wizard_page():
                             st.session_state.creating_new_strategy = False
                             
                             # ========== AUTO-GENERATE TASKS FROM STRATEGY ==========
-                            # Show final loader
-                            update_loader("✅ Finalizando estrategia...", 9)
+                            # 1. Tasks have been "Generating" since ACCIONES_DIARIAS message
+                            # Now we do the actual work
                             
                             try:
                                 tasks_count, tasks_list = tasks_manager.generate_tasks_from_strategy(
@@ -1479,8 +1549,17 @@ def wizard_page():
                                     estrategia_id=estrategia_id
                                 )
                                 
+                                # 15. "x Tareas fueron creadas" (FINAL STEP)
+                                update_loader(f"✅ {tasks_count} Tareas fueron creadas...", 15)
+                                time.sleep(2.5) # Max 3 seconds requested
+                                
                                 # Clear loader before showing success message
                                 overlay_placeholder.empty()
+                                
+                            except Exception as e:
+                                overlay_placeholder.empty()
+                                st.warning(f"⚠️ Error al generar tareas: {e}")
+                                print(f"Error generating tasks: {e}")
                                 
                                 if tasks_count > 0:
                                     st.success(f"✅ {tasks_count} tareas creadas automáticamente! Ve a 'Mi Progreso' para verlas.")
@@ -1689,7 +1768,6 @@ def wizard_page():
             if auth.has_estrategia(user['username']):
                 estrategia = auth.get_estrategia(user['username'])
                 if estrategia:
-                    st.success("✅ Estrategia Guardada")
                     st.success("✅ Estrategia Guardada")
                     # Guardar estrategia activa en session_state
                     st.session_state['estrategia_activa_id'] = estrategia.get('id')
@@ -2444,12 +2522,12 @@ else:
         # Page Routing
         if st.session_state.user.get('is_admin', False):
             with st.sidebar:
-                 page = st.radio("Modo", ["Generador", "Mi Progreso", "Cerebro del Negocio", "MiPymes IA", "Admin Panel"])
+                 page = st.radio("Modo", ["Selector de Estrategias", "Mi Progreso", "Cerebro del Negocio", "MiPymes IA", "Admin Panel"])
         else:
             with st.sidebar:
-                page = st.radio("Menú", ["Generador", "Mi Progreso", "Cerebro del Negocio", "MiPymes IA"])
+                page = st.radio("Menú", ["Selector de Estrategias", "Mi Progreso", "Cerebro del Negocio", "MiPymes IA"])
         
-        if page == "Generador":
+        if page == "Selector de Estrategias":
             # Check if user is creating/editing a strategy
             if st.session_state.get('creating_new_strategy') or st.session_state.get('editing_strategy_id'):
                 wizard_page()

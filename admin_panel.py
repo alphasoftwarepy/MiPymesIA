@@ -160,7 +160,42 @@ def admin_panel():
                         conn.close()
                         st.success(f"✅ Límites diarios reseteados")
                         st.rerun()
-    
+
+        st.markdown("---")
+        st.subheader("➕ Crear Nuevo Usuario")
+        
+        with st.form("create_user_admin"):
+            col_u1, col_u2 = st.columns(2)
+            with col_u1:
+                new_username = st.text_input("Usuario")
+                new_email = st.text_input("Email")
+            with col_u2:
+                new_password = st.text_input("Contraseña", type="password")
+                new_role = st.selectbox("Rol", ["Usuario", "Admin"])
+                
+            col_u3, col_u4 = st.columns(2)
+            with col_u3:
+                new_plan = st.selectbox("Plan Inicial", ["gratuito", "prueba", "mensual", "trimestral", "semestral", "anual"], index=1)
+            
+            if st.form_submit_button("Crear Usuario"):
+                if new_username and new_password and new_email:
+                    is_admin = (new_role == "Admin")
+                    try:
+                        auth.create_user(
+                            new_username, 
+                            new_password, 
+                            new_email, 
+                            "Negocio Nuevo", 
+                            is_active=True, 
+                            is_admin=is_admin
+                        )
+                        # Set plan
+                        auth.set_user_plan(new_username, new_plan)
+                        st.success(f"✅ Usuario {new_username} creado exitosamente con plan {new_plan}")
+                    except Exception as e:
+                        st.error(f"Error al crear usuario: {e}")
+                else:
+                    st.warning("⚠️ Todos los campos son obligatorios")
     with tab2:
         st.subheader("Estadísticas Generales")
         

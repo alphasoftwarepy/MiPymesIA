@@ -95,10 +95,27 @@ def business_brain_page():
                         with col_dif:
                             st.markdown(f"• {dif}")
                         with col_btn:
-                            if st.button("🗑️", key=f"del_dif_{servicio['id']}_{i}"):
-                                auth.delete_diferenciador(username, servicio['id'], dif)
-                                st.success("✅ Diferenciador eliminado")
-                                st.rerun()
+                            # Confirmation for differentiator deletion
+                            dif_conf_key = f"confirm_del_dif_{servicio['id']}_{i}"
+                            if dif_conf_key not in st.session_state:
+                                st.session_state[dif_conf_key] = False
+                            
+                            if not st.session_state[dif_conf_key]:
+                                if st.button("🗑️", key=f"del_dif_ask_{servicio['id']}_{i}"):
+                                    st.session_state[dif_conf_key] = True
+                                    st.rerun()
+                            else:
+                                col_y, col_n = st.columns(2)
+                                with col_y:
+                                    if st.button("✅", key=f"del_dif_yes_{servicio['id']}_{i}"):
+                                        auth.delete_diferenciador(username, servicio['id'], dif)
+                                        st.session_state[dif_conf_key] = False
+                                        st.success("Eliminado")
+                                        st.rerun()
+                                with col_n:
+                                    if st.button("❌", key=f"del_dif_no_{servicio['id']}_{i}"):
+                                        st.session_state[dif_conf_key] = False
+                                        st.rerun()
                 
                 # Botón eliminar servicio completo
                 st.markdown("---")
