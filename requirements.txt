@@ -9,3 +9,4 @@ bcrypt
 python-dotenv
 pandas
 APScheduler==3.10.4
+psutil

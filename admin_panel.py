@@ -3,6 +3,7 @@ import auth
 from auth import DB_NAME
 import sqlite3
 from datetime import datetime
+import psutil
 
 def admin_panel():
     """
@@ -16,7 +17,7 @@ def admin_panel():
         return
     
     # Tabs for different admin functions
-    tab1, tab2, tab3 = st.tabs(["👥 Usuarios", "📊 Estadísticas", "⚙️ Configuración"])
+    tab1, tab2, tab3, tab4 = st.tabs(["👥 Usuarios", "📊 Estadísticas", "⚙️ Configuración", "💻 Servidor"])
     
     with tab1:
         st.subheader("Gestión de Usuarios")
@@ -253,3 +254,50 @@ def admin_panel():
         st.markdown("---")
         st.markdown("**Comando Cron:**")
         st.code("0 2 * * * /usr/bin/python3 /path/to/expire_users_cron.py", language="bash")
+
+    with tab4:
+        st.subheader("💻 Monitoreo del Servidor")
+        
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            st.markdown("### 🧠 Memoria RAM")
+            try:
+                ram = psutil.virtual_memory()
+                st.metric("Uso de RAM", f"{ram.percent}%")
+                st.progress(ram.percent / 100)
+                
+                st.text(f"Total: {ram.total / (1024**3):.2f} GB")
+                st.text(f"Usado: {ram.used / (1024**3):.2f} GB")
+                st.text(f"Disponible: {ram.available / (1024**3):.2f} GB")
+            except Exception as e:
+                st.error(f"Error al leer RAM: {e}")
+            
+        with col2:
+            st.markdown("### ⚙️ Procesador (CPU)")
+            try:
+                # Use a small interval effectively to measure usage.
+                # Measuring twice with interval might increase load slightly but guarantees valid numbers.
+                # Alternatively, we can just use percpu=True with interval=0.1 and calculate average.
+                
+                cpu_per_core = psutil.cpu_percent(interval=0.1, percpu=True)
+                cpu_avg = sum(cpu_per_core) / len(cpu_per_core)
+                
+                # Show average
+                st.metric("Uso de CPU (Promedio)", f"{cpu_avg:.1f}%")
+                st.progress(cpu_avg / 100)
+                
+                st.markdown("**Detalle por Núcleo:**")
+                cols_cores = st.columns(4)
+                for i, core_usage in enumerate(cpu_per_core):
+                    with cols_cores[i % 4]:
+                        st.caption(f"Core {i+1}")
+                        st.text(f"{core_usage}%")
+            except Exception as e:
+                st.error(f"Error al leer CPU: {e}")
+                
+        st.divider()
+        st.info("ℹ️ **Nota:** Estas estadísticas corresponden al equipo donde se está ejecutando la aplicación (Servidor Local o VPS). Si estás en localhost, verás los recursos de tu PC.")
+        
+        if st.button("🔄 Actualizar Métricas"):
+            st.rerun()
