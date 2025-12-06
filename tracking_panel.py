@@ -111,7 +111,7 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
     
     # Check if we should show create task form
     if st.session_state.get('show_create_task', False):
-        show_create_task_form(username)
+        show_create_task_form(username, estrategia_id)
         return
     
     # Get user stats
@@ -581,7 +581,7 @@ PREGUNTA DEL USUARIO: {user_question}
         return f"⚠️ Error al obtener ayuda: {e}. Por favor intenta de nuevo."
 
 
-def show_create_task_form(username):
+def show_create_task_form(username, estrategia_id=None):
     """Show form to create a manual task."""
     
     st.subheader("➕ Crear Tarea Manual")
@@ -622,7 +622,8 @@ def show_create_task_form(username):
                     categoria=categoria,
                     prioridad=prioridad,
                     frecuencia=frecuencia,
-                    dia_semana=dia_semana
+                    dia_semana=dia_semana,
+                    estrategia_id=estrategia_id
                 )
                 
                 if success:
