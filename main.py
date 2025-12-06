@@ -2544,122 +2544,103 @@ def pricing_page():
     
     st.markdown("<br><br>", unsafe_allow_html=True)
     
-    # What's included section - Redesigned
+    # What's included section - Redesigned with Expanders
     st.markdown("""
     <div style='background: #f8f9fa; padding: 20px; border-radius: 15px; margin: 0px 0;'>
-        <h2 style='text-align: center; color: #1a5276; margin-bottom: 0px;'>🎁 ¿Qué Incluyen Todos los Planes?</h2>
+        <h2 style='text-align: center; color: #1a5276; margin-bottom: 0px;'>🚀 Todo lo que puedes hacer con MiPymesIA</h2>
+        <p style='text-align: center; color: #5d6d7e; margin-top: 10px;'>Más que un chatbot, un sistema operativo de marketing completo.</p>
         <div style='max-width: 1000px; margin: 0 auto;'>
     """, unsafe_allow_html=True)
     
     st.markdown("<br>", unsafe_allow_html=True)
 
-    # Grid layout for features
-    # Row 1
-    col_f1_1, col_f1_2, col_f1_3, col_f1_4 = st.columns(4)
-    with col_f1_1:
+    # 1. PERFIL & CONTEXTO (CEREBRO)
+    with st.expander("1. PERFIL & CONTEXTO DE NEGOCIO (CEREBRO)"):
         st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>👤</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Avatar IA</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Perfil de cliente ideal detallado</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col_f1_2:
-        st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>📢</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Contenido</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Embudo semanal completo</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col_f1_3:
-        st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>💰</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Publicidad</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Estrategia de Ads pagada</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col_f1_4:
-        st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>🛡️</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Objeciones</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Manejo profesional de rechazos</p>
-        </div>
-        """, unsafe_allow_html=True)
+        **El sistema actúa como un estratega de marketing dedicado.**
+        
+        *   **Contexto Centralizado:** Define una vez la identidad de tu negocio: nombre, rubro, tipos de productos/servicios y diferencial único.
+        *   **Memoria Inteligente:** La IA utiliza este "Cerebro" para personalizar todas las estrategias subsequentes, asegurando coherencia en todos los mensajes y materiales generados.
+        """)
 
-    # Row 2
-    col_f2_1, col_f2_2, col_f2_3, col_f2_4 = st.columns(4)
-    with col_f2_1:
+    # 2. GENERACIÓN DE ESTRATEGIAS
+    with st.expander("2. GENERACIÓN DE ESTRATEGIAS (EL CORE)"):
         st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>🎯</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>MiProgreso</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Seguimiento de tareas y objetivos</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col_f2_2:
-        st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>🧠</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Cerebro del Negocio</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Contexto y personalidad de tu marca</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col_f2_3:
-        st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>💬</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Chat MiPymes IA</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Asistente de marketing inteligente</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col_f2_4:
-        st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>📚</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Chat IA por Sección</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Profundiza en cada parte de tu estrategia</p>
-        </div>
-        """, unsafe_allow_html=True)
+        **Crea planes de marketing completos en minutos a partir de datos básicos.**
+        
+        *   **👤 Avatar de Cliente Ideal:** Identificación profunda de demografía, psicografía, dolores y deseos.
+        *   **📢 Embudo de Contenido (Full Funnel):**
+            *   *TOFU (Atracción):* Ideas para atraer desconocidos.
+            *   *MOFU (Consideración):* Contenido para educar y nutrir.
+            *   *BOFU (Conversión):* Ofertas directas para cerrar ventas.
+        *   **💰 Estrategia de Publicidad (Ads):** Estructura de campañas para Tráfico Frío, Tibio y Caliente con scripts y segmentación.
+        *   **💬 Flujo de Ventas (WhatsApp):** Guiones de conversación día a día y respuestas condicionadas.
+        *   **🛡️ Manejo de Objeciones:** Respuestas preparadas para objeciones de Costo, Tiempo, Miedo, etc.
+        """)
 
-    # Row 3
-    col_f3_1, col_f3_2, col_f3_3, col_f3_4 = st.columns(4)
-    with col_f3_1:
+    # 3. EJECUCIÓN DIARIA
+    with st.expander("3. SISTEMA DE EJECUCIÓN DIARIA"):
         st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>📄</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>PDF Profesional</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Exporta tus estrategias en PDF</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col_f3_2:
+        **Transforma la estrategia teórica en un plan de acción real.**
+        
+        *   **📅 Calendario Dinámico:** Convierte el plan en una lista de tareas específicas para la semana y el día actual.
+        *   **☑️ Checklist Interactivo:** Marca tareas completadas directamente en la plataforma.
+        *   **🔄 Carga Dinámica:** Las tareas se adaptan automáticamente a la estrategia activa.
+        """)
+        
+    # 4. SEGUIMIENTO & GAMIFICACIÓN
+    with st.expander("4. SEGUIMIENTO Y GAMIFICACIÓN"):
         st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>📈</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Métricas</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Análisis y optimización de resultados</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col_f3_3:
+        **Panel diseñado para mantener la constancia y disciplina.**
+        
+        *   **🔥 Estadísticas en Tiempo Real:** Visualiza tu "Racha Actual" (días seguidos), Puntos Totales y Nivel.
+        *   **📈 Barra de Progreso Semanal:** Visual claro del avance (%) de tus objetivos.
+        *   **🏆 Historial de Logros:** Desbloquea medallas por constancia y ejecución.
+        """)
+
+    # 5. ASISTENTE IA
+    with st.expander("5. ASISTENTE IA CONTEXTUAL"):
         st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>🔄</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Actualizaciones</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Acceso a nuevas funciones constantes</p>
-        </div>
-        """, unsafe_allow_html=True)
-    with col_f3_4:
+        **Un chat inteligente que conoce tu estrategia sección por sección.**
+        
+        *   **📚 Especialista por Sección:** ¿Dudas sobre Ads? Pregunta en Ads. La IA responde con contexto específico.
+        *   **📥 Compactación Inteligente:** El botón "Compactar Conversación" resume tus charlas y guarda "insights" en el Cerebro.
+        *   **📦 Historial Archivado:** Acceso a resúmenes de conversaciones pasadas.
+        """)
+
+    # 6. EXPORTACIÓN
+    with st.expander("6. HERRAMIENTAS Y EXPORTACIÓN"):
         st.markdown("""
-        <div style='text-align: center; padding: 10px;'>
-            <div style='font-size: 2.5em; margin-bottom: 10px;'>🔒</div>
-            <h4 style='color: #2c3e50; margin-bottom: 5px;'>Seguridad</h4>
-            <p style='font-size: 0.9em; color: #7f8c8d;'>Tus datos siempre protegidos</p>
-        </div>
-        """, unsafe_allow_html=True)
-    
+        *   **🔄 Soporte Multi-Estrategia:** Gestiona diferentes líneas de negocio o productos.
+        *   **📄 Exportación PDF:** Descarga la estrategia completa en un documento profesional PDF listo para compartir.
+        *   **💎 Control de Suscripción:** Vista clara de tu plan actual y límites.
+        """)
+
     st.markdown("</div></div>", unsafe_allow_html=True)
+
+    # FAQ Section
+    st.markdown("""
+    <div style='max-width: 1000px; margin: 0 auto;'>
+        <h3 style='text-align: center; color: #1a5276;'>Preguntas Frecuentes</h3>
+    """, unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
+    
+    with st.expander("¿Necesito tarjeta de crédito para la prueba gratuita?"):
+        st.write("No. Tienes acceso total durante el periodo de prueba sin necesidad de ingresar tarjeta de crédito.")
+
+    with st.expander("¿La IA realmente aprende de mi negocio?"):
+        st.write("Sí. Gracias a la función de 'Cerebro del Negocio' y 'Compactar Conversación', el sistema guarda preferencias y aprendizajes clave para mejorar con el tiempo.")
+
+    with st.expander("¿Puedo gestionar múltiples negocios?"):
+        st.write("Sí. Con los planes de pago (Prueba, Mensual, Trimestral, Anual) puedes crear múltiples estrategias para diferentes productos o líneas de negocio.")
+        
+    with st.expander("¿Qué pasa si no renuevo mi suscripción?"):
+        st.write("Tu cuenta pasará al plan Gratuito. Tus datos se conservarán, pero tendrás límites de acceso y generación hasta que reactives tu plan.")
+
+    st.markdown("</div>", unsafe_allow_html=True)
+    
+    st.markdown("<br>", unsafe_allow_html=True)
     
     # Payment methods
     st.markdown("""
@@ -2672,9 +2653,9 @@ def pricing_page():
         </a>
     </div>
     """, unsafe_allow_html=True)
-    
+
     st.markdown("<br><br>", unsafe_allow_html=True)
-    
+
     # Footer navigation
     col_a, col_b, col_c, col_d = st.columns(4)
     with col_a:

@@ -1,0 +1,79 @@
+
+================================================================================
+🚀 GENERADOR MIPYMESIA - RESUMEN DE CAPACIDADES
+================================================================================
+
+Este documento describe de manera objetiva las funcionalidades activas y reales
+del sistema "Generador MiPymesIA" para un nuevo usuario/prospecto.
+
+1. PERFIL & CONTEXTO DE NEGOCIO (CEREBRO)
+--------------------------------------------------------------------------------
+El sistema actúa como un estratega de marketing dedicado.
+- Contexto Centralizado: Define una vez la identidad de tu negocio: nombre, rubro, 
+  tipos de productos/servicios, y diferencial único.
+- Memoria Inteligente: La IA utiliza este "Cerebro" para personalizar todas las 
+  estrategias subsequentes, asegurando coherencia en todos los mensajes y 
+  materiales generados.
+
+2. GENERACIÓN DE ESTRATEGIAS WIZARD (EL CORE)
+--------------------------------------------------------------------------------
+Crea planes de marketing completos en minutos a partir de datos básicos (presupuesto,
+meta, plataformas). No genera texto genérico, sino un plan estructurado:
+
+A. Avatar de Cliente Ideal:
+   - Identificación profunda de demografía, psicografía, dolores y deseos.
+B. Embudo de Contenido (Full Funnel):
+   - TOFU (Atracción): Ideas para atraer desconocidos.
+   - MOFU (Consideración): Contenido para educar y nutrir.
+   - BOFU (Conversión): Ofertas directas para cerrar ventas.
+C. Estrategia de Publicidad (Ads):
+   - Estructura de campañas para Tráfico Frío, Tibio y Caliente.
+   - Scripts de anuncios, segmentación recomendada y ángulos creativos.
+D. Flujo de Ventas (WhatsApp):
+   - Guiones de conversación día a día (Día 1 a Día 7) para seguimiento.
+   - Respuestas condicionadas ("Si dice X, responde Y").
+E. Manejo de Objeciones (Blindaje):
+   - Respuestas preparadas para objeciones de Costo, Tiempo, Miedo, etc.
+   - Técnicas de cierre y reframing psicológico.
+F. Métricas & KPIs:
+   - Indicadores clave a monitorear para asegurar el retorno de inversión.
+
+3. SISTEMA DE EJECUCIÓN DIARIA ("ACCIONES DIARIAS")
+--------------------------------------------------------------------------------
+Transforma la estrategia teórica en un plan de acción real.
+- Calendario Dinámico: Convierte el plan en una lista de tareas específicas para 
+  la semana y el día actual (ej: "Lunes: Publicar Reel TOFU", "Martes: Enviar mensajes").
+- Checklist Interactivo: Marca tareas completadas directamente en la plataforma.
+- Carga Dinámica: Las tareas se adaptan automáticamente a la estrategia activa.
+
+4. SEGUIMIENTO & GAMIFICACIÓN ("MI PROGRESO")
+--------------------------------------------------------------------------------
+Panel diseñado para mantener la constancia y disciplina.
+- Estadísticas en Tiempo Real: Visualiza tu "Racha Actual" (días seguidos), 
+  Puntos Totales y Nivel de Usuario.
+- Barra de Progreso Semanal: Visual clear del avance (%) de tus objetivos.
+- Historial de Logros: Desbloquea medallas por constancia y ejecución.
+
+5. ASISTENTE IA CONTEXTUAL ("MIPYMES IA")
+--------------------------------------------------------------------------------
+Un chat inteligente que conoce tu estrategia sección por sección.
+- Especialista por Sección: ¿Dudas sobre el Avatar? Pregunta en la sección de Avatar.
+  ¿Dudas sobre Ads? Pregunta en Ads. La IA responde con contexto específico.
+- Compactación Inteligente: El botón "Compactar Conversación" resume tus charlas
+  previas y guarda "insights" valiosos en el Cerebro para mejorar futuras respuestas.
+- Historial Archivado: Acceso a resúmenes de conversaciones pasadas sin saturar el chat.
+
+6. HERRAMIENTAS ADMINISTRATIVAS & EXPORTACIÓN
+--------------------------------------------------------------------------------
+- Soporte Multi-Estrategia: Gestiona diferentes líneas de negocio o productos 
+  (con límites según tu plan: Gratuito, Prueba, Mensual, etc.).
+- Exportación PDF: Descarga la estrategia completa en un documento profesional PDF
+  listo para compartir o imprimir.
+- Control de Suscripción: Vista clara de tu plan actual, días restantes y límites de uso.
+
+================================================================================
+CONCLUSIÓN
+================================================================================
+MiPymesIA no es solo un generador de textos; es un sistema operativo de marketing
+que cubre desde la planificación estratégica hasta la ejecución diaria y el 
+seguimiento, asistido permanentemente por una IA que aprende de tu negocio.
