@@ -333,25 +333,28 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
         conn.close()
         return False
 
-
 def get_tasks_for_today(username, estrategia_id=None):
-    """Get tasks scheduled for today (based on day of week), optionally filtered by strategy."""
-    # 1 = Monday, 7 = Sunday
-    today_iso = datetime.now().isoweekday()
-    
+    """Get tasks scheduled for today based on assigned date from strategy creation."""
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
     
-    query = """
-        SELECT id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, completada, puntos, fecha_completada, seccion_origen
-        FROM tareas_diarias 
-        WHERE user_id = ? AND dia_semana = ?
-    """
-    params = [username, today_iso]
-    
     if estrategia_id:
-        query += " AND estrategia_id = ?"
-        params.append(estrategia_id)
+        # Filter by exact date match using calculated assigned date
+        query = """
+            SELECT id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, completada, puntos, fecha_completada, seccion_origen
+            FROM tareas_diarias 
+            WHERE user_id = ? AND estrategia_id = ? AND DATE((SELECT created_at FROM estrategias_v2 WHERE id = estrategia_id), '+' || dia_semana || ' days') = DATE(?)
+        """
+        params = [username, estrategia_id, datetime.now().strftime('%Y-%m-%d')]
+    else:
+        # Fallback: original logic by weekday (for backward compatibility)
+        today_iso = datetime.now().isoweekday()
+        query = """
+            SELECT id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, completada, puntos, fecha_completada, seccion_origen
+            FROM tareas_diarias 
+            WHERE user_id = ? AND dia_semana = ?
+        """
+        params = [username, today_iso]
     
     c.execute(query, tuple(params))
     

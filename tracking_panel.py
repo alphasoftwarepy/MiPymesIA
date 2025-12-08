@@ -160,40 +160,26 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
     # ========== TABS ==========
     tab1, tab2, tab3 = st.tabs(["📋 Tareas de Hoy", "📅 Vista Semanal", "🏆 Logros"])
     
-    
     # ========== TAB 1: TAREAS ==========
     with tab1:
         if st.button("➕ Crear Tarea", key=f"btn_create_task_{estrategia_id or 'todas'}"):
             st.session_state.show_create_task = True
             st.rerun()
         
-        # Get all tasks for the week (filtered by estrategia_id)
-        all_tasks = tasks_manager.get_tasks_for_week(username, estrategia_id)
+        # Get today's tasks based on assigned date from strategy creation
+        today_tasks = tasks_manager.get_tasks_for_today(username, estrategia_id)
+        today = datetime.now().date()
         
-        if not all_tasks:
-            st.info("🎉 ¡No tienes tareas pendientes! Puedes crear tareas manualmente o generar una nueva estrategia.")
+        if not today_tasks:
+            st.info("🎉 ¡No tienes tareas pendientes para hoy! Puedes crear tareas manualmente o generar una nueva estrategia.")
             
             if st.button("➕ Crear Tarea Manual", key=f"btn_create_task_manual_{estrategia_id or 'todas'}"):
                 st.session_state.show_create_task = True
                 st.rerun()
         else:
             # Separate pending and completed
-            pending_tasks = [t for t in all_tasks if not t['completada']]
-            completed_tasks = [t for t in all_tasks if t['completada']]
-            
-            # Filter ONLY today's tasks (not future days)
-            today = datetime.now().date()
-            today_weekday = today.weekday()
-            
-            today_tasks = []
-            for task in pending_tasks:
-                # Include task if it's for today
-                if task['frecuencia'] == 'diaria':
-                    today_tasks.append(task)
-                elif task['frecuencia'] == 'semanal' and task['dia_semana'] == today_weekday:
-                    today_tasks.append(task)
-                elif task['frecuencia'] == 'unica':
-                    today_tasks.append(task)
+            pending_tasks = [t for t in today_tasks if not t['completada']]
+            completed_tasks = [t for t in today_tasks if t['completada']]
             
             # Display today's tasks
             if today_tasks:
@@ -235,7 +221,7 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
                     
                     # Render completed task with points
                     render_task_card(task, username, is_completed=True, completion_date=date_str)
-    
+
     # ========== TAB 2: VISTA SEMANAL ==========
     with tab2:
 
@@ -266,39 +252,53 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
         # Track which unique tasks we've already shown
         shown_unique_tasks = set()
         
-        # Show next 7 days starting from today
+                # Get strategy creation date
+        import auth
+        estrategia_info = auth.get_estrategia_by_id(estrategia_id, username)
+        if estrategia_info:
+            created_date = datetime.fromisoformat(estrategia_info['created_at']).date()
+        else:
+            created_date = datetime.now().date()
+        
+        st.markdown(f"**Semana de la Estrategia: {created_date.strftime('%d %b')} - {(created_date + timedelta(days=6)).strftime('%d %b %Y')}**")
+        
+        # Track which unique tasks we've already shown (for unique tasks)
+        shown_unique_tasks = set()
+        
+        # Show 7 days starting from strategy creation
         for day_offset in range(7):
-            fecha = today + timedelta(days=day_offset)
-            dia_semana_num = fecha.weekday()  # 0=Monday, 6=Sunday
+            fecha = created_date + timedelta(days=day_offset)
+            dia_semana_num = fecha.weekday()  # Still needed for day name only
             dia_nombre = dias[dia_semana_num]
-            es_hoy = day_offset == 0
+            es_hoy = fecha == datetime.now().date()
             
-            # Filter tasks for this specific day
+            # Filter tasks for this specific date using calculated assigned date
             tasks_dia = []
             for t in all_tasks:
-                # Daily tasks appear every day
-                if t['frecuencia'] == 'diaria':
-                    tasks_dia.append(t)
-                # Weekly tasks appear on their assigned day
-                elif t['frecuencia'] == 'semanal' and t['dia_semana'] == dia_semana_num:
-                    tasks_dia.append(t)
-                # Unique tasks appear only once (on first day if not completed, or on completion day)
-                elif t['frecuencia'] == 'unica':
-                    task_id = t['id']
-                    if task_id not in shown_unique_tasks:
-                        # Show on first day if not completed
-                        if not t['completada']:
-                            tasks_dia.append(t)
-                            shown_unique_tasks.add(task_id)
-                        # Or show on completion day if completed
-                        elif t.get('fecha_completada'):
-                            try:
-                                comp_date = datetime.fromisoformat(t['fecha_completada']).date()
-                                if comp_date == fecha:
+                if estrategia_info:
+                    # Calculate assigned date for this task (creation + dia_semana days)
+                    task_assigned_date = datetime.fromisoformat(estrategia_info['created_at']).date() + timedelta(days=t['dia_semana'])
+                    
+                    # Unique tasks logic (same as before)
+                    if t['frecuencia'] == 'unica':
+                        task_id = t['id']
+                        if task_id not in shown_unique_tasks:
+                            if not t['completada']:
+                                # Show unique pending tasks on their assigned date
+                                if task_assigned_date == fecha:
                                     tasks_dia.append(t)
                                     shown_unique_tasks.add(task_id)
-                            except:
-                                pass
+                            elif t.get('fecha_completada'):
+                                try:
+                                    comp_date = datetime.fromisoformat(t['fecha_completada']).date()
+                                    if comp_date == fecha:
+                                        tasks_dia.append(t)
+                                        shown_unique_tasks.add(task_id)
+                                except:
+                                    pass
+                    # Date-specific tasks
+                    elif task_assigned_date == fecha:
+                        tasks_dia.append(t)
             
             # Show day section if there are tasks OR if it's today
             if tasks_dia or es_hoy:
