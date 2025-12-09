@@ -314,7 +314,7 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
         fecha_str = f"{target_date.day} {meses[target_date.month - 1]} {target_date.year}"
         
         # Append date identifier to title to make it unique
-        titulo_con_prefijo = f"{titulo_con_prefijo} - {fecha_str}"
+        #titulo_con_prefijo = f"{titulo_con_prefijo} - {fecha_str}"
     
     try:
         c.execute("""
