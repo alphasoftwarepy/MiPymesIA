@@ -267,19 +267,6 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
     puntos = {"alta": 10, "media": 5, "baja": 3}.get(prioridad, 5)
     
     # ========== AGREGAR PREFIJO DEBUG PARA ESTRATEGIAS ==========
-    # ========== OBTENER FECHA DE CREACIÓN DE LA ESTRATEGIA ==========
-    estrategia_created_at = None
-    if estrategia_id:
-        # Fetch estrategia created_at para usar como base para fechas
-        conn = sqlite3.connect(DB_NAME)
-        c = conn.cursor()
-        c.execute("SELECT created_at FROM estrategias WHERE id = ?", (estrategia_id,))
-        result = c.fetchone()
-        conn.close()
-        if result:
-            estrategia_created_at = datetime.fromisoformat(result[0]).date()
-    # =================================================================
-
     # Formato: E{id}-{num} ; titulo original
     if estrategia_id:
         # Contar tareas existentes para esta estrategia
@@ -294,29 +281,22 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
         titulo_con_prefijo = f"E{estrategia_id}-{task_num} ; {titulo}"
     else:
         titulo_con_prefijo = titulo
-        
     # ============================================================
+    
+    
     # Calculate actual date for weekly tasks to append to title
     if frecuencia == 'semanal' and dia_semana is not None:
-        # =============== MODIFICAR CÁLCULO DE FECHA ============
-        # Usa base_date para congruencia con vista semanal
-        if estrategia_created_at is not None:
-            # Use estrategia creation date como base exacta
-            base_date = estrategia_created_at
-        else:
-            # Fallback to current date for manual tasks without strategy
-            base_date = datetime.now().date()
-        
-        current_weekday = base_date.weekday()
+        # Get current date
+        today = datetime.now().date()
+        current_weekday = today.weekday()
         
         # Calculate days until target weekday
         days_ahead = dia_semana - current_weekday
         if days_ahead < 0:
             days_ahead += 7
         
-        # Calculate target date - ahora siempre congruente con vista semanal
-        target_date = base_date + timedelta(days=days_ahead)
-        # ========================================================
+        # Calculate target date
+        target_date = today + timedelta(days=days_ahead)
         
         # Count how many weeks ahead this task is (for recurring tasks)
         c.execute("""
