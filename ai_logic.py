@@ -11,6 +11,8 @@ from langchain.prompts import (
 )
 
 load_dotenv()
+from langchain.callbacks import get_openai_callback
+import auth_subscription
 
 class MarketingStrategist:
     def __init__(self, business_context=""):
@@ -27,7 +29,7 @@ class MarketingStrategist:
         
         if self.api_key:
             try:
-                print("🔄 Initializing ChatOpenAI with gpt-4o...")
+                print("🔄 Initializing ChatOpenAI with gpt-4o-mini...")
                 self.llm = ChatOpenAI(
                     model_name="gpt-4o-mini",
                     openai_api_key=self.api_key,
@@ -297,7 +299,7 @@ Sé CONCISO."""
             return f"Error generando {section_name}: {str(e)}"
 
 
-    def generate_strategy_progressive(self, business_info, progress_callback=None):
+    def generate_strategy_progressive(self, business_info, progress_callback=None, username=None):
         """
         Generates complete marketing strategy with a SINGLE prompt, then parses sections.
         Simulates progressive loading with callbacks for UI updates.
@@ -305,6 +307,7 @@ Sé CONCISO."""
         Args:
             business_info: Dictionary with business information
             progress_callback: Function(section_name, section_content, section_number, total_sections)
+            username: Optional username to track token usage
         
         Returns:
             Complete strategy text with all sections
@@ -327,13 +330,16 @@ Sé CONCISO."""
 - Presupuesto: {business_info.get('presupuesto')}
 - Modalidad de Venta: {business_info.get('modalidad_venta', 'No especificado')}
 - Sistema Actual: {business_info.get('sistema_actual', 'No especificado')}
-- Plataformas: {business_info.get('plataforma')}{buyer_persona_text}"""
+- Plataformas: {business_info.get('plataforma')}{buyer_persona_text}
+- Duración de la Estrategia: {business_info.get('duration_days', 30)} días
+"""
         
         # SINGLE UNIFIED PROMPT - generates all sections at once
         unified_prompt = f"""Eres un Estratega de Marketing Senior y Experto en Ventas.
 {base_info}
 
 Genera una ESTRATEGIA COMPLETA DE MARKETING Y VENTAS siguiendo EXACTAMENTE esta estructura con los delimitadores indicados:
+
 
 <<<SECTION_START: AVATAR>>>
 👤 AVATAR DE CLIENTE IDEAL
@@ -431,13 +437,6 @@ Pregunta, Reframing, Propuesta, Mini Cierre.
 🛡️ OBJECIÓN: MIEDO/DESCONFIANZA
 Pregunta, Reframing, Propuesta, Mini Cierre.
 
-<<<SECTION_START: ACCIONES_DIARIAS>>>
-✅ CHECKLIST DIARIO
-1. Contactar 5 nuevos (Mensajes plantilla)
-2. Seguimiento a 3 tibios (Mensajes plantilla)
-3. Publicar 1 historia (Ideas)
-4. Revisar métricas (Qué mirar)
-5. Agendar/Hacer 1 Demo (Estructura)
 
 <<<SECTION_START: METRICAS>>>
 � MÉTRICAS Y OPTIMIZACIÓN
@@ -478,60 +477,149 @@ Acción de Mejora Inmediata.
 
 Acción de Escalamiento.
 
-IMPORTANTE:
-- Usa EXACTAMENTE los delimitadores <<<SECTION_START: NOMBRE>>>
-- Genera contenido REAL y ESPECÍFICO para {business_info.get('rubro')}
 - NO agregues comentarios finales como "Espero que...", "¡Mucho éxito!", etc.
 - Sé CONCISO pero COMPLETO en cada sección"""
+
+        # PROMPT 2: SINGLE ROADMAP JSON
+        roadmap_prompt = f"""CONTEXTO:
+{base_info}
+
+OBJETIVO:
+Genera el ROADMAP ESTRATÉGICO en formato JSON.
+
+ESTRUCTURA JSON REQUERIDA:
+[
+  {{
+    "semana": 1,
+    "foco": "Nombre del foco (ej. Setup & Awareness)",
+    "descripcion": "Descripción breve de objetivos"
+  }},
+  ...
+]
+Cubriendo {int(business_info.get('duration_days', 30)/7)} semanas. SOLO JSON. SIN MARKDOWN.
+"""
+
+
 
         try:
             # Single LLM call for entire strategy
             from langchain.schema import HumanMessage, SystemMessage
             import time
             
-            # Simulate progressive updates for UI (fake progress)
-            section_names = [
-                "Embudo de Contenido",  # Step 2
-                "Estrategia de Ads",     # Step 3
-                "Flujo WhatsApp 7 Días", # Step 4
-                "Manejo de Objeciones",  # Step 5
-                "Acciones Diarias",      # Step 6
-                "Métricas y Optimización" # Step 7
-            ]
-            
-            # Show progressive steps 2-7 BEFORE calling the AI
-            # Timing: Step 2-3 (4s), Step 4-7 (4.5s)
-            if progress_callback:
-                for idx, section_name in enumerate(section_names, 2):  # Start from step 2
-                    progress_callback(section_name, "Preparando...", idx, 8)
-                    
-                    if idx <= 3:
-                        time.sleep(4)  # 4 seconds for steps 2-3
-                    else:
-                        time.sleep(4.5)  # 4.5 seconds for steps 4-7
+            # Start token tracking
+            with get_openai_callback() as cb:
+                # Simulate progressive updates for UI (fake progress)
+                section_names = [
+                    "Embudo de Contenido",  # Step 2
+                    "Estrategia de Ads",     # Step 3
+                    "Flujo WhatsApp 7 Días", # Step 4
+                    "Manejo de Objeciones",  # Step 5
+                    "Acciones Diarias",      # Step 6
+                    "Métricas y Optimización" # Step 7
+                ]
                 
-                # Force Step 8 display BEFORE the real AI call starts
-                # This ensures the "long wait" happens on Step 8, not Step 7
-                progress_callback("Finalizando ajustes", "Procesando...", 8, 8)
-            
-            messages = [
-                SystemMessage(content=unified_prompt),
-                HumanMessage(content="Genera la estrategia completa ahora siguiendo EXACTAMENTE la estructura con los delimitadores.")
-            ]
-            
-            # Generate complete strategy in ONE call (THIS IS THE REAL WAIT - happens during Step 8)
-            response = self.llm(messages)
-            complete_strategy = response.content
-            
-            # Restore original chain
-            self.setup_chain(self.business_context)
-            
-            return complete_strategy
+                # Show progressive steps 2-7 BEFORE calling the AI
+                # Timing: Step 2-3 (4s), Step 4-7 (4.5s)
+                if progress_callback:
+                    for idx, section_name in enumerate(section_names, 2):  # Start from step 2
+                        progress_callback(section_name, "Preparando...", idx, 8)
+                        
+                        if idx <= 3:
+                            time.sleep(4)  # 4 seconds for steps 2-3
+                        else:
+                            time.sleep(4.5)  # 4.5 seconds for steps 4-7
+                    
+                    # Force Step 8 display BEFORE the real AI call starts
+                    # This ensures the "long wait" happens on Step 8, not Step 7
+                    progress_callback("Finalizando ajustes", "Procesando...", 8, 8)
+                
+                # 1. Generate Strategy Text (Legacy Prompt)
+                messages_strat = [
+                    SystemMessage(content=unified_prompt),
+                    HumanMessage(content="Genera la estrategia de texto ahora.")
+                ]
+                response_strat = self.llm(messages_strat)
+                strategy_text = response_strat.content
+                
+                # 2. Generate Roadmap JSON (New Prompt)
+                # We do this separately to ensure valid JSON and avoid token limit truncation on the text
+                messages_roadmap = [
+                    SystemMessage(content=roadmap_prompt),
+                    HumanMessage(content="Genera el JSON del Roadmap ahora.")
+                ]
+                response_roadmap = self.llm(messages_roadmap)
+                roadmap_json = response_roadmap.content
+                
+                # Clean JSON if wrapped in markdown
+                if "```json" in roadmap_json:
+                    roadmap_json = roadmap_json.split("```json")[1].split("```")[0].strip()
+                elif "```" in roadmap_json:
+                    roadmap_json = roadmap_json.split("```")[1].split("```")[0].strip()
+                
+                # 3. Combine output for parsing
+                full_response = f"{strategy_text}\n\n<<<SECTION_START: ROADMAP>>>\n{roadmap_json}"
+                
+                # Restore original chain
+                self.setup_chain(self.business_context)
+                
+                # Save token usage if username provided
+                if username:
+                    try:
+                        total_tokens = cb.total_tokens
+                        auth_subscription.track_tokens(username, total_tokens)
+                        print(f"💰 Tokens tracked for {username}: {total_tokens}")
+                    except Exception as e:
+                        print(f"Error tracking tokens: {e}")
+                
+                return full_response
             
         except Exception as e:
             error_msg = f"Error generando estrategia: {str(e)}"
             print(error_msg)
             return f"Error: {error_msg}"
+
+    def generate_weekly_tasks_content(self, business_info, strategy_context, week_num, prev_feedback):
+        """
+        Generates specific tasks for a given week based on roadmap and feedback.
+        """
+        if not self.llm:
+            return "[]"
+            
+        prompt = f"""Eres un Project Manager de Marketing.
+        
+CONTEXTO NEGOCIO:
+{business_info}
+
+CONTEXTO ESTRATEGIA (Roadmap):
+{strategy_context.get('roadmap', '[]')}
+
+FEEDBACK SEMANA ANTERIOR:
+{prev_feedback}
+
+OBJETIVO: Generar el PLAN DE TAREAS para la SEMANA {week_num}.
+Analiza el feedback (si existe) para optimizar las tareas. 
+Si el feedback fue negativo, sugiere cambios. Si fue positivo, escala.
+
+Genera una lista de tareas JSON válida:
+[
+  {{
+    "titulo": "Acción específica",
+    "descripcion": "Detalle de cómo hacerlo",
+    "categoria": "contenido|ads|whatsapp|metricas|setup",
+    "prioridad": "alta|media|baja",
+    "frecuencia": "unica|diaria|semanal",
+    "dia_semana": 0-6 (0=Lunes)
+  }}
+]
+Genera entre 15-25 tareas para la semana. SOLO JSON.
+"""
+        try:
+            from langchain.schema import HumanMessage, SystemMessage
+            response = self.llm([HumanMessage(content=prompt)])
+            return response.content
+        except Exception as e:
+            print(f"Error generation weekly tasks: {e}")
+            return "[]"
 
 
 

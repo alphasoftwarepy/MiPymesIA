@@ -115,24 +115,31 @@ def clean_text(text):
 
 def parse_sections(strategy_text):
     """Parses the strategy text into a dictionary of sections"""
+    import re
     sections = {}
     current_section = None
     buffer = []
     
-    lines = strategy_text.split('\n')
+    lines = (strategy_text or "").split('\n')
+    
+    # Regex to match <<< SECTION_START : NAME >>> with flexibility (bold, header, spacing)
+    section_pattern = re.compile(r"[\*#]*<<<\s*SECTION_START\s*:\s*(.*?)\s*>>>[\*#]*", re.IGNORECASE)
+    
     for line in lines:
-        if '<<<SECTION_START:' in line:
+        match = section_pattern.search(line)
+        if match:
             if current_section:
-                sections[current_section] = '\n'.join(buffer)
+                sections[current_section] = '\n'.join(buffer).strip()
             
-            current_section = line.split(':')[1].strip().replace('>>>', '')
+            # Extract section name from regex match
+            current_section = match.group(1).strip()
             buffer = []
         else:
             if current_section:
                 buffer.append(line)
                 
     if current_section:
-        sections[current_section] = '\n'.join(buffer)
+        sections[current_section] = '\n'.join(buffer).strip()
         
     return sections
 
@@ -180,7 +187,7 @@ def render_markdown_content(pdf, text):
                 pdf.set_font('Arial', '', 10)
                 pdf.multi_cell(0, 5, clean_line)
 
-def generate_pdf(strategy_text, business_info=None):
+def generate_pdf(strategy_text, business_info=None, tasks=None):
     pdf = PDF()
     
     if business_info:
@@ -261,6 +268,30 @@ def generate_pdf(strategy_text, business_info=None):
     # Parse the strategy text
     sections = parse_sections(strategy_text)
     
+    # === PAGE 3.5: MASTER ROADMAP ===
+    if 'ROADMAP' in sections:
+        pdf.add_page()
+        pdf.section_title('Roadmap Estratégico')
+        pdf.body_text(clean_text(f"Plan Maestro de {business_info.get('duration_days', 30) if business_info else 30} días."))
+        pdf.ln(5)
+        
+        # Try to parse JSON roadmap if possible, else render text
+        roadmap_content = sections['ROADMAP']
+        try:
+            import json
+            if "```json" in roadmap_content:
+                json_str = roadmap_content.split("```json")[1].split("```")[0].strip()
+                roadmap_data = json.loads(json_str)
+                
+                for week in roadmap_data:
+                    pdf.subsection_title(f"Semana {week.get('semana', '?')}: {clean_text(week.get('foco', ''))}")
+                    pdf.body_text(clean_text(week.get('descripcion', '')))
+                    pdf.ln(3)
+            else:
+               render_markdown_content(pdf, roadmap_content) 
+        except:
+             render_markdown_content(pdf, roadmap_content)
+
     # === PAGE 4: AVATAR ===
     pdf.add_page()
     pdf.section_title('1. Definición del Cliente Ideal (Avatar)')
@@ -339,7 +370,38 @@ def generate_pdf(strategy_text, business_info=None):
     pdf.section_title('6. Rutina de Alto Rendimiento')
     pdf.body_text(clean_text("Checklist de acciones diarias para mantener la constancia y el crecimiento."))
     pdf.ln(5)
-    render_markdown_content(pdf, sections.get('ACCIONES_DIARIAS', ''))
+    
+    if tasks:
+        # Render dynamic tasks
+        pdf.subsection_title("Agenda de Tareas Generadas")
+        
+        # Group by week/day logic if needed, or simple list
+        # For PDF simplicity, listing them by Day (if available) or Priority
+        
+        # Sort by Day then Priority
+        sorted_tasks = sorted(tasks, key=lambda x: (x.get('dia_semana') or 99))
+        
+        days = ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo"]
+        current_day = -1
+        
+        for task in sorted_tasks:
+            day_idx = task.get('dia_semana')
+            if day_idx is not None and day_idx != current_day:
+                # Calculate simple day name (Week 1 assumption or absolute)
+                day_name = days[day_idx % 7]
+                week_num = (day_idx // 7) + 1
+                pdf.ln(3)
+                pdf.set_font('Arial', 'B', 11)
+                pdf.set_text_color(41, 128, 185)
+                pdf.cell(0, 8, clean_text(f"Semana {week_num} - {day_name}"), 0, 1)
+                current_day = day_idx
+            
+            prio = task.get('prioridad', 'media').upper()
+            title = clean_text(task['titulo'])
+            pdf.bullet_item(f"[{prio}] {title}")
+            
+    else:
+        render_markdown_content(pdf, sections.get('ACCIONES_DIARIAS', ''))
     
     # === PAGE 10: METRICS ===
     pdf.add_page()

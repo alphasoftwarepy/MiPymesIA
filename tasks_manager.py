@@ -18,6 +18,10 @@ client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 # ==================== TASK GENERATION ====================
 
 def generate_tasks_from_strategy(username, estrategia_dict, business_info, estrategia_id=None):
+    # This is effectively Week 1 initialization now
+    return generate_week1_tasks(username, estrategia_dict, business_info, estrategia_id)
+    
+def generate_week1_tasks(username, estrategia_dict, business_info, estrategia_id=None):
     """
     Uses AI to analyze strategy and generate actionable daily/weekly tasks.
     
@@ -162,95 +166,199 @@ Genera entre 25-35 tareas que cubran toda la estrategia, formando secuencias ló
         
         tasks = json.loads(tasks_json)
         
-        # POST-PROCESSING: Enforce balanced distribution across 7 days
-        # Separate tasks by frequency
-        weekly_tasks = []  # Tasks with specific day assignments
-        unique_tasks = []  # Tasks without day assignment
+        # Calculate offset based on week number (default week 1)
+        week_num = 1
+        day_offset = (week_num - 1) * 7
         
-        for task in tasks:
-            if task.get('frecuencia') == 'semanal' and task.get('dia_semana') is not None:
-                weekly_tasks.append(task)
-            elif task.get('frecuencia') == 'unica':
-                unique_tasks.append(task)
-            # Skip 'diaria' tasks as they appear every day
-        
-        # Initialize day buckets (0=Monday, 6=Sunday)
-        days_tasks = {i: [] for i in range(7)}
-        
-        # First, place weekly tasks in their assigned days
-        for task in weekly_tasks:
-            day = task['dia_semana']
-            days_tasks[day].append(task)
-        
-        # Now distribute unique tasks evenly across days
-        # Sort days by current task count (ascending)
-        for task in unique_tasks:
-            # Find day with fewest tasks
-            min_day = min(days_tasks.keys(), key=lambda d: len(days_tasks[d]))
-            # Assign task to that day as 'semanal'
-            task['frecuencia'] = 'semanal'
-            task['dia_semana'] = min_day
-            days_tasks[min_day].append(task)
-        
-        # Final redistribution: if any day has more than 5 tasks, move excess
-        max_iterations = 10  # Prevent infinite loop
-        iteration = 0
-        while iteration < max_iterations:
-            needs_redistribution = False
-            
-            for day in range(7):
-                if len(days_tasks[day]) > 5:
-                    needs_redistribution = True
-                    # Move excess tasks to days with fewer tasks
-                    while len(days_tasks[day]) > 5:
-                        # Find day with fewest tasks (excluding current day)
-                        other_days = [d for d in range(7) if d != day and len(days_tasks[d]) < 5]
-                        if not other_days:
-                            # All other days are at capacity, stop
-                            break
-                        
-                        min_day = min(other_days, key=lambda d: len(days_tasks[d]))
-                        # Move last task from current day to min_day
-                        task_to_move = days_tasks[day].pop()
-                        task_to_move['dia_semana'] = min_day
-                        days_tasks[min_day].append(task_to_move)
-            
-            if not needs_redistribution:
-                break
-            iteration += 1
-        
-        # Flatten back to list
-        redistributed_tasks = []
-        for day_tasks in days_tasks.values():
-            redistributed_tasks.extend(day_tasks)
-        
-        # Add back daily tasks (they weren't in the redistribution)
-        for task in tasks:
-            if task.get('frecuencia') == 'diaria':
-                redistributed_tasks.append(task)
-        
-        # Save tasks to database
-        saved_count = 0
-        for task in redistributed_tasks:
-            success = create_task(
-                username=username,
-                titulo=task['titulo'],
-                descripcion=task.get('descripcion', ''),
-                categoria=task.get('categoria', 'general'),
-                prioridad=task.get('prioridad', 'media'),
-                frecuencia=task.get('frecuencia', 'unica'),
-                dia_semana=task.get('dia_semana'),
-                seccion_origen=task.get('seccion_origen', ''),
-                estrategia_id=estrategia_id
-            )
-            if success:
-                saved_count += 1
-        
-        return saved_count, redistributed_tasks
+        return save_distributed_tasks(username, estrategia_id, tasks, day_offset)
         
     except Exception as e:
         print(f"Error generating tasks: {e}")
         return 0, []
+
+def generate_weekly_tasks(username, estrategia_id, week_num, prev_feedback, roadmap_context):
+    """Generates tasks for a specific week based on roadmap and feedback."""
+    print(f"DEBUG: Generando tareas semana {week_num} para {username}")
+    print(f"DEBUG: Roadmap Context: {json.dumps(roadmap_context)[:200]}...") # Log start of roadmap
+    
+    prompt = f"""Eres un Project Manager de Marketing.
+EXPERTO EN GESTIÓN DE TIEMPO Y PRODUCTIVIDAD.
+
+CONTEXTO ESTRATEGIA (Roadmap):
+{json.dumps(roadmap_context, indent=2)}
+
+OBJETIVO: Generar el PLAN DE TAREAS para la SEMANA {week_num}.
+FOCUS DE LA SEMANA: {next((item['foco'] for item in roadmap_context if item['semana'] == week_num), 'General')}
+
+FEEDBACK SEMANA ANTERIOR:
+{prev_feedback}
+
+INSTRUCCIONES:
+1. Genera entre 15-20 tareas específicas para lograr el foco de la semana.
+2. Si el feedback fue negativo, ajusta la dificultad o estrategia.
+3. Distribuye las tareas en 7 días (0=Lunes, 6=Domingo).
+4. SÉ MUY ESPECÍFICO (Ej: "Grabar Reel sobre X" en lugar de "Crear contenido").
+
+FORMATO JSON:
+[
+  {{
+    "titulo": "Acción específica",
+    "descripcion": "Detalle paso a paso",
+    "categoria": "contenido|ads|whatsapp|metricas|setup",
+    "prioridad": "alta|media|baja",
+    "frecuencia": "unica",
+    "dia_semana": 0-6
+  }}
+]
+"""
+    try:
+        response = client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=[
+                {"role": "system", "content": "Eres un experto en productividad."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.7
+        )
+        
+        tasks_json = response.choices[0].message.content.strip()
+        print(f"DEBUG: AI Tasks Response: {tasks_json[:100]}...")
+        
+        import re
+        # Regex to find JSON block (supports json, js, or no tag)
+        json_match = re.search(r"```(?:json|js)?\s*(\[[\s\S]*?\])\s*```", tasks_json)
+        
+        if json_match:
+            tasks_json = json_match.group(1)
+        elif "[" in tasks_json and "]" in tasks_json:
+            # Fallback: try to find the array/list directly if no code blocks
+            start = tasks_json.find("[")
+            end = tasks_json.rfind("]") + 1
+            tasks_json = tasks_json[start:end]
+            
+        tasks_json = tasks_json.strip()
+            
+        tasks = json.loads(tasks_json)
+        print(f"DEBUG: Parsed {len(tasks)} tasks.")
+        
+        # Calculate day offset for this week (e.g. Week 2 starts at day 7)
+        day_offset = (week_num - 1) * 7
+        
+        return save_distributed_tasks(username, estrategia_id, tasks, day_offset)
+
+    except Exception as e:
+        print(f"Error generating weekly tasks: {e}")
+        return 0, []
+
+def save_distributed_tasks(username, estrategia_id, tasks, day_offset=0):
+    """Helper to distribute and save tasks with day offset."""
+    print(f"DEBUG: Saving {len(tasks)} tasks for user {username}, starting day {day_offset}")
+    # ... Same distribution logic as before but adding day_offset ...
+    
+    # Initialize day buckets (0-6 relative to week)
+    days_tasks = {i: [] for i in range(7)}
+    
+    # Distribute tasks into 0-6 buckets first
+    weekly_tasks = [t for t in tasks if t.get('frecuencia') == 'semanal' or t.get('dia_semana') is not None]
+    unique_tasks = [t for t in tasks if t not in weekly_tasks and t.get('frecuencia') != 'diaria']
+    
+    for task in weekly_tasks:
+        day = task.get('dia_semana', 0)
+        if day is None: day = 0
+        days_tasks[day % 7].append(task)
+        
+    # Distribute unique tasks
+    for task in unique_tasks:
+        min_day = min(days_tasks.keys(), key=lambda d: len(days_tasks[d]))
+        task['dia_semana'] = min_day
+        days_tasks[min_day].append(task)
+        
+    # Redistribute if > 5 per day
+    for day in range(7):
+        while len(days_tasks[day]) > 5:
+            other_days = [d for d in range(7) if d != day and len(days_tasks[d]) < 5]
+            if not other_days: break
+            min_day = min(other_days, key=lambda d: len(days_tasks[d]))
+            task = days_tasks[day].pop()
+            task['dia_semana'] = min_day
+            days_tasks[min_day].append(task)
+
+    # Save validation
+    saved_count = 0
+    final_tasks = []
+    
+    # 1. Add specific day tasks
+    for day, day_tasks in days_tasks.items():
+        for task in day_tasks:
+            task['dia_semana'] = day # Ensure 0-6
+            final_tasks.append(task)
+            
+    # 2. Add daily tasks (create copies for each day 0-6)
+    for task in tasks:
+        if task.get('frecuencia') == 'diaria':
+            for d in range(7):
+                t_copy = task.copy()
+                t_copy['dia_semana'] = d
+                final_tasks.append(t_copy)
+
+    # Save to DB applying Offset
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    # Get max current task number for ID consistency
+    c.execute("SELECT COUNT(*) FROM tareas_diarias WHERE user_id = ? AND estrategia_id = ?", (username, estrategia_id))
+    start_num = c.fetchone()[0]
+    
+    created_tasks = []
+    
+    for i, task in enumerate(final_tasks):
+        # Apply offset (Week 2 Monday = 0 + 7 = 7)
+        relative_day = task['dia_semana']
+        absolute_day = relative_day + day_offset
+        
+        titulo = task['titulo']
+        titulo_con_prefijo = f"E{estrategia_id}-{start_num + i + 1} ; {titulo}"
+        
+        puntos = {"alta": 10, "media": 5, "baja": 3}.get(task.get('prioridad'), 5)
+        now = datetime.utcnow().isoformat()
+        
+        try:
+            c.execute("""
+                INSERT INTO tareas_diarias 
+                (user_id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, 
+                 fecha_creacion, seccion_origen, puntos, estrategia_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (username, titulo_con_prefijo, task.get('descripcion', ''), 
+                  task.get('categoria', 'general'), task.get('prioridad', 'media'), 
+                  task.get('frecuencia', 'unica'), absolute_day,
+                  now, task.get('seccion_origen', ''), puntos, estrategia_id))
+            saved_count += 1
+            created_tasks.append(task)
+        except Exception as e:
+            print(f"Error saving task: {e}")
+            
+    conn.commit()
+    conn.close()
+    
+    print(f"DEBUG: Successfully committed {saved_count} tasks to DB.")
+    return saved_count, created_tasks
+
+def delete_week_tasks(username, estrategia_id, week_num):
+    """Deletes all tasks for a specific week."""
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    start_day = (week_num - 1) * 7
+    end_day = start_day + 6
+    
+    c.execute("""
+        DELETE FROM tareas_diarias 
+        WHERE user_id = ? AND estrategia_id = ? AND dia_semana BETWEEN ? AND ?
+    """, (username, estrategia_id, start_day, end_day))
+    
+    conn.commit()
+    conn.close()
+    return True
 
 
 # ==================== TASK CRUD ====================
@@ -742,3 +850,55 @@ def get_user_stats(username, estrategia_id=None):
             for cat in category_stats
         ]
     }
+
+def reset_user_progress(username):
+    """
+    Resets all progress data for a user: tasks, achievements, points, levels, streaks.
+    Does NOT affect plan limits or strategy creation limits.
+    """
+    print(f"⚠️ RESETTING PROGRESS FOR USER: {username}")
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    
+    try:
+        # 1. Delete all tasks
+        c.execute("DELETE FROM tareas_diarias WHERE user_id = ?", (username,))
+        deleted_tasks = c.rowcount
+        
+        # 2. Delete all achievements
+        c.execute("DELETE FROM logros_usuario WHERE user_id = ?", (username,))
+        deleted_achievements = c.rowcount
+        
+        # 3. Delete weekly progress if exists
+        try:
+            c.execute("DELETE FROM progreso_semanal WHERE user_id = ?", (username,))
+            deleted_progress = c.rowcount
+        except sqlite3.OperationalError:
+            # Table might not exist yet
+            deleted_progress = 0
+            
+        # 4. Reset User Stats
+        c.execute("""
+            UPDATE users 
+            SET puntos_totales = 0,
+                nivel = 1,
+                racha_actual = 0,
+                racha_maxima = 0,
+                ultimo_dia_activo = NULL
+            WHERE username = ?
+        """, (username,))
+        
+        # 5. Reset all strategies to Week 1
+        c.execute("UPDATE estrategias_v2 SET semana_actual = 1 WHERE user_id = ?", (username,))
+        updated_strategies = c.rowcount
+        
+        conn.commit()
+        print(f"✅ Reset complete. Deleted: {deleted_tasks} tasks, {deleted_achievements} achievements. Updated {updated_strategies} strategies.")
+        return True
+        
+    except Exception as e:
+        print(f"❌ Error resetting progress: {e}")
+        conn.rollback()
+        return False
+    finally:
+        conn.close()

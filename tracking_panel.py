@@ -4,6 +4,7 @@ Tracking Panel - Visual UI for task management and progress tracking
 
 import streamlit as st
 import tasks_manager
+import time
 from datetime import datetime, timedelta
 
 def tracking_panel_page():
@@ -138,10 +139,34 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
         }
     
     # ========== HEADER STATS ==========
+    
+    # Get current strategy info for context
+    import auth
+    estrategia_info = auth.get_estrategia_by_id(estrategia_id, username)
+    
+    current_week_real = estrategia_info.get('semana_actual', 1)
+    total_weeks = int(estrategia_info.get('duracion_dias', 30) / 7)
+    
+    # Initialize view state
+    if 'view_week_num' not in st.session_state or st.session_state.get('last_strat_id') != estrategia_id:
+        st.session_state.view_week_num = current_week_real
+        st.session_state.last_strat_id = estrategia_id
+
+    week_view = st.session_state.view_week_num
+    
     col1, col2, col3, col4 = st.columns(4)
     
     with col1:
-        st.metric("🔥 Racha Actual", f"{stats.get('racha_actual', 0)} días")
+        st.markdown(f"#### 📅 Semana {week_view} de {total_weeks}")
+        
+        # Navigation
+        c_prev, c_next = st.columns(2)
+        if c_prev.button("⬅️", disabled=(week_view <= 1)):
+            st.session_state.view_week_num -= 1
+            st.rerun()
+        if c_next.button("➡️", disabled=(week_view >= current_week_real)):
+            st.session_state.view_week_num += 1
+            st.rerun()
     
     with col2:
         st.metric("⭐ Puntos Totales", stats.get('puntos', 0))
@@ -173,6 +198,70 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
         if not today_tasks:
             st.info("🎉 ¡No tienes tareas pendientes para hoy! Puedes crear tareas manualmente o generar una nueva estrategia.")
             
+            # Button for Manual Generation (Week 1 / Initial)
+            if week_view == 1 and not tasks_manager.get_tasks_for_week(username, estrategia_id):
+                 if st.button("🚀 COMENZAR SEMANA 1 (Generar Plan)", type="primary"):
+                     # Custom Popup Overlay
+                     loader_placeholder = st.empty()
+                     loader_placeholder.markdown("""
+                        <style>
+                        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                        .custom-loader {
+                            border: 5px solid #f3f3f3;
+                            border-top: 5px solid #3498db;
+                            border-radius: 50%;
+                            width: 50px;
+                            height: 50px;
+                            animation: spin 1s linear infinite;
+                            margin: 0 auto 20px auto;
+                        }
+                        .loading-overlay {
+                            position: fixed;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            background: rgba(255, 255, 255, 0.9);
+                            z-index: 999999;
+                            display: flex;
+                            justify-content: center;
+                            align-items: center;
+                            flex-direction: column;
+                        }
+                        .loader-card {
+                            background: white;
+                            padding: 40px;
+                            border-radius: 15px;
+                            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+                            text-align: center;
+                            max-width: 400px;
+                        }
+                        .loading-text {
+                            font-size: 1.2em;
+                            color: #2c3e50;
+                            font-weight: 600;
+                        }
+                        </style>
+                        <div class="loading-overlay">
+                            <div class="loader-card">
+                                <div class="custom-loader"></div>
+                                <div class="loading-text">🧠 Analizando Roadmap y diseñando tareas...</div>
+                            </div>
+                        </div>
+                     """, unsafe_allow_html=True)
+                     
+                     try:
+                         roadmap = estrategia_info.get('roadmap', [])
+                         # Generate tasks manually
+                         tasks_manager.generate_weekly_tasks(username, estrategia_id, 1, "", roadmap)
+                         time.sleep(1)
+                         loader_placeholder.empty()
+                         st.success("✅ ¡Plan de Acción Generado!")
+                         st.rerun()
+                     except Exception as e:
+                         loader_placeholder.empty()
+                         st.error(f"Error: {e}")
+
             if st.button("➕ Crear Tarea Manual", key=f"btn_create_task_manual_{estrategia_id or 'todas'}"):
                 st.session_state.show_create_task = True
                 st.rerun()
@@ -224,14 +313,111 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
 
     # ========== TAB 2: VISTA SEMANAL ==========
     with tab2:
+        # Calculate dates for the VIEWED week
+        if estrategia_info:
+            base_date = datetime.fromisoformat(estrategia_info['created_at']).date()
+        else:
+            base_date = datetime.now().date()
+            
+        start_of_week_view = base_date + timedelta(days=(week_view-1)*7)
+        end_of_week_view = start_of_week_view + timedelta(days=6)
+        
+        st.markdown(f"### 🗓️ Agenda Semanal: {start_of_week_view.strftime('%d %b')} - {end_of_week_view.strftime('%d %b %Y')}")
+        
+        # Get Focus for this week (from Roadmap)
+        roadmap = estrategia_info.get('roadmap', [])
+        week_focus = "General"
+        if isinstance(roadmap, list):
+            week_focus = next((item.get('foco', 'General') for item in roadmap if item.get('semana') == week_view), "General")
+        
+        st.info(f"🎯 **Foco de la Semana:** {week_focus}")
+        
+        # --- WEEKLY CYCLE CONTROLS ---
+        # Only show controls if viewing the current real week
+        if week_view == current_week_real:
+            with st.expander("⚙️ Gestión de la Semana (Cierre y Feedback)", expanded=True):
+                col_cycle1, col_cycle2 = st.columns(2)
+                
+                with col_cycle1:
+                    # Regeneration Logic with Confirmation
+                    if 'confirm_regen_week' not in st.session_state:
+                        st.session_state.confirm_regen_week = False
+                        
+                    if not st.session_state.confirm_regen_week:
+                        if st.button("🔄 Regenerar Tareas de esta Semana", help="Si no te gustan las tareas, géneralas de nuevo"):
+                            st.session_state.confirm_regen_week = True
+                            st.rerun()
+                    else:
+                        st.warning("¿Estás seguro? Se borrarán las tareas actuales de esta semana.")
+                        col_conf1, col_conf2 = st.columns(2)
+                        with col_conf1:
+                            if st.button("✅ Sí, Regenerar", type="primary"):
+                                with st.spinner("🔄 Diseñando nuevas tareas para tu semana..."):
+                                    # Delete and regenerate
+                                    tasks_manager.delete_week_tasks(username, estrategia_id, week_view)
+                                    # We need previous feedback to regenerate appropriately
+                                    prev_feedback = "Feedback regenerado por usuario."
+                                    if week_view > 1:
+                                        hist = estrategia_info.get('feedback_historico', [])
+                                        last_fb = next((i for i in hist if i['week'] == week_view-1), None)
+                                        if last_fb: prev_feedback = last_fb.get('feedback', '')
+                                        
+                                    # Call regeneration (using generate_weekly logic)
+                                    tasks_manager.generate_weekly_tasks(username, estrategia_id, week_view, prev_feedback, roadmap)
+                                    time.sleep(1) # Visual confirmation
+                                    
+                                st.session_state.confirm_regen_week = False
+                                st.success("✅ Tareas regeneradas con éxito")
+                                time.sleep(1)
+                                st.rerun()
+                        with col_conf2:
+                            if st.button("❌ Cancelar"):
+                                st.session_state.confirm_regen_week = False
+                                st.rerun()
 
-                # Week calendar - start from today
-        today = datetime.now().date()
-        
-        # Calculate end of week (6 days from today)
-        end_of_week = today + timedelta(days=6)
-        
-        st.markdown(f"**Semana del {today.strftime('%d %b')} - {end_of_week.strftime('%d %b %Y')}**")
+                with col_cycle2:
+                    if st.button("🏁 Cerrar Semana y Avanzar", type="primary", help="Completa la semana y genera la siguiente"):
+                        st.session_state.show_feedback_modal = True
+
+            # Feedback Modal Logic
+            if st.session_state.get('show_feedback_modal', False):
+                with st.form("weekly_feedback_form"):
+                    st.write("### 📝 Feedback de la Semana")
+                    st.write("Antes de pasar a la siguiente semana, cuéntanos cómo te fue.")
+                    
+                    feedback_text = st.text_area("¿Qué funcionó? ¿Qué no? ¿Algún logro?", placeholder="Ej: Las campañas de ads trajeron buenos leads, pero muy caros.")
+                    metric_input = st.text_input("Métrica Clave (opcional)", placeholder="Ej: 5 Ventas, CPL $2.5")
+                    
+                    submitted = st.form_submit_button("🚀 Generar Siguiente Semana")
+                    
+                    if submitted:
+                        # Save feedback logic would go here (need to add to auth.py or handle in tasks_manager/main)
+                        
+                        # Generate Next Week
+                        next_week = current_week_real + 1
+                        if next_week <= total_weeks:
+                            # 1. Update Strategy current_week in DB
+                            import sqlite3
+                            conn = sqlite3.connect(auth.DB_NAME)
+                            c = conn.cursor()
+                            c.execute("UPDATE estrategias_v2 SET semana_actual = ? WHERE id = ?", (next_week, estrategia_id))
+                            conn.commit()
+                            conn.close()
+                            
+                            # 2. Generate Tasks
+                            with st.spinner("🧠 Diseñando tu próxima semana..."):
+                                tasks_manager.generate_weekly_tasks(username, estrategia_id, next_week, f"{feedback_text}. Metrics: {metric_input}", roadmap)
+                            
+                            st.session_state.show_feedback_modal = False
+                            st.session_state.view_week_num = next_week # Update view
+                            st.success("✅ ¡Semana iniciada!")
+                            st.rerun()
+                        else:
+                            st.success("🎉 ¡Has completado toda la estrategia!")
+                            st.session_state.show_feedback_modal = False
+
+
+        st.markdown("---")
         
         # Progress bar
         percentage, completed, total = tasks_manager.get_weekly_progress(username, estrategia_id)
@@ -265,8 +451,12 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
         # Track which unique tasks we've already shown (for unique tasks)
         shown_unique_tasks = set()
         
-        # Show 7 days starting from strategy creation
-        for day_offset in range(7):
+        # Show 7 days for the VIEWED week
+        # Calculate day offset relative to Creation Date for the START of the viewed week
+        week_start_offset = (week_view - 1) * 7
+        
+        for i in range(7):
+            day_offset = week_start_offset + i
             fecha = created_date + timedelta(days=day_offset)
             dia_semana_num = fecha.weekday()  # Still needed for day name only
             dia_nombre = dias[dia_semana_num]
@@ -358,6 +548,42 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
         else:
             st.info("No hay estadísticas por categoría aún")
 
+    # ========== CONFIGURACIÓN / ZONA DE PELIGRO ==========
+    st.markdown("---")
+    with st.expander("⚙️ Configuración y Zona de Peligro"):
+        st.warning("⚠️ **Zona de Peligro**: Las siguientes acciones son destructivas.")
+        
+        col_danger1, col_danger2 = st.columns([3, 1])
+        with col_danger1:
+            st.write("**Reiniciar Mi Progreso**")
+            st.caption("Esto borrará TODAS tus tareas, logros y puntos. Tu estrategia volverá a la Semana 1. NO afecta tus límites de plan.")
+        
+        with col_danger2:
+            if st.button("🗑️ Reiniciar Todo", type="primary", use_container_width=True, key="btn_reset_progress_init"):
+                st.session_state.confirm_reset_progress = True
+                st.rerun()
+        
+        if st.session_state.get('confirm_reset_progress', False):
+            st.error("¿Estás COMPLETAMENTE SEGURO? Esta acción no se puede deshacer.")
+            col_conf_reset1, col_conf_reset2 = st.columns(2)
+            with col_conf_reset1:
+                # Double confirmation button
+                if st.button("✅ SÍ, BORRAR TODO", type="primary", key="btn_reset_progress_confirm"):
+                    with st.spinner("🗑️ Reiniciando tu progreso..."):
+                        success = tasks_manager.reset_user_progress(username)
+                        if success:
+                            st.success("✅ Progreso reiniciado correctamente.")
+                            time.sleep(1)
+                            st.session_state.confirm_reset_progress = False
+                            st.rerun()
+                        else:
+                            st.error("❌ Error al reiniciar progreso.")
+            
+            with col_conf_reset2:
+                if st.button("❌ Cancelar", key="btn_reset_progress_cancel"):
+                    st.session_state.confirm_reset_progress = False
+                    st.rerun()
+
 def render_task_card(task, username, is_completed=False, compact=False, day_context=None, show_date=True, completion_date=None, estrategia_id=None):
     """Render a single task card with actions."""
     
@@ -438,8 +664,19 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
         if not task['completada']:
             # Get task-specific chat history
             chat_history_key = f"task_chat_{task['id']}"
+            chat_section_id = f"task_{task['id']}"
+            
             if chat_history_key not in st.session_state:
                 st.session_state[chat_history_key] = []
+                # Load from database
+                import auth
+                saved_history = auth.get_section_history(username, chat_section_id)
+                if saved_history:
+                    for entry in saved_history:
+                        st.session_state[chat_history_key].append({
+                            "role": entry['tipo'],
+                            "content": entry['contenido']
+                        })
             
             # Use expander for chat (like sections)
             with st.expander("💬 Asistente IA - Ayuda con esta tarea", expanded=False):
@@ -451,6 +688,8 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                     with col2:
                         if st.button("🗑️ Limpiar", key=f"clear_chat_{task['id']}_e{estrategia_id or 'todas'}", help="Reiniciar conversación"):
                             st.session_state[chat_history_key] = []
+                            import auth
+                            auth.clear_section_history(username, chat_section_id)
                             st.rerun()
                 
                 # Display chat messages with st.chat_message (like sections)
@@ -470,6 +709,12 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                         with st.spinner("🤔 Pensando..."):
                             ai_response = get_task_ai_help(task, user_msg, username)
                             st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
+                        
+                        # Save to DB
+                        import auth
+                        auth.save_section_history(username, chat_section_id, "user", user_msg)
+                        auth.save_section_history(username, chat_section_id, "assistant", ai_response)
+                        
                         st.rerun()
                 
                 with col_s2:
@@ -479,6 +724,12 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                         with st.spinner("🤔 Pensando..."):
                             ai_response = get_task_ai_help(task, user_msg, username)
                             st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
+                        
+                        # Save to DB
+                        import auth
+                        auth.save_section_history(username, chat_section_id, "user", user_msg)
+                        auth.save_section_history(username, chat_section_id, "assistant", ai_response)
+                        
                         st.rerun()
                 
                 with col_s3:
@@ -488,6 +739,12 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                         with st.spinner("🤔 Pensando..."):
                             ai_response = get_task_ai_help(task, user_msg, username)
                             st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
+                        
+                        # Save to DB
+                        import auth
+                        auth.save_section_history(username, chat_section_id, "user", user_msg)
+                        auth.save_section_history(username, chat_section_id, "assistant", ai_response)
+                        
                         st.rerun()
                 
                 # Chat input (like sections - supports Enter key)
@@ -501,6 +758,11 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                     with st.spinner("🤔 Pensando..."):
                         ai_response = get_task_ai_help(task, prompt, username)
                         st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
+                    
+                    # Save to DB
+                    import auth
+                    auth.save_section_history(username, chat_section_id, "user", prompt)
+                    auth.save_section_history(username, chat_section_id, "assistant", ai_response)
                     
                     st.rerun()
         

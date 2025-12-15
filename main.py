@@ -989,16 +989,23 @@ def render_daily_tasks(estrategia_id):
         st.markdown("<br>", unsafe_allow_html=True)
 
 def get_section_content(text, section_name):
+    if not text: return "Contenido no disponible."
+    import re
     try:
-        start_marker = f"<<<SECTION_START: {section_name}>>>"
-        parts = text.split(start_marker)
+        # Regex for flexible parsing (handling bold **, headers ##, spacing)
+        # Matches optional * or #, then <<<, optional space, SECTION_START, optional space, :, optional space, NAME, optional space, >>>, optional * or #
+        pattern = r"[\*#]*<<<\s*SECTION_START\s*:\s*" + re.escape(section_name) + r"\s*>>>[\*#]*"
+        
+        parts = re.split(pattern, text, flags=re.IGNORECASE)
         if len(parts) > 1:
-            content = parts[1].split("<<<SECTION_START:")[0].strip()
-            # Clean unwanted content
-            content = clean_section_content(content, section_name)
-            return content
+            # Look for next section start (any section) to split end
+            # Matches any next section start marker
+            content = re.split(r"[\*#]*<<<\s*SECTION_START", parts[1], flags=re.IGNORECASE)[0].strip()
+            return clean_section_content(content, section_name)
+            
         return "Contenido no disponible."
-    except Exception:
+    except Exception as e:
+        print(f"Error parsing section {section_name}: {e}")
         return "Error al cargar contenido."
 
 def wizard_page():
@@ -1372,6 +1379,16 @@ def wizard_page():
                 meta = st.selectbox("📈 Meta Actual", meta_options, index=meta_idx)
                 
                 presupuesto = st.slider("💰 Presupuesto Mensual (USD)", min_value=50, max_value=1000, value=int(saved_data.get('presupuesto', 150)), step=50)
+
+                # NEW: Duration Selector
+                duration_options = [7, 15, 30, 60, 90]
+                duration_days = st.selectbox(
+                    "📅 Duración de la Estrategia",
+                    duration_options,
+                    index=0,
+                    format_func=lambda x: f"{x} Días",
+                    help="Define la duración del plan estratégico (Roadmap)."
+                )
                 
                 mod_options = ["Mayoría Contado", "Mayoría Crédito", "Mensual / SaaS"]
                 mod_idx = 0
@@ -1570,7 +1587,8 @@ def wizard_page():
                             "presupuesto_diario": round(presupuesto/30, 2),
                             "plataforma": ", ".join(plataforma),
                             "modalidad_venta": modalidad,
-                            "buyer_persona": buyer_persona if buyer_persona else None
+                            "buyer_persona": buyer_persona if buyer_persona else None,
+                            "duration_days": duration_days
                         }
 
                         # Create progress container
@@ -1589,7 +1607,8 @@ def wizard_page():
                             # This ensures purely computational execution
                             return agent.generate_strategy_progressive(
                                 business_info, 
-                                None
+                                None,
+                                username=st.session_state.user['username']
                             )
 
                         # 2. Launch AI in background thread
@@ -1690,7 +1709,7 @@ def wizard_page():
                             st.session_state.sections_generated = {}
                         
                         # Populate sections_generated from the result text
-                        sections = ["AVATAR", "EMBUDO", "ADS", "WHATSAPP", "OBJECIONES", "ACCIONES_DIARIAS", "METRICAS"]
+                        sections = ["ROADMAP", "AVATAR", "EMBUDO", "ADS", "WHATSAPP", "OBJECIONES", "ACCIONES_DIARIAS", "METRICAS"]
                         for section in sections:
                             content = get_section_content(result, section)
                             if content and content != "Contenido no disponible.":
@@ -1705,57 +1724,51 @@ def wizard_page():
                                 'ads': f"FRÍO:\n{get_section_content(result, 'ADS_FRIO')}\n\nTIBIO:\n{get_section_content(result, 'ADS_TIBIO')}\n\nCALIENTE:\n{get_section_content(result, 'ADS_CALIENTE')}",
                                 'objeciones': '\n\n'.join([get_section_content(result, f"OBJECION_{tipo}") for tipo in ["COSTO", "TIEMPO", "PERSONAL", "INTEGRACION", "MIEDO"]]),
                                 'whatsapp': '\n\n'.join([get_section_content(result, f"WHATSAPP_DIA{i}") for i in range(1, 8)]),
-                                'acciones_diarias': get_section_content(result, "ACCIONES_DIARIAS"),
+                                'acciones_diarias': "", # Will be generated in background
                                 'kpis': get_section_content(result, "METRICAS")
                             }
+                            
+                            # Parse Roadmap JSON
+                            roadmap_json = {}
+                            try:
+                                roadmap_text = get_section_content(result, "ROADMAP")
+                                if roadmap_text:
+                                    # Try to find JSON content if it's wrapped in code blocks
+                                    if "```json" in roadmap_text:
+                                        roadmap_text = roadmap_text.split("```json")[1].split("```")[0].strip()
+                                    elif "```" in roadmap_text:
+                                        roadmap_text = roadmap_text.split("```")[1].split("```")[0].strip()
+                                    
+                                    roadmap_json = json.loads(roadmap_text)
+                            except Exception as e:
+                                print(f"Error parsing Roadmap JSON: {e}")
+                                roadmap_json = []
+
                             # Create new strategy (don't use save_estrategia as it updates the first one)
                             success, message, estrategia_id = auth.create_estrategia(
                                 user['username'], 
                                 nombre_estrategia if nombre_estrategia else "Estrategia Sin Nombre",
                                 producto_servicio_desc if producto_servicio_desc else "Producto/Servicio",
-                                estrategia_data
+                                estrategia_data,
+                                duracion_dias=business_info.get('duration_days', 30),
+                                roadmap=roadmap_json
                             )
                             
                             if not success:
                                 st.error(f"❌ Error al guardar estrategia: {message}")
                                 return
                             
-                            # Set editing_strategy_id so title updates correctly
                             st.session_state.editing_strategy_id = estrategia_id
                             st.session_state.creating_new_strategy = False
                             
-                            # ========== AUTO-GENERATE TASKS FROM STRATEGY ==========
-                            # 1. Tasks have been "Generating" since ACCIONES_DIARIAS message
-                            # Now we do the actual work
+                            # ========== MANUAL TASK GENERATION ==========
+                            # We stop auto-generation to prevent AI overload.
+                            # User will generate tasks manually in "Mi Progreso"
+                            update_loader("✅ Estrategia Guardada. Ve a 'Mi Progreso' para activar tus tareas.", 16)
+                            time.sleep(2)
                             
-                            try:
-                                tasks_count, tasks_list = tasks_manager.generate_tasks_from_strategy(
-                                    username=user['username'],
-                                    estrategia_dict=estrategia_data,
-                                    business_info=business_info,
-                                    estrategia_id=estrategia_id
-                                )
-                                
-                                # 15. "x Tareas fueron creadas" (FINAL STEP)
-                                update_loader(f"✅ {tasks_count} Tareas fueron creadas...", 15)
-                                time.sleep(2.5) # Max 3 seconds requested
-                                
-                                # Clear loader before showing success message
-                                overlay_placeholder.empty()
-                                
-                            except Exception as e:
-                                overlay_placeholder.empty()
-                                st.warning(f"⚠️ Error al generar tareas: {e}")
-                                print(f"Error generating tasks: {e}")
-                                
-                                if tasks_count > 0:
-                                    st.success(f"✅ {tasks_count} tareas creadas automáticamente! Ve a 'Mi Progreso' para verlas.")
-                                else:
-                                    st.warning("⚠️ No se pudieron generar tareas automáticamente. Puedes crearlas manualmente en 'Mi Progreso'.")
-                            except Exception as e:
-                                overlay_placeholder.empty()
-                                st.warning(f"⚠️ Error al generar tareas: {e}. Puedes crearlas manualmente en 'Mi Progreso'.")
-                                print(f"Error generating tasks: {e}")
+                            # Clear loader before showing success message
+                            overlay_placeholder.empty()
                             
                             # ========== AUTO-POPULATE BRAIN (MULTI-SERVICE) ==========
                             # NEW: Add or update service, accumulate info, NO avatar storage
@@ -1865,6 +1878,11 @@ def wizard_page():
 
         strategy_text = st.session_state.strategy_result
         
+        # DEBUG: Show raw text to identify parsing issues
+        # This allows us to see exactly what the AI returned
+        with st.expander("🛠️ Debug: Ver Texto Crudo (Útil si faltan secciones)", expanded=False):
+            st.code(strategy_text)
+        
 
         
         # Sidebar Navigation
@@ -1913,9 +1931,15 @@ def wizard_page():
             # ====================================
             
             # ========== STRATEGY COUNTER ==========
-            requests_today = user.get('requests_today', 0)
-            daily_limit = user.get('daily_request_limit', 5)
-            remaining_strategies = daily_limit - requests_today
+            from auth_subscription import get_plan_limits
+            
+            # Get limits from plan configuration
+            plan_config = get_plan_limits(user.get('plan_actual', 'gratuito'))
+            daily_limit = plan_config.get('estrategias_dia', 1)
+            
+            # Get usage from user object (updated in auth.py)
+            current_usage = int(user.get('daily_strategies_count', 0))
+            remaining_strategies = max(0, daily_limit - current_usage)
             
             # Color coding for strategies
             if remaining_strategies > daily_limit * 0.5:
@@ -2190,7 +2214,13 @@ def wizard_page():
         with col1:
             # Single PDF Download Button
             try:
-                pdf_bytes = generate_pdf(st.session_state.strategy_result, st.session_state.business_info)
+                # Fetch tasks for PDF
+                current_strat_id_pdf = st.session_state.get('editing_strategy_id') or st.session_state.get('estrategia_activa_id')
+                tasks_for_pdf = []
+                if current_strat_id_pdf:
+                     tasks_for_pdf = tasks_manager.get_tasks_for_week(st.session_state.user['username'], current_strat_id_pdf)
+                
+                pdf_bytes = generate_pdf(st.session_state.strategy_result, st.session_state.business_info, tasks=tasks_for_pdf)
                 st.download_button(
                     label="📄 Descargar PDF",
                     data=pdf_bytes,

@@ -83,10 +83,35 @@ def init_db():
             kpis TEXT,
             created_at TEXT,
             updated_at TEXT,
+            duracion_dias INTEGER DEFAULT 30,
+            semana_actual INTEGER DEFAULT 1,
+            roadmap TEXT,
+            feedback_historico TEXT,
             FOREIGN KEY (user_id) REFERENCES users(username),
             UNIQUE(user_id, nombre_estrategia)
         )
     ''')
+
+    # Migration: Add new columns to estrategias_v2 if they don't exist
+    new_columns = {
+        'duracion_dias': 'INTEGER DEFAULT 30',
+        'semana_actual': 'INTEGER DEFAULT 1',
+        'roadmap': 'TEXT',
+        'feedback_historico': 'TEXT'
+    }
+    
+    try:
+        c.execute("PRAGMA table_info(estrategias_v2)")
+        existing_columns = [info[1] for info in c.fetchall()]
+        
+        for col_name, col_type in new_columns.items():
+            if col_name not in existing_columns:
+                print(f"Adding {col_name} column to estrategias_v2 table...")
+                c.execute(f"ALTER TABLE estrategias_v2 ADD COLUMN {col_name} {col_type}")
+    except sqlite3.OperationalError:
+        pass
+    
+    print("Migration completed successfully.")
     
     # Create historial_secciones table
     c.execute('''
@@ -221,7 +246,7 @@ def login_user(username, password):
     c.execute("""SELECT username, password, business_name, is_active, is_admin, start_date, expiration_date, 
                         requests_today, last_request_date, email, daily_request_limit, business_profile, last_form_data,
                         plan_actual, fecha_registro, fecha_ultimo_pago, fecha_vencimiento,
-                        ai_requests_today, ai_request_limit
+                        ai_requests_today, ai_request_limit, daily_strategies_count
                  FROM users WHERE username = ?""", (username,))
     user = c.fetchone()
 
@@ -259,7 +284,8 @@ def login_user(username, password):
                 "fecha_ultimo_pago": user[15],
                 "fecha_vencimiento": user[16],
                 "ai_requests_today": user[17] or 0,
-                "ai_request_limit": user[18] or 10
+                "ai_request_limit": user[18] or 10,
+                "daily_strategies_count": user[19] or 0
             }
         else:
             # Increment failed attempts
@@ -597,13 +623,8 @@ def get_last_form_data(username):
 # ========== ESTRATEGIAS FUNCTIONS (MULTI-STRATEGY SUPPORT) ==========
 
 # Plan limits for strategies
-PLAN_ESTRATEGIAS_LIMIT = {
-    'gratuito': 1,
-    'prueba': 3,
-    'mensual': 3,
-    'trimestral': 5,
-    'anual': 10
-}
+# Plan limits are now managed in auth_subscription.py
+from auth_subscription import get_plan_limits
 
 def get_user_estrategias_limit(username):
     """Get the maximum number of strategies allowed for a user based on their plan."""
@@ -615,10 +636,11 @@ def get_user_estrategias_limit(username):
     
     if result:
         plan = result[0] or 'gratuito'
-        return PLAN_ESTRATEGIAS_LIMIT.get(plan, 1)
+        limits = get_plan_limits(plan)
+        return limits.get('estrategias_dia', 1)
     return 1
 
-def create_estrategia(username, nombre_estrategia, producto_servicio, estrategia_data):
+def create_estrategia(username, nombre_estrategia, producto_servicio, estrategia_data, duracion_dias=30, roadmap=None, feedback_historico=None):
     """
     Creates a new strategy for a user.
     
@@ -635,11 +657,26 @@ def create_estrategia(username, nombre_estrategia, producto_servicio, estrategia
     from datetime import datetime
     
     # Check user's limit
+    # Check user's limit (DAILY)
     limit = get_user_estrategias_limit(username)
-    current_count = count_user_estrategias(username)
     
+    # Get current usage
+    conn = sqlite3.connect(DB_NAME)
+    c = conn.cursor()
+    c.execute("SELECT daily_strategies_count, last_strategy_date FROM users WHERE username = ?", (username,))
+    row = c.fetchone()
+    current_count = row[0] or 0
+    last_date = row[1]
+    
+    today = datetime.utcnow().strftime('%Y-%m-%d')
+    
+    # Reset if new day
+    if last_date != today:
+        current_count = 0
+        
     if current_count >= limit:
-        return (False, f"Has alcanzado el límite de {limit} estrategias de tu plan", None)
+        conn.close()
+        return (False, f"Has alcanzado el límite diario de {limit} estrategias de tu plan", None)
     
     conn = sqlite3.connect(DB_NAME)
     c = conn.cursor()
@@ -662,18 +699,29 @@ def create_estrategia(username, nombre_estrategia, producto_servicio, estrategia
     acciones_json = json.dumps(estrategia_data.get('acciones_diarias', ''), ensure_ascii=False)
     kpis_json = json.dumps(estrategia_data.get('kpis', ''), ensure_ascii=False)
     
+    # New fields
+    roadmap_json = json.dumps(roadmap if roadmap else {}, ensure_ascii=False)
+    feedback_json = json.dumps(feedback_historico if feedback_historico else [], ensure_ascii=False)
+    
     try:
         c.execute("""
             INSERT INTO estrategias_v2 
             (user_id, nombre_estrategia, producto_servicio, activa,
              avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis,
-             created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+             created_at, updated_at, duracion_dias, semana_actual, roadmap, feedback_historico)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
         """, (username, nombre_estrategia, producto_servicio, 1,
               avatar_json, embudo_json, ads_json, objeciones_json, whatsapp_json,
-              acciones_json, kpis_json, now, now))
-        
+              acciones_json, kpis_json, now, now, duracion_dias, roadmap_json, feedback_json))
+              
         estrategia_id = c.lastrowid
+        
+        # Update daily count
+        c.execute("""
+            UPDATE users 
+            SET daily_strategies_count = ?, last_strategy_date = ? 
+            WHERE username = ?
+        """, (current_count + 1, today, username))
         conn.commit()
         conn.close()
         return (True, "Estrategia creada exitosamente", estrategia_id)
@@ -761,7 +809,8 @@ def get_estrategia_by_id(estrategia_id, username):
                e.avatar, e.embudo, e.ads, e.objeciones, e.whatsapp, e.acciones_diarias, e.kpis,
                e.created_at, e.updated_at,
                (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id) as num_tareas,
-               (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id AND completada = 1) as tareas_completadas
+               (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id AND completada = 1) as tareas_completadas,
+               e.duracion_dias, e.semana_actual, e.roadmap, e.feedback_historico
         FROM estrategias_v2 e
         WHERE e.id = ? AND e.user_id = ?
     """, (estrategia_id, username))
@@ -786,7 +835,11 @@ def get_estrategia_by_id(estrategia_id, username):
                 'created_at': result[11],
                 'updated_at': result[12],
                 'num_tareas': result[13] or 0,
-                'tareas_completadas': result[14] or 0
+                'tareas_completadas': result[14] or 0,
+                'duracion_dias': result[15] or 30,
+                'semana_actual': result[16] or 1,
+                'roadmap': json.loads(result[17]) if result[17] else {},
+                'feedback_historico': json.loads(result[18]) if result[18] else []
             }
         except json.JSONDecodeError:
             return None
