@@ -72,10 +72,9 @@ def admin_panel():
                     plan_names = {
                         'gratuito': 'GRATUITO',
                         'prueba': 'PRUEBA',
-                        'mensual': 'MENSUAL',
-                        'trimestral': 'TRIMESTRAL',
-                        'semestral': 'SEMESTRAL',
-                        'anual': 'ANUAL'
+                        'starter': 'STARTER',
+                        'growth': 'GROWTH',
+                        'pro': 'PRO'
                     }
                     st.text(f"Plan: {plan_names.get(plan_actual or 'prueba', 'PRUEBA')}")
                     
@@ -111,8 +110,8 @@ def admin_panel():
                     # Change plan
                     new_plan = st.selectbox(
                         "Cambiar Plan",
-                        ['gratuito', 'prueba', 'mensual', 'trimestral', 'semestral', 'anual'],
-                        index=['gratuito', 'prueba', 'mensual', 'trimestral', 'semestral', 'anual'].index(plan_actual or 'prueba'),
+                        ['gratuito', 'prueba', 'starter', 'growth', 'pro'],
+                        index=['gratuito', 'prueba', 'starter', 'growth', 'pro'].index(plan_actual or 'prueba'),
                         key=f"plan_{username}"
                     )
                     if st.button("💾 Guardar Plan", key=f"save_plan_{username}"):
@@ -184,7 +183,7 @@ def admin_panel():
                 
             col_u3, col_u4 = st.columns(2)
             with col_u3:
-                new_plan = st.selectbox("Plan Inicial", ["gratuito", "prueba", "mensual", "trimestral", "semestral", "anual"], index=1)
+                new_plan = st.selectbox("Plan Inicial", ["gratuito", "prueba", "starter", "growth", "pro"], index=1)
             
             if st.form_submit_button("Crear Usuario"):
                 if new_username and new_password and new_email:

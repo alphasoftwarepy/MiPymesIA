@@ -23,18 +23,18 @@ PLAN_CONFIGS = {
         'estrategias_dia': 3,
         'consultas_ia_dia': 10
     },
-    'mensual': {
+    'starter': {
         'duracion_dias': 30,
         'estrategias_dia': 3,
         'consultas_ia_dia': 10
     },
-    'trimestral': {
-        'duracion_dias': 90,
+    'growth': {
+        'duracion_dias': 30,
         'estrategias_dia': 5,
         'consultas_ia_dia': 20
     },
-    'anual': {
-        'duracion_dias': 360,
+    'pro': {
+        'duracion_dias': 30,
         'estrategias_dia': 10,
         'consultas_ia_dia': 30
     }

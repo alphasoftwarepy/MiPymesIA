@@ -18,43 +18,36 @@ Elige el plan que mejor se adapte a las necesidades de tu negocio.
 
 ---
 
-### 💼 Plan Básico
-**$7 USD**
+### 🚀 Plan Starter
+**$5 USD**
 
 - ✅ **Duración**: 30 días
-- ✅ **Solicitudes diarias**: 10 estrategias completas
+- ✅ **Solicitudes diarias**: 3 estrategias completas
+- ✅ **Consultas IA**: 10 consultas diarias
 
-**Ideal para**: Emprendedores y pequeños negocios
+**Ideal para**: Emprendedores que inician
 
 ---
 
-### 🚀 Plan Estándar
-**$21 USD**
+### 📈 Plan Growth
+**$7 USD**
 
-- ✅ **Duración**: 90 días (3 meses)
-- ✅ **Solicitudes diarias**: 15 estrategias completas
+- ✅ **Duración**: 30 días
+- ✅ **Solicitudes diarias**: 5 estrategias completas
+- ✅ **Consultas IA**: 20 consultas diarias
 
 **Ideal para**: Negocios en crecimiento
 
 ---
 
-### 💎 Plan Profesional
-**$42 USD**
+### 💎 Plan Pro
+**$10 USD**
 
-- ✅ **Duración**: 180 días (6 meses)
-- ✅ **Solicitudes diarias**: 20 estrategias completas
+- ✅ **Duración**: 30 días
+- ✅ **Solicitudes diarias**: 10 estrategias completas
+- ✅ **Consultas IA**: 30 consultas diarias
 
-**Ideal para**: PYMEs establecidas
-
----
-
-### 👑 Plan Empresarial
-**$84 USD**
-
-- ✅ **Duración**: 360 días (1 año)
-- ✅ **Solicitudes diarias**: 25 estrategias completas
-
-**Ideal para**: Empresas con múltiples productos/servicios
+**Ideal para**: Agencias y profesionales del marketing
 
 ---
 

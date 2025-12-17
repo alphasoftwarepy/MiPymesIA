@@ -443,7 +443,7 @@ def login_form_page():
 def registration_page():
     st.title("✨ Crear Cuenta - Prueba Gratuita 7 Días")
     
-    st.info("🎁 Obtén acceso completo por 7 días con 5 solicitudes diarias. ¡Sin tarjeta de crédito!")
+    st.info("🎁 Obtén acceso completo por 7 días con 3 estrategias y 10 consultas IA por día. ¡Sin tarjeta de crédito!")
     
     with st.form("registration_form"):
         col1, col2 = st.columns(2)
@@ -1895,10 +1895,9 @@ def wizard_page():
             plan_names = {
                 'gratuito': 'GRATUITO',
                 'prueba': 'PRUEBA GRATUITA',
-                'mensual': 'MENSUAL',
-                'trimestral': 'TRIMESTRAL',
-                'semestral': 'SEMESTRAL',
-                'anual': 'ANUAL'
+                'starter': 'STARTER',
+                'growth': 'GROWTH',
+                'pro': 'PRO'
             }
             st.markdown(f"**Plan:** {plan_names.get(plan_actual, plan_actual.upper())}")
             
@@ -2516,8 +2515,8 @@ def pricing_page():
         st.markdown("""
         <div style='background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 550px; display: flex; flex-direction: column; justify-content: space-between;'>
             <div>
-                <h3 style='font-size: 1.5em; margin-bottom: 10px;'>Plan Mensual</h3>
-                <h1 style='font-size: 3em; margin: 20px 0;'>$10 USD</h1>
+                <h3 style='font-size: 1.5em; margin-bottom: 10px;'>Plan Starter</h3>
+                <h1 style='font-size: 3em; margin: 20px 0;'>$5 USD</h1>
                 <p style='font-size: 1.1em; margin-bottom: 10px;'>Facturado cada mes</p>
                 <hr style='border-color: rgba(255,255,255,0.3); margin: 15px 0;'>
                 <div style='display: flex; justify-content: center;'>
@@ -2536,15 +2535,15 @@ def pricing_page():
         st.markdown("""
         <div style='background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 550px; display: flex; flex-direction: column; justify-content: space-between;'>
             <div>
-                <h3 style='font-size: 1.5em; margin-bottom: 10px;'>Plan Trimestral</h3>
-                <h1 style='font-size: 3em; margin: 10px 0;'>$20 USD</h1>
-                <p style='font-size: 1.1em; margin-bottom: 10px;'>Facturado cada 3 meses</p>
+                <h3 style='font-size: 1.5em; margin-bottom: 10px;'>Plan Growth</h3>
+                <h1 style='font-size: 3em; margin: 10px 0;'>$7 USD</h1>
+                <p style='font-size: 1.1em; margin-bottom: 10px;'>Facturado cada mes</p>
                 <hr style='border-color: rgba(255,255,255,0.3); margin: 15px 0;'>
                 <div style='display: flex; justify-content: center;'>
                     <ul style='list-style: none; padding: 0; margin-bottom: 20px; text-align: left;'>
                         <li style='margin-bottom: 8px;'>✅ 5 Estrategias por día</li>
                         <li style='margin-bottom: 8px;'>✅ 20 Consultas IA por día</li>
-                        <li style='margin-bottom: 8px;'>✅ 1 Mes GRATIS</li>
+                        <li style='margin-bottom: 8px;'>✅ Acceso a todas las herramientas</li>
                     </ul>
                 </div>
             </div>
@@ -2556,15 +2555,15 @@ def pricing_page():
         st.markdown("""
         <div style='background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); padding: 30px; border-radius: 15px; color: white; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.2); height: 550px; display: flex; flex-direction: column; justify-content: space-between;'>
             <div>
-                <h3 style='font-size: 1.5em; margin-bottom: 10px;'>Plan Anual</h3>
-                <h1 style='font-size: 3em; margin: 20px 0;'>$99 USD</h1>
-                <p style='font-size: 1.1em; margin-bottom: 10px;'>Facturado cada 12 meses</p>
+                <h3 style='font-size: 1.5em; margin-bottom: 10px;'>Plan Pro</h3>
+                <h1 style='font-size: 3em; margin: 20px 0;'>$10 USD</h1>
+                <p style='font-size: 1.1em; margin-bottom: 10px;'>Facturado cada mes</p>
                 <hr style='border-color: rgba(255,255,255,0.3); margin: 15px 0;'>
                 <div style='display: flex; justify-content: center;'>
                     <ul style='list-style: none; padding: 0; margin-bottom: 20px; text-align: left;'>
                         <li style='margin-bottom: 8px;'>✅ 10 Estrategias por día</li>
                         <li style='margin-bottom: 8px;'>✅ 30 Consultas IA por día</li>
-                        <li style='margin-bottom: 8px;'>✅ 2 Meses GRATIS</li>
+                        <li style='margin-bottom: 8px;'>✅ Acceso a todas las herramientas</li>
                     </ul>
                 </div>
             </div>
