@@ -200,7 +200,7 @@ FORMATO JSON:
   {{
     "titulo": "Acción específica",
     "descripcion": "Detalle paso a paso",
-    "categoria": "contenido|ads|whatsapp|metricas|setup",
+    "categoria": "contenido|ads|whatsapp|metricas|setup (SOLO estas opciones, NO email, blog, ni otras)",
     "prioridad": "alta|media|baja",
     "frecuencia": "unica",
     "dia_semana": 0-6

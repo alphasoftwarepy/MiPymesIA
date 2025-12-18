@@ -1716,6 +1716,20 @@ def wizard_page():
                             st.error(result)
                             st.warning("💡 **Posible solución:** Verifica que la variable de entorno OPENAI_API_KEY esté configurada en Easypanel.")
                             st.stop()
+                        # 🎉 SUCCESS - Strategy Generated
+                        overlay_placeholder.empty()
+                        progress_container.empty()
+                        
+                        # Clear cache to show weekly tasks immediately
+                        st.cache_data.clear()
+                        
+                        st.success("✅ ¡Estrategia generada exitosamente!")
+                        st.session_state.strategy_result = result
+                        st.session_state.business_info = business_info
+                        
+                        # Force reload to show strategy
+                        time.sleep(1)
+                        st.rerun()
                         
                         # Wrap everything after AI generation in try-finally to ensure loader clears
                         try:

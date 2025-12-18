@@ -448,7 +448,7 @@ Sé MUY ESPECÍFICO para {business_info.get('rubro')} y {business_info.get('plat
 Genera FLUJO WHATSAPP 7 DÍAS siguiendo EXACTAMENTE esta estructura:
 
 <<<SECTION_START: WHATSAPP_DIA1>>>
-� DÍA 1 — APERTURA + DIAGNÓSTICO
+DÍA 1 — APERTURA + DIAGNÓSTICO
 
 🎯 **Objetivo:** Iniciar conversación y detectar dolor
 
@@ -463,7 +463,7 @@ Quería preguntarte algo rápido:
 🔑 **Clave:** Pregunta abierta → hace hablar al prospecto.
 
 <<<SECTION_START: WHATSAPP_DIA2>>>
-� DÍA 2 — AMPLIFICAR EL DOLOR
+DÍA 2 — AMPLIFICAR EL DOLOR
 
 🎯 **Objetivo:** Que reconozca el problema como urgente
 
@@ -480,7 +480,7 @@ Muchos [público objetivo] nos dicen lo mismo:
 🔑 **Clave:** Lo hace identificarse sin vender aún.
 
 <<<SECTION_START: WHATSAPP_DIA3>>>
-� DÍA 3 — SOLUCIÓN + PRUEBA SOCIAL
+DÍA 3 — SOLUCIÓN + PRUEBA SOCIAL
 
 🎯 **Objetivo:** Mostrar que sí funciona para alguien como él
 
@@ -499,7 +499,7 @@ En [tiempo] con [producto/servicio] logró:
 🔑 **Micro-CTA:** "ver cómo funciona" (no "comprar").
 
 <<<SECTION_START: WHATSAPP_DIA4>>>
-� DÍA 4 — OBJECIÓN PRINCIPAL
+DÍA 4 — OBJECIÓN PRINCIPAL
 
 🎯 **Objetivo:** Derribar el [objeción más común]
 
@@ -516,7 +516,7 @@ Algo importante 💡
 🔑 **Clave:** Que él mismo exprese la objeción.
 
 <<<SECTION_START: WHATSAPP_DIA5>>>
-� DÍA 5 — OFERTA + URGENCIA SUAVE
+DÍA 5 — OFERTA + URGENCIA SUAVE
 
 🎯 **Objetivo:** Presentar la oportunidad sin presión dura
 
@@ -532,7 +532,7 @@ Te aviso con tiempo ⏰
 🔑 **Urgencia real + bajo riesgo.**
 
 <<<SECTION_START: WHATSAPP_DIA6>>>
-� DÍA 6 — VALOR EXTRA + SEGURIDAD
+DÍA 6 — VALOR EXTRA + SEGURIDAD
 
 🎯 **Objetivo:** Reforzar confianza y resolver dudas finales
 
@@ -548,11 +548,12 @@ Con [producto/servicio] eso queda claro desde el primer día.
 🔑 **CTA personalizado:** "en tu negocio".
 
 <<<SECTION_START: WHATSAPP_DIA7>>>
-🔴 DÍA 7 — CIERRE ELEGANTE
+**DÍA 7 — CIERRE ELEGANTE**
 
 🎯 **Objetivo:** Decisión final sin presión
 
 **Mensaje:**
+
 Gracias por tomarte el tiempo esta semana 🙌
 
 Si decidís [beneficio principal],
@@ -943,7 +944,7 @@ Palabras clave: "[palabra 1]", "[palabra 2]", "[palabra 3]".
 [Educa y baja objeciones]
 
 <<<SECTION_START: EMBUDO_BOFU>>>
-� BOFU — CIERRE
+BOFU — CIERRE
 
 **Objetivo:** Acción inmediata con urgencia y bajo riesgo.
 
@@ -993,7 +994,7 @@ Palabras clave: "[palabra 1]", "[palabra 2]", "[palabra 3]".
 👉 **CTA:** "Ver demostración" / "Solicitar demo gratis"
 
 <<<SECTION_START: ADS_CALIENTE>>>
-� TRÁFICO CALIENTE (Conversión) - Cierre
+TRÁFICO CALIENTE (Conversión) - Cierre
 
 🎯 **Objetivo:** Ventas / Prueba directa YA
 
@@ -1009,49 +1010,49 @@ Palabras clave: "[palabra 1]", "[palabra 2]", "[palabra 3]".
 📌 **Frase eje:** "[Frase memorable para toda la campaña]"
 
 <<<SECTION_START: WHATSAPP_DIA1>>>
-� DÍA 1 — APERTURA + DIAGNÓSTICO
+DÍA 1 — APERTURA + DIAGNÓSTICO
 🎯 **Objetivo:** Iniciar conversación y detectar dolor
 **Mensaje:** ¡Hola! 👋 Soy de [Negocio]. Quería preguntarte: 👉 [Pregunta abierta]
 🔑 **Clave:** Pregunta abierta → hace hablar.
 
 <<<SECTION_START: WHATSAPP_DIA2>>>
-� DÍA 2 — AMPLIFICAR EL DOLOR
+DÍA 2 — AMPLIFICAR EL DOLOR
 🎯 **Objetivo:** Que reconozca el problema como urgente
 **Mensaje:** Gracias 🙌 Muchos [público] nos dicen: ❌ [Dolor 1] ❌ [Dolor 2] ❌ [Dolor 3]. ¿Cuál te pasa más?
 🔑 **Clave:** Identificación sin vender.
 
 <<<SECTION_START: WHATSAPP_DIA3>>>
-� DÍA 3 — SOLUCIÓN + PRUEBA SOCIAL
+DÍA 3 — SOLUCIÓN + PRUEBA SOCIAL
 🎯 **Objetivo:** Mostrar que funciona
 **Mensaje:** Te cuento 👇 [Nombre] logró: ✅ [Resultado 1] ✅ [Resultado 2] ✅ [Resultado 3]. ¿Ver cómo funciona?
 🔑 **Micro-CTA:** "ver cómo funciona".
 
 <<<SECTION_START: WHATSAPP_DIA4>>>
-� DÍA 4 — OBJECIÓN PRINCIPAL
+DÍA 4 — OBJECIÓN PRINCIPAL
 🎯 **Objetivo:** Derribar objeción
 **Mensaje:** Algo importante 💡 [Reencuadre] 👉 [Solución]. ¿Qué te preocuparía?
 🔑 **Clave:** Que exprese la objeción.
 
 <<<SECTION_START: WHATSAPP_DIA5>>>
-� DÍA 5 — OFERTA + URGENCIA SUAVE
+DÍA 5 — OFERTA + URGENCIA SUAVE
 🎯 **Objetivo:** Oportunidad sin presión
 **Mensaje:** Te aviso ⏰ [Oferta/prueba]. [Urgencia]. ¿Probar sin compromiso?
 🔑 **Urgencia real + bajo riesgo.**
 
 <<<SECTION_START: WHATSAPP_DIA6>>>
-� DÍA 6 — VALOR EXTRA + SEGURIDAD
+DÍA 6 — VALOR EXTRA + SEGURIDAD
 🎯 **Objetivo:** Reforzar confianza
 **Mensaje:** Tip 🎁 👉 [Insight]. Con [producto] eso queda claro. ¿Ver en tu negocio?
 🔑 **CTA personalizado.**
 
 <<<SECTION_START: WHATSAPP_DIA7>>>
-� DÍA 7 — CIERRE ELEGANTE
+DÍA 7 — CIERRE ELEGANTE
 🎯 **Objetivo:** Decisión final sin presión
 **Mensaje:** Gracias 🙌 Si decidís [beneficio], [Producto] está listo. Estoy acá 👍
 🔑 **Cierre humano.**
 
 <<<SECTION_START: OBJECION_COSTO>>>
-� OBJECIÓN: COSTO
+OBJECIÓN: COSTO
 **Pregunta:** Para entenderte mejor, ¿tenés presupuesto pensado?
 **Reframing:** Lo entiendo. Es inversión, no gasto. [Beneficio económico].
 **Propuesta:** Ofrecemos [prueba/garantía].
@@ -1624,3 +1625,5 @@ REGLAS DE ORO:
             return response
         except Exception as e:
             return f"Ocurrió un error en el chat: {str(e)}"
+
+
