@@ -1381,7 +1381,7 @@ def wizard_page():
                 presupuesto = st.slider("💰 Presupuesto Mensual (USD)", min_value=50, max_value=1000, value=int(saved_data.get('presupuesto', 150)), step=50)
 
                 # NEW: Duration Selector
-                duration_options = [7, 15, 30, 60, 90]
+                duration_options = [15, 30, 60, 90]
                 duration_days = st.selectbox(
                     "📅 Duración de la Estrategia",
                     duration_options,
