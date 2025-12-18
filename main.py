@@ -2201,7 +2201,7 @@ def wizard_page():
         st.divider()
         col1, col2 = st.columns([1, 1])
         with col1:
-            # Single PDF Download Button
+            # Single PDF Download Button with improved error handling
             try:
                 # Fetch tasks for PDF
                 current_strat_id_pdf = st.session_state.get('editing_strategy_id') or st.session_state.get('estrategia_activa_id')
@@ -2209,17 +2209,39 @@ def wizard_page():
                 if current_strat_id_pdf:
                      tasks_for_pdf = tasks_manager.get_tasks_for_week(st.session_state.user['username'], current_strat_id_pdf)
                 
-                pdf_bytes = generate_pdf(st.session_state.strategy_result, st.session_state.business_info, tasks=tasks_for_pdf)
-                st.download_button(
-                    label="📄 Descargar PDF",
-                    data=pdf_bytes,
-                    file_name=f"estrategia_{st.session_state.business_info.get('nombre', 'negocio').replace(' ', '_')}.pdf",
-                    mime="application/pdf",
-                    use_container_width=True,
-                    type="primary"
-                )
+                # Validate required data
+                if not st.session_state.get('strategy_result'):
+                    st.warning("⚠️ No hay estrategia disponible para generar PDF")
+                elif not st.session_state.get('business_info'):
+                    st.warning("⚠️ Falta información del negocio para generar PDF")
+                else:
+                    # Generate PDF fresh on each render
+                    pdf_bytes = generate_pdf(
+                        st.session_state.strategy_result, 
+                        st.session_state.business_info, 
+                        tasks=tasks_for_pdf
+                    )
+                    
+                    # Ensure we have valid PDF data
+                    if pdf_bytes and len(pdf_bytes) > 0:
+                        st.download_button(
+                            label="📄 Descargar PDF",
+                            data=pdf_bytes,
+                            file_name=f"estrategia_{st.session_state.business_info.get('nombre', 'negocio').replace(' ', '_')}.pdf",
+                            mime="application/pdf",
+                            use_container_width=True,
+                            type="primary",
+                            key="download_pdf_btn"  # Unique key to avoid conflicts
+                        )
+                    else:
+                        st.error("❌ Error: PDF generado está vacío")
+                        
             except Exception as e:
-                st.error(f"Error al generar PDF: {e}")
+                st.error(f"❌ Error al generar PDF: {str(e)}")
+                st.caption("💡 Intenta recargar la página o generar una nueva estrategia")
+                # Log error for debugging
+                import traceback
+                print(f"PDF Generation Error: {traceback.format_exc()}")
         # with col2:
         #     if st.button("🔄 Nueva Estrategia", use_container_width=True):
         #         st.session_state.step = 1
