@@ -129,9 +129,10 @@ Assistant:"""
 
 Genera 1 AVATAR DE CLIENTE IDEAL ultra-detallado y específico (NO genérico) siguiendo EXACTAMENTE esta estructura:
 
-AVATAR 1 — "[NOMBRE DESCRIPTIVO EN MAYÚSCULAS]"
+**AVATAR 1 — "[NOMBRE DESCRIPTIVO EN MAYÚSCULAS]"**
 
 **Descripción general**
+
 Párrafo de 2-3 líneas describiendo quién es, su situación actual y qué busca.
 
 **Datos demográficos**
@@ -254,7 +255,7 @@ Genera un EMBUDO DE CONTENIDO SEMANAL (3 niveles) siguiendo EXACTAMENTE esta est
 [Explicación de cómo educa y baja objeciones]
 
 <<<SECTION_START: EMBUDO_BOFU>>>
-💰 BOFU — CIERRE
+💰 BOFU — CONVERSIÓN
 
 **Objetivo:** Acción inmediata con urgencia clara y riesgo percibido bajo.
 
@@ -569,7 +570,7 @@ Sé MUY ESPECÍFICO para {business_info.get('rubro')}. Mensajes listos para copi
 Genera MANEJO DE OBJECIONES optimizado para WhatsApp siguiendo EXACTAMENTE esta estructura:
 
 <<<SECTION_START: OBJECION_COSTO>>>
-💰 OBJECIÓN: COSTO
+**OBJECIÓN: COSTO**
 
 **Pregunta (diagnóstico suave):**
 Para entenderte mejor, ¿hoy tenés algún presupuesto pensado para [categoría]?
@@ -585,7 +586,7 @@ Por eso ofrecemos [prueba/garantía], para que primero veas si realmente te sirv
 ¿Querés que te [acción específica] y lo evalúas tranquilo?
 
 <<<SECTION_START: OBJECION_TIEMPO>>>
-⏱️ OBJECIÓN: TIEMPO
+**OBJECIÓN: TIEMPO**
 
 **Pregunta:**
 Aproximadamente, ¿cuánto tiempo por día o por semana te lleva hoy [tarea actual]?
@@ -601,7 +602,7 @@ La puesta en marcha es simple y te acompañamos paso a paso, no estás solo.
 ¿Te gustaría probarlo y ver cuánto tiempo podrías ahorrar?
 
 <<<SECTION_START: OBJECION_PERSONAL>>>
-👥 OBJECIÓN: SOCIOS / PERSONAL
+**OBJECIÓN: SOCIOS / PERSONAL**
 
 **Pregunta:**
 ¿Tomás vos solo estas decisiones o lo hablás con socios / alguien del equipo?
@@ -617,7 +618,7 @@ Si querés, podemos hacer una demo corta para que todos lo vean y saquen dudas.
 ¿Te parece si coordinamos un horario y lo vemos juntos?
 
 <<<SECTION_START: OBJECION_INTEGRACION>>>
-🔄 OBJECIÓN: CAMBIO / INTEGRACIÓN
+**OBJECIÓN: CAMBIO / INTEGRACIÓN**
 
 **Pregunta:**
 ¿Lo que más te preocupa es cambiar de [sistema actual] o perder información actual?
@@ -633,7 +634,7 @@ Te ayudamos a [proceso de migración] y dejamos todo listo para que arranques si
 ¿Querés que te explique cómo sería el paso a paso?
 
 <<<SECTION_START: OBJECION_MIEDO>>>
-😟 OBJECIÓN: MIEDO / DESCONFIANZA
+**OBJECIÓN: MIEDO / DESCONFIANZA**
 
 **Pregunta:**
 ¿Qué es lo que más te genera duda o desconfianza de [acción]?
