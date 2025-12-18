@@ -208,24 +208,90 @@ IMPORTANTE:
             "EMBUDO": f"""Eres un Estratega de Marketing Senior.
 {base_info}
 
-Genera un EMBUDO DE CONTENIDO SEMANAL (3 niveles):
+Genera un EMBUDO DE CONTENIDO SEMANAL (3 niveles) siguiendo EXACTAMENTE esta estructura:
 
 <<<SECTION_START: EMBUDO_TOFU>>>
-TOFU (Descubrimiento) - Lunes y Jueves
-Objetivo: Atrae atención.
-Incluye: Formato, Gancho y CTA.
+🎣 TOFU — ATRACCIÓN
+
+**Objetivo:** Llamar la atención desde el dolor real, generar identificación inmediata y conversación.
+
+**Formato:** [Reel/Post/Video] ([duración si aplica])
+
+**Gancho (primeros 3 segundos):**
+❌ "[Frase gancho que ataque el dolor directamente]"
+
+**Desarrollo breve:**
+- [Punto 1: Mostrar el caos/problema]
+- [Punto 2: Frase clave memorable]
+
+**CTA:**
+👉 "[Call to action suave que invite a comentar/escribir]"
+
+💡 **Por qué funciona:**
+[Explicación breve de la estrategia psicológica]
 
 <<<SECTION_START: EMBUDO_MOFU>>>
-MOFU (Consideración) - Martes y Viernes
-Objetivo: Educa y muestra solución.
-Incluye: Formato, Gancho y CTA.
+🧠 MOFU — EDUCACIÓN
+
+**Objetivo:** Demostrar que la solución es simple, real y ya funciona en negocios como el suyo.
+
+**Formato:** [Carrusel/Historia/Video educativo]
+
+**Gancho (portada):**
+✅ "[Transformación o resultado logrado]"
+
+**Estructura del contenido:**
+1️⃣ [El problema común]
+2️⃣ [Qué pasaba antes]
+3️⃣ [Qué cambió con la solución]
+4️⃣ [Resultados concretos]
+5️⃣ [Mini testimonio o frase de cliente]
+
+**CTA:**
+👉 "[Invitación a ver demo o conocer más]"
+
+💡 **Por qué funciona:**
+[Explicación de cómo educa y baja objeciones]
 
 <<<SECTION_START: EMBUDO_BOFU>>>
-BOFU (Cierre) - Miércoles, Sábado y Domingo
-Objetivo: Venta directa.
-Incluye: Formato, Gancho y CTA.
+💰 BOFU — CIERRE
 
-Sé CONCISO y DIRECTO. Contenido específico para {business_info.get('rubro')}.""",
+**Objetivo:** Acción inmediata con urgencia clara y riesgo percibido bajo.
+
+**Formato:** [Historias encadenadas/Post de venta/Video directo]
+
+**Secuencia:**
+
+**Parte 1 – Dolor:**
+"[Consecuencia negativa de no actuar]"
+
+**Parte 2 – Solución:**
+"[Cómo el producto/servicio resuelve el problema]"
+
+**Parte 3 – Oferta + urgencia:**
+🔥 [Oferta especial/prueba gratis]
+💰 [Precio accesible]
+⏰ [Urgencia temporal]
+
+**CTA:**
+👉 "[Acción directa: link, mensaje, etc.]"
+
+💡 **Por qué funciona:**
+✔ [Razón 1: urgencia]
+✔ [Razón 2: precio/accesibilidad]
+✔ [Razón 3: bajo riesgo]
+
+---
+
+🧠 **Ajuste estratégico clave:**
+
+**TOFU** = emoción y dolor
+**MOFU** = prueba y claridad
+**BOFU** = decisión rápida
+
+📌 Usar la MISMA frase clave toda la semana para crear recordación + coherencia.
+
+Sé ESPECÍFICO para {business_info.get('rubro')}. NO uses placeholders genéricos.""",
             
             "ADS": f"""Eres un Estratega de Ads especializado en {business_info.get('plataforma')}.
 {base_info}
@@ -475,19 +541,63 @@ Palabras clave: "[palabra 1]", "[palabra 2]", "[palabra 3]".
 ✨ "[Mensaje gancho de 1-2 líneas]" ✨
 
 <<<SECTION_START: EMBUDO_TOFU>>>
-📢 EMBUDO - TOFU (Descubrimiento) - Lunes y Jueves
-Objetivo: Atrae atención, habla del problema.
-Incluye: Formato (Reel/Post), Gancho y CTA.
+🎣 TOFU — ATRACCIÓN
+
+**Objetivo:** Llamar la atención desde el dolor real, generar identificación inmediata.
+
+**Formato:** [Reel/Post/Video]
+**Gancho (primeros 3 segundos):**
+❌ "[Frase gancho que ataque el dolor directamente]"
+
+**Desarrollo breve:**
+- [Mostrar el caos/problema]
+- [Frase clave memorable]
+
+**CTA:**
+👉 "[Call to action suave]"
+
+💡 **Por qué funciona:**
+[Explicación breve]
 
 <<<SECTION_START: EMBUDO_MOFU>>>
-📢 EMBUDO - MOFU (Consideración) - Martes y Viernes
-Objetivo: Educa, muestra solución, casos de éxito.
-Incluye: Formato (Historia/Carrusel), Gancho y CTA.
+🧠 MOFU — EDUCACIÓN
+
+**Objetivo:** Demostrar que la solución es simple, real y ya funciona.
+
+**Formato:** [Carrusel/Historia/Video]
+**Gancho:**
+✅ "[Transformación lograda]"
+
+**Estructura:**
+1️⃣ [Problema común]
+2️⃣ [Qué pasaba antes]
+3️⃣ [Qué cambió]
+4️⃣ [Resultados]
+5️⃣ [Testimonio]
+
+**CTA:**
+👉 "[Invitación a demo]"
+
+💡 **Por qué funciona:**
+[Educa y baja objeciones]
 
 <<<SECTION_START: EMBUDO_BOFU>>>
-📢 EMBUDO - BOFU (Cierre) - Miércoles, Sábado y Domingo
-Objetivo: Oferta directa, urgencia, venta.
-Incluye: Formato (Post Venta/Historia), Gancho y CTA.
+� BOFU — CIERRE
+
+**Objetivo:** Acción inmediata con urgencia y bajo riesgo.
+
+**Formato:** [Historias/Post/Video]
+
+**Secuencia:**
+**Parte 1:** "[Consecuencia de no actuar]"
+**Parte 2:** "[Cómo resuelve el problema]"
+**Parte 3:** 🔥 [Oferta] 💰 [Precio] ⏰ [Urgencia]
+
+**CTA:**
+👉 "[Acción directa]"
+
+💡 **Por qué funciona:**
+✔ Urgencia ✔ Accesibilidad ✔ Bajo riesgo
 
 <<<SECTION_START: ADS_FRIO>>>
 ❄️ TRÁFICO FRÍO - {business_info.get('plataforma')}
