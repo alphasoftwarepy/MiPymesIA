@@ -712,22 +712,52 @@ Palabras clave: "[palabra 1]", "[palabra 2]", "[palabra 3]".
 ✔ Urgencia ✔ Accesibilidad ✔ Bajo riesgo
 
 <<<SECTION_START: ADS_FRIO>>>
-❄️ TRÁFICO FRÍO - {business_info.get('plataforma')}
-Objetivo: Llegar a personas que NO te conocen.
-Define: Objetivo, Ángulo (Dolor), 3 Variaciones Copy (adaptadas a {business_info.get('plataforma')}), Creativos (específicos para {business_info.get('plataforma')}), Segmentación (según {business_info.get('plataforma')}), Presupuesto (50% = ${business_info.get('presupuesto')*0.5} USD), CTA.
-Si son ambas plataformas: especifica distribución 60% Facebook / 40% Google y estrategia para cada una.
+❄️ TRÁFICO FRÍO (Descubrimiento) - {business_info.get('plataforma')}
+
+🎯 **Objetivo:** Reconocimiento + engagement inicial
+
+🎯 **Ángulo (Dolor real):**
+❌ [Dolor 1] ❌ [Dolor 2] ❌ [Dolor 3] ❌ [Dolor 4]
+
+✍️ **Variaciones de Copy:**
+**Copy 1:** ❌ "[Gancho dolor]"
+**Copy 2:** ⏳ "[Tiempo = dinero]"
+**Copy 3:** 📉 "[Anti-método viejo]"
+
+🎨 **Creativos:** Video 10-15s (problema → solución) + Imagen comparativa
+🎯 **Segmentación:** [ubicación], [edad], [intereses], Excluir: web/leads
+💰 **Presupuesto:** 50% = ${business_info.get('presupuesto')*0.5} USD
+👉 **CTA:** "Conocé [producto]" / "Descubrí cómo funciona"
 
 <<<SECTION_START: ADS_TIBIO>>>
-🔥 TRÁFICO TIBIO - Retargeting en {business_info.get('plataforma')}
-Objetivo: Convertir interesados en prospectos.
-Define: Objetivo, Ángulo (Prueba Social), Copy (adaptado a {business_info.get('plataforma')}), Creativos (específicos para {business_info.get('plataforma')}), Segmentación (según {business_info.get('plataforma')}), Presupuesto (35% = ${business_info.get('presupuesto')*0.35} USD), CTA.
-Si son ambas plataformas: especifica distribución 60% Facebook / 40% Google y estrategia para cada una.
+🔥 TRÁFICO TIBIO (Consideración) - Retargeting
+
+🎯 **Objetivo:** Leads / mensajes / visitas calificadas
+
+🎯 **Ángulo:** Prueba social + alivio
+
+✍️ **Copy:** ⭐ "[Historia personal/cliente]" + Resultado + Testimonio
+
+🎨 **Creativos:** Video testimonio 15-30s + Imagen con cita real
+🎯 **Segmentación:** Videos 25-50%, Interacciones, Web, Lookalike
+💰 **Presupuesto:** 35% = ${business_info.get('presupuesto')*0.35} USD
+👉 **CTA:** "Ver demostración" / "Solicitar demo gratis"
 
 <<<SECTION_START: ADS_CALIENTE>>>
-🌡️ TRÁFICO CALIENTE - Cierre en {business_info.get('plataforma')}
-Objetivo: Cerrar ventas YA.
-Define: Objetivo, Ángulo (Urgencia), Copy Cierre (adaptado a {business_info.get('plataforma')}), Creativos (específicos para {business_info.get('plataforma')}), Segmentación (según {business_info.get('plataforma')}), Presupuesto (15% = ${business_info.get('presupuesto')*0.15} USD), CTA.
-Si son ambas plataformas: especifica distribución 60% Facebook / 40% Google y estrategia para cada una.
+� TRÁFICO CALIENTE (Conversión) - Cierre
+
+🎯 **Objetivo:** Ventas / Prueba directa YA
+
+🎯 **Ángulo:** Urgencia + bajo riesgo
+
+✍️ **Copy:** 🔥 "[Últimos cupos/Oferta limitada]" + Beneficio + Urgencia
+
+🎨 **Creativos:** 3 Historias encadenadas (Dolor → Solución → Urgencia)
+🎯 **Segmentación:** Mensajes, Página precios, Anuncios tibios
+💰 **Presupuesto:** 15% = ${business_info.get('presupuesto')*0.15} USD
+👉 **CTA:** "Empezar ahora" / "Activar prueba"
+
+📌 **Frase eje:** "[Frase memorable para toda la campaña]"
 
 <<<SECTION_START: WHATSAPP_DIA1>>>
 💬 DÍA 1 — Contacto + Diagnóstico
