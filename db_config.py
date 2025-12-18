@@ -16,11 +16,12 @@ DATABASE_URL = os.getenv("DATABASE_URL")
 if not DATABASE_URL:
     raise ValueError("❌ DATABASE_URL environment variable is required for PostgreSQL")
 
-# Connection pool for better performance
+# Connection pool - NOT USED (causes pool exhaustion issues)
+# Using direct connections instead with keepalive optimization
 _connection_pool = None
 
 def get_connection_pool():
-    """Get or create connection pool."""
+    """Get or create connection pool - DEPRECATED."""
     global _connection_pool
     if _connection_pool is None:
         _connection_pool = psycopg2.pool.SimpleConnectionPool(
@@ -31,26 +32,30 @@ def get_connection_pool():
 
 def get_connection():
     """
-    Returns a PostgreSQL database connection from the pool.
-    This is much faster than creating a new connection each time.
+    Returns a PostgreSQL database connection.
+    Using direct connections to avoid pool exhaustion.
     """
     try:
-        pool = get_connection_pool()
-        return pool.getconn()
+        # Direct connection with keepalive for better performance
+        conn = psycopg2.connect(
+            DATABASE_URL,
+            keepalives=1,
+            keepalives_idle=30,
+            keepalives_interval=10,
+            keepalives_count=5
+        )
+        return conn
     except Exception as e:
         print(f"⚠️ PostgreSQL connection failed: {e}")
         raise
 
 def return_connection(conn):
     """
-    Returns a connection back to the pool.
-    Call this when you're done with a connection.
+    DEPRECATED - Not needed with direct connections.
+    Just close the connection normally.
     """
-    try:
-        pool = get_connection_pool()
-        pool.putconn(conn)
-    except Exception as e:
-        print(f"⚠️ Error returning connection to pool: {e}")
+    if conn:
+        conn.close()
 
 class PostgresCursorWrapper:
     """
