@@ -241,6 +241,8 @@ def handle_strategy_deletion():
         if st.button("✅ Confirmar Eliminación", type="primary", use_container_width=True):
             success, message = auth.delete_estrategia(estrategia_id, username)
             if success:
+                # Clear Streamlit cache to force refresh
+                st.cache_data.clear()
                 st.success("✅ Estrategia eliminada exitosamente")
                 del st.session_state.deleting_strategy_id
                 time.sleep(1)
