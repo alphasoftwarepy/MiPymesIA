@@ -1,7 +1,8 @@
 import streamlit as st
 import auth
-from auth import DB_NAME
-import sqlite3
+import db_config
+from datetime import datetime
+import psutil
 from datetime import datetime
 import psutil
 from auth_subscription import get_plan_limits
@@ -12,8 +13,8 @@ def admin_panel():
     """
     st.title("🔧 Panel de Administración")
     
-    # Check if user is admin
-    if not st.session_state.user.get('is_admin'):
+    user = st.session_state.get('user')
+    if not user or not user.get('is_admin'):
         st.error("❌ No tienes permisos para acceder a esta página.")
         return
     
@@ -27,10 +28,10 @@ def admin_panel():
         search_query = st.text_input("🔍 Buscar usuario", placeholder="Buscar por nombre de usuario, email o negocio...")
         
         # Get all users
-        conn = sqlite3.connect(DB_NAME)
+        conn = db_config.get_connection()
         c = conn.cursor()
         c.execute("""
-            SELECT username, email, business_name, plan_actual, 
+            SELECT username, email, business_name, plan_actual,
                    fecha_vencimiento,
                    ai_requests_today, ai_request_limit, tokens_total,
                    tokens_mes_actual, tokens_dia_actual, daily_strategies_count
@@ -130,7 +131,7 @@ def admin_panel():
                     )
                     if st.button("➕ Extender", key=f"extend_{username}"):
                         from datetime import timedelta
-                        conn = sqlite3.connect(DB_NAME)
+                        conn = db_config.get_connection()
                         c = conn.cursor()
                         
                         # Get current expiration or use now
@@ -143,7 +144,7 @@ def admin_panel():
                             current_exp = datetime.now()
                         
                         new_exp = current_exp + timedelta(days=days_to_add)
-                        c.execute("UPDATE users SET fecha_vencimiento = ? WHERE username = ?",
+                        c.execute("UPDATE users SET fecha_vencimiento = %s WHERE username = %s",
                                 (new_exp.isoformat(), username))
                         conn.commit()
                         conn.close()
@@ -156,13 +157,13 @@ def admin_panel():
                         "🔄 Reset Límites",
                         key=f"reset_{username}"
                     ):
-                        conn = sqlite3.connect(DB_NAME)
+                        conn = db_config.get_connection()
                         c = conn.cursor()
                         c.execute("""UPDATE users SET 
                                    ai_requests_today = 0,
                                    tokens_dia_actual = 0,
                                    daily_strategies_count = 0
-                                   WHERE username = ?""",
+                                   WHERE username = %s""",
                                 (username,))
                         conn.commit()
                         conn.close()
@@ -207,7 +208,7 @@ def admin_panel():
     with tab2:
         st.subheader("Estadísticas Generales")
         
-        conn = sqlite3.connect(DB_NAME)
+        conn = db_config.get_connection()
         c = conn.cursor()
         
         # Total users by plan
@@ -240,7 +241,7 @@ def admin_panel():
         c.execute("SELECT COUNT(*) FROM users")
         total_count = c.fetchone()[0]
         
-        st.markdown("---")
+        st.markdown("--- ")
         st.markdown(f"**Total de Usuarios:** {total_count}")
         
         conn.close()

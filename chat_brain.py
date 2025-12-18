@@ -9,8 +9,12 @@ def chat_page():
     st.title("💬 MiPymes IA")
     st.caption("Tu asistente de marketing que conoce profundamente tu negocio")
     
-    user = st.session_state.user
-    username = user['username']
+    user = st.session_state.get('user')
+    if not user:
+        st.error("No se encontró información del usuario. Por favor inicia sesión.")
+        st.stop()
+        
+    username = user.get('username')
     
     # Initialize chat history
     if 'brain_chat_history' not in st.session_state:

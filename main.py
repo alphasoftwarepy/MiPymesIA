@@ -30,7 +30,7 @@ except Exception as e:
 
 # Run database migrations automatically on startup
 try:
-    db_migrations.run_all_migrations()
+    db_migrations.run_migrations()
 except Exception as e:
     st.error(f"Error running database migrations: {e}")
     st.stop()
@@ -63,7 +63,7 @@ window.addEventListener('beforeunload', function (e) {
 if 'authenticated' not in st.session_state:
     st.session_state.authenticated = False
 if 'user' not in st.session_state:
-    st.session_state.user = None
+    st.session_state['user'] = None
 if 'step' not in st.session_state:
     st.session_state.step = 1
 if 'strategy_result' not in st.session_state:
@@ -1430,7 +1430,10 @@ def wizard_page():
                     st.warning("⚠️ Por favor completa todos los campos obligatorios.")
                 else:
                     # Check subscription status and request limits
-                    user = st.session_state.user
+                    user = st.session_state.get('user')
+                    if not user:
+                        st.error("❌ Sesión expirada. Por favor, vuelve a iniciar sesión.")
+                        st.stop()
                     
                     # Check if subscription is expired
                     if user.get('expiration_date'):
@@ -1463,7 +1466,9 @@ def wizard_page():
                     }
                     auth.save_last_form_data(user['username'], business_info_save)
                     import json
-                    st.session_state.user['last_form_data'] = json.dumps(business_info_save)
+                    save_user = st.session_state.get('user')
+                    if save_user:
+                        save_user['last_form_data'] = json.dumps(business_info_save)
                     
                     # ========== CLEAR OLD DATA WHEN GENERATING NEW STRATEGY ==========
                     # Clear section chat histories
@@ -1472,14 +1477,10 @@ def wizard_page():
                         del st.session_state[key]
                     
                     # Clear old tasks and progress from database
-                    import sqlite3
-                    import os
+                    # Clear old tasks and progress from database
+                    import db_config
                     
-                    # Use correct database path
-                    DB_PATH = os.getenv("DB_PATH", "/app/data" if os.path.exists("/app/data") else ".")
-                    DB_NAME = os.path.join(DB_PATH, "users.db")
-                    
-                    conn = sqlite3.connect(DB_NAME)
+                    conn = db_config.get_connection()
                     c = conn.cursor()
                     
                     # Safe deletion - only delete if tables exist
@@ -1490,10 +1491,10 @@ def wizard_page():
                     
                     for table in tables_to_clear:
                         try:
-                            c.execute(f"DELETE FROM {table} WHERE user_id = ?", (user['username'],))
-                        except sqlite3.OperationalError:
+                            c.execute(f"DELETE FROM {table} WHERE user_id = %s", (user['username'],))
+                        except Exception as e:
                             # Table doesn't exist yet, skip
-                            print(f"⚠️ Table {table} doesn't exist, skipping cleanup")
+                            print(f"⚠️ Table {table} doesn't exist or error: {e}, skipping cleanup")
                             pass
                     
                     conn.commit()
@@ -1597,18 +1598,23 @@ def wizard_page():
                         # --- PARALLEL EXECUTION: AI + VISUALS ---
                         import concurrent.futures
 
-                        # Capture agent instance in MAIN THREAD to avoid context issues in worker thread
-                        agent = st.session_state.ai_agent
+                        # Capture required variables in MAIN THREAD
+                        agent = st.session_state.get('ai_agent')
+                        current_user = st.session_state.get('user')
+                        
+                        if not current_user or not agent:
+                            st.error("❌ Los datos de sesión no están disponibles. Intenta iniciar sesión de nuevo.")
+                            st.stop()
+                            
+                        current_username = current_user.get('username')
                         
                         # 1. Define the AI task wrapper (to run in background)
                         def run_ai_generation():
-                            # Use captured 'agent' instance
-                            # Pass None as callback to disable ai_logic's internal sleeps/simulation
-                            # This ensures purely computational execution
+                            # Use captured variables
                             return agent.generate_strategy_progressive(
                                 business_info, 
                                 None,
-                                username=st.session_state.user['username']
+                                username=current_username
                             )
 
                         # 2. Launch AI in background thread
@@ -1689,7 +1695,18 @@ def wizard_page():
                         except Exception as e:
                             # CRITICAL: Clear loader so user can see the error
                             overlay_placeholder.empty()
-                            st.error(f"Error en generación: {e}")
+                            progress_container.empty()
+                            
+                            # Log the full error
+                            import traceback
+                            error_trace = traceback.format_exc()
+                            print(f"❌ ERROR EN GENERACIÓN: {e}")
+                            print(f"❌ TRACEBACK COMPLETO:\n{error_trace}")
+                            
+                            # Show detailed error to user
+                            st.error(f"❌ Error en generación: {e}")
+                            with st.expander("🔍 Ver detalles técnicos del error"):
+                                st.code(error_trace)
                             st.stop()
                         
                         # Check if result is an error message
@@ -1700,175 +1717,147 @@ def wizard_page():
                             st.warning("💡 **Posible solución:** Verifica que la variable de entorno OPENAI_API_KEY esté configurada en Easypanel.")
                             st.stop()
                         
-                        st.session_state.strategy_result = result
-                        st.session_state.business_info = business_info
-                        st.session_state.step = 3
-                        
-                        # Initialize sections_generated with all sections since they are all done
-                        if 'sections_generated' not in st.session_state:
-                            st.session_state.sections_generated = {}
-                        
-                        # Populate sections_generated from the result text
-                        sections = ["ROADMAP", "AVATAR", "EMBUDO", "ADS", "WHATSAPP", "OBJECIONES", "ACCIONES_DIARIAS", "METRICAS"]
-                        for section in sections:
-                            content = get_section_content(result, section)
-                            if content and content != "Contenido no disponible.":
-                                st.session_state.sections_generated[section] = content
-                        
-                        # ========== SAVE STRATEGY TO DATABASE ==========
-                        # Save the complete strategy to database for persistence
+                        # Wrap everything after AI generation in try-finally to ensure loader clears
                         try:
-                            estrategia_data = {
-                                'avatar': get_section_content(result, "AVATAR"),
-                                'embudo': f"TOFU:\n{get_section_content(result, 'EMBUDO_TOFU')}\n\nMOFU:\n{get_section_content(result, 'EMBUDO_MOFU')}\n\nBOFU:\n{get_section_content(result, 'EMBUDO_BOFU')}",
-                                'ads': f"FRÍO:\n{get_section_content(result, 'ADS_FRIO')}\n\nTIBIO:\n{get_section_content(result, 'ADS_TIBIO')}\n\nCALIENTE:\n{get_section_content(result, 'ADS_CALIENTE')}",
-                                'objeciones': '\n\n'.join([get_section_content(result, f"OBJECION_{tipo}") for tipo in ["COSTO", "TIEMPO", "PERSONAL", "INTEGRACION", "MIEDO"]]),
-                                'whatsapp': '\n\n'.join([get_section_content(result, f"WHATSAPP_DIA{i}") for i in range(1, 8)]),
-                                'acciones_diarias': "", # Will be generated in background
-                                'kpis': get_section_content(result, "METRICAS")
-                            }
+                            # 5. Process result and save strategy
+                            st.session_state.strategy_result = result
+                            st.session_state.business_info = business_info
+                            st.session_state.step = 3
                             
-                            # Parse Roadmap JSON
-                            roadmap_json = {}
+                            # Initialize sections_generated with all sections since they are all done
+                            if 'sections_generated' not in st.session_state:
+                                st.session_state.sections_generated = {}
+                            
+                            # Populate sections_generated from the result text
+                            sections = ["ROADMAP", "AVATAR", "EMBUDO", "ADS", "WHATSAPP", "OBJECIONES", "ACCIONES_DIARIAS", "METRICAS"]
+                            for section in sections:
+                                content = get_section_content(result, section)
+                                if content and content != "Contenido no disponible.":
+                                    st.session_state.sections_generated[section] = content
+                            
+                            # ========== SAVE STRATEGY TO DATABASE ==========
+                            # Save the complete strategy to database for persistence
                             try:
-                                roadmap_text = get_section_content(result, "ROADMAP")
-                                if roadmap_text:
-                                    # Try to find JSON content if it's wrapped in code blocks
-                                    if "```json" in roadmap_text:
-                                        roadmap_text = roadmap_text.split("```json")[1].split("```")[0].strip()
-                                    elif "```" in roadmap_text:
-                                        roadmap_text = roadmap_text.split("```")[1].split("```")[0].strip()
-                                    
-                                    roadmap_json = json.loads(roadmap_text)
-                            except Exception as e:
-                                print(f"Error parsing Roadmap JSON: {e}")
-                                roadmap_json = []
-
-                            # Create new strategy (don't use save_estrategia as it updates the first one)
-                            success, message, estrategia_id = auth.create_estrategia(
-                                user['username'], 
-                                nombre_estrategia if nombre_estrategia else "Estrategia Sin Nombre",
-                                producto_servicio_desc if producto_servicio_desc else "Producto/Servicio",
-                                estrategia_data,
-                                duracion_dias=business_info.get('duration_days', 30),
-                                roadmap=roadmap_json
-                            )
-                            
-                            if not success:
-                                st.error(f"❌ Error al guardar estrategia: {message}")
-                                return
-                            
-                            st.session_state.editing_strategy_id = estrategia_id
-                            st.session_state.creating_new_strategy = False
-                            
-                            # ========== MANUAL TASK GENERATION ==========
-                            # We stop auto-generation to prevent AI overload.
-                            # User will generate tasks manually in "Mi Progreso"
-                            update_loader("✅ Estrategia Guardada. Ve a 'Mi Progreso' para activar tus tareas.", 16)
-                            time.sleep(2)
-                            
-                            # Clear loader before showing success message
-                            overlay_placeholder.empty()
-                            
-                            # ========== AUTO-POPULATE BRAIN (MULTI-SERVICE) ==========
-                            # NEW: Add or update service, accumulate info, NO avatar storage
-                            
-                            # Prepare service data from current strategy
-                            service_data = {
-                                'nombre': business_info.get('producto', ''),
-                                'rubro': business_info.get('rubro', ''),
-                                'precio': str(business_info.get('precio', '')),
-                                'tipo_venta': business_info.get('tipo', ''),
-                                'diferenciador': business_info.get('diferenciador', ''),
-                                'descripcion': f"{business_info.get('producto', '')} - {business_info.get('rubro', '')}"
-                            }
-                            
-                            # Add or update service
-                            auth.add_or_update_service(user['username'], service_data)
-                            
-                            # Update info_general (accumulate unique values)
-                            brain_data = auth.get_brain_data(user['username'])
-                            info_general = brain_data.get('info_general', {})
-                            
-                            # Accumulate rubros (unique)
-                            rubros = info_general.get('rubros', [])
-                            if business_info.get('rubro') and business_info['rubro'] not in rubros:
-                                rubros.append(business_info['rubro'])
-                            info_general['rubros'] = rubros
-                            
-                            # Accumulate tipos_venta (unique)
-                            tipos_venta = info_general.get('tipos_venta', [])
-                            if business_info.get('tipo') and business_info['tipo'] not in tipos_venta:
-                                tipos_venta.append(business_info['tipo'])
-                            info_general['tipos_venta'] = tipos_venta
-                            
-                            # Update nombre_negocio if provided
-                            if business_info.get('nombre'):
-                                info_general['nombre_negocio'] = business_info['nombre']
-                            
-                            brain_data['info_general'] = info_general
-                            brain_data['ultima_actualizacion'] = datetime.now().isoformat()
-                            
-                            # Save updated brain
-                            auth.update_brain_data(user['username'], brain_data)
-                            print(f"✅ Brain updated (multi-service) for user {user['username']}")
-                            # ==========================================
-                            
-                            # ========== CLEAR OLD SECTION CHATS ==========
-                            # When generating new strategy, compact and clear all old section chats
-                            section_keys = ['avatar', 'embudo_tofu', 'embudo_mofu', 'embudo_bofu', 
-                                          'ads_frio', 'ads_tibio', 'ads_caliente',
-                                          'whatsapp_dia1', 'whatsapp_dia2', 'whatsapp_dia3', 
-                                          'whatsapp_dia4', 'whatsapp_dia5', 'whatsapp_dia6', 'whatsapp_dia7',
-                                          'objecion_costo', 'objecion_tiempo', 'objecion_personal', 
-                                          'objecion_integracion', 'objecion_miedo',
-                                          'acciones_diarias', 'metricas']
-                            
-                            for section_key in section_keys:
+                                estrategia_data = {
+                                    'avatar': get_section_content(result, "AVATAR"),
+                                    'embudo': f"TOFU:\n{get_section_content(result, 'EMBUDO_TOFU')}\n\nMOFU:\n{get_section_content(result, 'EMBUDO_MOFU')}\n\nBOFU:\n{get_section_content(result, 'EMBUDO_BOFU')}",
+                                    'ads': f"FRÍO:\n{get_section_content(result, 'ADS_FRIO')}\n\nTIBIO:\n{get_section_content(result, 'ADS_TIBIO')}\n\nCALIENTE:\n{get_section_content(result, 'ADS_CALIENTE')}",
+                                    'objeciones': '\n\n'.join([get_section_content(result, f"OBJECION_{tipo}") for tipo in ["COSTO", "TIEMPO", "PERSONAL", "INTEGRACION", "MIEDO"]]),
+                                    'whatsapp': '\n\n'.join([get_section_content(result, f"WHATSAPP_DIA{i}") for i in range(1, 8)]),
+                                    'acciones_diarias': "", # Will be generated in background
+                                    'kpis': get_section_content(result, "METRICAS")
+                                }
+                                
+                                # Parse Roadmap JSON
+                                roadmap_json = {}
                                 try:
-                                    # Check if section has messages
-                                    messages = auth.get_section_history(user['username'], section_key)
-                                    if messages and len(messages) > 0:
-                                        # Compact before clearing
-                                        success, summary, insights_count = auth.compact_section_history(
-                                            user['username'], 
-                                            section_key, 
-                                            st.session_state.ai_agent
-                                        )
-                                        if success:
-                                            print(f"✅ Compacted old {section_key} chat: {insights_count} insights")
+                                    import json
+                                    roadmap_text = get_section_content(result, "ROADMAP")
+                                    if roadmap_text and roadmap_text != "Contenido no disponible.":
+                                        # Try to find JSON content if it's wrapped in code blocks
+                                        if "```json" in roadmap_text:
+                                            roadmap_text = roadmap_text.split("```json")[1].split("```")[0].strip()
+                                        elif "```" in roadmap_text:
+                                            roadmap_text = roadmap_text.split("```")[1].split("```")[0].strip()
                                         
-                                        # Clear from session state if exists
-                                        chat_key = f"chat_{section_key}"
-                                        if chat_key in st.session_state:
-                                            st.session_state[chat_key] = []
+                                        roadmap_json = json.loads(roadmap_text)
                                 except Exception as e:
-                                    print(f"Warning: Failed to compact {section_key}: {e}")
-                            
-                            print("✅ All old section chats cleared for new strategy")
-                            # ============================================
-                            
-                        except Exception as save_error:
-                            # Don't fail the whole process if save fails, just log it
-                            print(f"Warning: Failed to save strategy to database: {save_error}")
+                                    print(f"⚠️ Error parsing roadmap JSON: {e}")
+                                    roadmap_json = {}
+
+                                # Create new strategy (don't use save_estrategia as it updates the first one)
+                                success, message, estrategia_id = auth.create_estrategia(
+                                    username=st.session_state.user['username'], 
+                                    nombre_estrategia=business_info.get('producto', 'Mi Estrategia'),
+                                    producto_servicio=producto_servicio_desc if producto_servicio_desc else "Producto/Servicio",
+                                    estrategia_data=estrategia_data,
+                                    duracion_dias=business_info.get('duration_days', 30),
+                                    roadmap=roadmap_json
+                                )
+                                
+                                if not success:
+                                    st.error(f"❌ Error al guardar estrategia: {message}")
+                                    return
+                                
+                                st.session_state.editing_strategy_id = estrategia_id
+                                st.session_state.creating_new_strategy = False
+                                
+                                # ========== MANUAL TASK GENERATION ==========
+                                # We stop auto-generation to prevent AI overload.
+                                # User will generate tasks manually in "Mi Progreso"
+                                update_loader("✅ Estrategia Guardada. Ve a 'Mi Progreso' para activar tus tareas.", 16)
+                                time.sleep(2)
+                                
+                            except Exception as e:
+                                print(f"❌ Error saving strategy: {e}")
+                                import traceback
+                                traceback.print_exc()
+                                st.error(f"❌ Error al guardar estrategia: {e}")
+                                return
+                        
+                        finally:
+                            # ALWAYS clear the loader, no matter what happens
+                            print("🧹 Clearing loader overlay...")
+                            overlay_placeholder.empty()
+                            progress_container.empty()
+                        
                         # ================================================
                         
-                        # Update user session with new request count
+                        # ========== AUTO-POPULATE BRAIN (MULTI-SERVICE) ==========
+                        # NEW: Add or update service, accumulate info, NO avatar storage
+                        
+                        # Prepare service data from current strategy
+                        service_data = {
+                            'nombre': business_info.get('producto', ''),
+                            'rubro': business_info.get('rubro', ''),
+                            'precio': str(business_info.get('precio', '')),
+                            'tipo_venta': business_info.get('tipo', ''),
+                            'diferenciador': business_info.get('diferenciador', ''),
+                            'descripcion': f"{business_info.get('producto', '')} - {business_info.get('rubro', '')}"
+                        }
+                        section_keys = [
+                            'objecion_costo', 'objecion_tiempo', 'objecion_personal',
+                            'objecion_integracion', 'objecion_miedo',
+                            'acciones_diarias', 'metricas'
+                        ]
+                            
+                        for section_key in section_keys:
+                            try:
+                                # Check if section has messages
+                                messages = auth.get_section_history(user['username'], section_key)
+                                if messages and len(messages) > 0:
+                                    # Compact before clearing
+                                    success, summary, insights_count = auth.compact_section_history(
+                                        user['username'], 
+                                        section_key, 
+                                        st.session_state.ai_agent
+                                    )
+                                    if success:
+                                        print(f"✅ Compacted old {section_key} chat: {insights_count} insights")
+                                    
+                                    # Clear from session state if exists
+                                    chat_key = f"chat_{section_key}"
+                                    if chat_key in st.session_state:
+                                        st.session_state[chat_key] = []
+                            except Exception as e:
+                                print(f"Warning: Failed to compact {section_key}: {e}")
+                        
+                        print("✅ All old section chats cleared for new strategy")
+                        # ============================================
+                        
+                    except Exception as save_error:
+                        # Don't fail the whole process if save fails, just log it
+                        print(f"Warning: Failed to save strategy to database: {save_error}")
+                    # ================================================
+                    
+                    # Update user session with new request count
+                    if 'user' in st.session_state and st.session_state.user:
                         st.session_state.user['requests_today'] = user.get('requests_today', 0) + 1
-                        
-                        overlay_placeholder.empty()
-                        progress_container.empty()
-                        st.rerun()
-                        
-                    except Exception as e:
-                        if 'overlay_placeholder' in locals():
-                            overlay_placeholder.empty()
-                        st.error(f"❌ Ocurrió un error: {e}")
-                        st.warning("💡 **Posible solución:** Verifica que la variable de entorno OPENAI_API_KEY esté configurada correctamente.")
-                        import traceback
-                        st.code(traceback.format_exc())
-
-
+                    
+                    overlay_placeholder.empty()
+                    progress_container.empty()
+                    st.rerun()
+                    
     elif st.session_state.step == 2:
         st.session_state.step = 3
         st.rerun()
@@ -1880,8 +1869,9 @@ def wizard_page():
         
         # DEBUG: Show raw text to identify parsing issues
         # This allows us to see exactly what the AI returned
-        with st.expander("🛠️ Debug: Ver Texto Crudo (Útil si faltan secciones)", expanded=False):
-            st.code(strategy_text)
+        # HIDDEN: Uncomment if needed for debugging
+        # with st.expander("🛠️ Debug: Ver Texto Crudo (Útil si faltan secciones)", expanded=False):
+        #     st.code(strategy_text)
         
 
         
@@ -2001,10 +1991,10 @@ def wizard_page():
             )
             
             # Nueva Estrategia button
-            if st.button("🔄 Nueva Estrategia", use_container_width=True, type="primary"):
-                st.session_state.step = 1
-                st.session_state.show_new_strategy_form = False  # Reset flag
-                st.rerun()
+            # if st.button("🔄 Nueva Estrategia", use_container_width=True, type="primary"):
+            #     st.session_state.step = 1
+            #     st.session_state.show_new_strategy_form = False  # Reset flag
+            #     st.rerun()
             
             st.markdown("---")
             
@@ -2230,10 +2220,10 @@ def wizard_page():
                 )
             except Exception as e:
                 st.error(f"Error al generar PDF: {e}")
-        with col2:
-            if st.button("🔄 Nueva Estrategia", use_container_width=True):
-                st.session_state.step = 1
-                st.rerun()
+        # with col2:
+        #     if st.button("🔄 Nueva Estrategia", use_container_width=True):
+        #         st.session_state.step = 1
+        #         st.rerun()
     
     show_footer()
 
@@ -2732,7 +2722,8 @@ else:
             st.title("Generador MiPymesIA")
             
         # Page Routing
-        if st.session_state.user.get('is_admin', False):
+        user_auth = st.session_state.get('user', {})
+        if user_auth.get('is_admin', False):
             with st.sidebar:
                  page = st.radio("Modo", ["Selector de Estrategias", "Mi Progreso", "Cerebro del Negocio", "MiPymes IA", "Admin Panel"])
         else:

@@ -1,4 +1,3 @@
-import sqlite3
 import hashlib
 from passlib.context import CryptContext
 import pandas as pd
@@ -6,27 +5,30 @@ import pandas as pd
 # Password hashing configuration
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
 
-import os
+import streamlit as st
+import extra_streamlit_components as stx
+from datetime import datetime, timedelta
+import re
+import db_config
 
-# Use /app/data for production (Easypanel persistent volume), current dir for local dev
-DB_PATH = os.getenv("DB_PATH", "/app/data" if os.path.exists("/app/data") else ".")
-
-# Ensure the directory exists
-os.makedirs(DB_PATH, exist_ok=True)
-
-DB_NAME = os.path.join(DB_PATH, "users.db")
 
 def init_db():
-    """Initializes the SQLite database and creates the users table if it doesn't exist."""
-    conn = sqlite3.connect(DB_NAME)
+    """Initializes the PostgreSQL database and creates the users table if it doesn't exist."""
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute('''
+    
+    # PostgreSQL syntax
+    pk_type = "SERIAL PRIMARY KEY"
+    bool_true = "TRUE"
+    bool_false = "FALSE"
+
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS users (
             username TEXT PRIMARY KEY,
             password TEXT NOT NULL,
             business_name TEXT,
-            is_active BOOLEAN NOT NULL CHECK (is_active IN (0, 1)),
-            is_admin BOOLEAN NOT NULL CHECK (is_admin IN (0, 1)),
+            is_active BOOLEAN NOT NULL,
+            is_admin BOOLEAN NOT NULL,
             start_date TEXT,
             expiration_date TEXT,
             requests_today INTEGER DEFAULT 0,
@@ -46,34 +48,27 @@ def init_db():
             tokens_total INTEGER DEFAULT 0,
             tokens_mes_actual INTEGER DEFAULT 0,
             tokens_dia_actual INTEGER DEFAULT 0,
-            tokens_last_reset TEXT
+            tokens_last_reset TEXT,
+            puntos_totales INTEGER DEFAULT 0,
+            nivel INTEGER DEFAULT 1,
+            racha_actual INTEGER DEFAULT 0,
+            racha_maxima INTEGER DEFAULT 0,
+            ultimo_dia_activo TEXT,
+            daily_strategies_count INTEGER DEFAULT 0,
+            last_strategy_date TEXT
         )
     ''')
     
-    # Migration: Add business_profile column if it doesn't exist
-    try:
-        c.execute("SELECT business_profile FROM users LIMIT 1")
-    except sqlite3.OperationalError:
-        print("Adding business_profile column to users table...")
-        c.execute("ALTER TABLE users ADD COLUMN business_profile TEXT DEFAULT ''")
-        print("Migration completed successfully.")
-    
-    # Migration: Add last_form_data column if it doesn't exist
-    try:
-        c.execute("SELECT last_form_data FROM users LIMIT 1")
-    except sqlite3.OperationalError:
-        print("Adding last_form_data column to users table...")
-        c.execute("ALTER TABLE users ADD COLUMN last_form_data TEXT DEFAULT ''")
-        print("Migration completed successfully.")
+    # PostgreSQL migrations are handled by db_migrations.py and auto_init_db.py
     
     # Create estrategias_v2 table
-    c.execute('''
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS estrategias_v2 (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {pk_type},
             user_id TEXT NOT NULL,
             nombre_estrategia TEXT NOT NULL,
             producto_servicio TEXT,
-            activa BOOLEAN DEFAULT 1,
+            activa BOOLEAN DEFAULT {bool_true},
             avatar TEXT,
             embudo TEXT,
             ads TEXT,
@@ -92,31 +87,12 @@ def init_db():
         )
     ''')
 
-    # Migration: Add new columns to estrategias_v2 if they don't exist
-    new_columns = {
-        'duracion_dias': 'INTEGER DEFAULT 30',
-        'semana_actual': 'INTEGER DEFAULT 1',
-        'roadmap': 'TEXT',
-        'feedback_historico': 'TEXT'
-    }
-    
-    try:
-        c.execute("PRAGMA table_info(estrategias_v2)")
-        existing_columns = [info[1] for info in c.fetchall()]
-        
-        for col_name, col_type in new_columns.items():
-            if col_name not in existing_columns:
-                print(f"Adding {col_name} column to estrategias_v2 table...")
-                c.execute(f"ALTER TABLE estrategias_v2 ADD COLUMN {col_name} {col_type}")
-    except sqlite3.OperationalError:
-        pass
-    
-    print("Migration completed successfully.")
+    # PostgreSQL migrations handled by db_migrations.py
     
     # Create historial_secciones table
-    c.execute('''
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS historial_secciones (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {pk_type},
             user_id TEXT NOT NULL,
             seccion TEXT NOT NULL,
             tipo TEXT NOT NULL,
@@ -127,48 +103,51 @@ def init_db():
     ''')
     
     # Create conversaciones_archivadas table
-    c.execute('''
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS conversaciones_archivadas (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {pk_type},
             user_id TEXT NOT NULL,
             seccion TEXT NOT NULL,
             resumen TEXT,
             mensajes_count INTEGER,
             timestamp TEXT,
-            expandible BOOLEAN DEFAULT 1,
+            expandible BOOLEAN DEFAULT {bool_true},
             FOREIGN KEY (user_id) REFERENCES users(username)
         )
     ''')
     
     # Create tareas_diarias table
-    c.execute('''
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS tareas_diarias (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {pk_type},
             user_id TEXT NOT NULL,
             estrategia_id INTEGER,
+            titulo TEXT,
             descripcion TEXT,
-            completada BOOLEAN DEFAULT 0,
+            categoria TEXT,
+            prioridad TEXT,
+            frecuencia TEXT,
+            dia_semana INTEGER,
+            completada BOOLEAN DEFAULT {bool_false},
+            fecha_completada TEXT,
             fecha_creacion TEXT,
-            fecha_completado TEXT,
+            seccion_origen TEXT,
+            puntos INTEGER,
             FOREIGN KEY (user_id) REFERENCES users(username),
             FOREIGN KEY (estrategia_id) REFERENCES estrategias_v2(id)
         )
     ''')
 
-    # Migration: Add estrategia_id to tareas_diarias if not exists
-    try:
-        c.execute("SELECT estrategia_id FROM tareas_diarias LIMIT 1")
-    except sqlite3.OperationalError:
-        print("Adding estrategia_id column to tareas_diarias table...")
-        c.execute("ALTER TABLE tareas_diarias ADD COLUMN estrategia_id INTEGER")
-        print("Migration completed successfully.")
+    # PostgreSQL migrations for tareas_diarias are handled by migration scripts.
+    pass
     
     # Create logros_usuario table
-    c.execute('''
+    c.execute(f'''
         CREATE TABLE IF NOT EXISTS logros_usuario (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            id {pk_type},
             user_id TEXT NOT NULL,
-            tipo_logro TEXT,
+            logro_id TEXT,
+            logro_nombre TEXT,
             fecha_obtenido TEXT,
             FOREIGN KEY (user_id) REFERENCES users(username)
         )
@@ -187,7 +166,7 @@ def get_password_hash(password):
 
 def create_user(username, password, email, business_name="", is_active=False, is_admin=False, daily_request_limit=20):
     """Creates a new user in the database."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     hashed_password = get_password_hash(password)
     
@@ -205,7 +184,7 @@ def create_user(username, password, email, business_name="", is_active=False, is
         c.execute("""INSERT INTO users 
                      (username, password, email, business_name, is_active, is_admin, start_date, expiration_date, 
                       requests_today, last_request_date, daily_request_limit, failed_login_attempts, lockout_until) 
-                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0, NULL, ?, 0, NULL)""",
+                     VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0, NULL, %s, 0, NULL)""",
                   (username, hashed_password, email, business_name, is_active, is_admin, start_date, expiration_date, daily_request_limit))
         conn.commit()
         
@@ -227,9 +206,9 @@ def login_user(username, password):
     from datetime import datetime
     
     # Check if user is locked out
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("SELECT lockout_until, failed_login_attempts FROM users WHERE username = ?", (username,))
+    c.execute("SELECT lockout_until, failed_login_attempts FROM users WHERE username = %s", (username,))
     lockout_data = c.fetchone()
     
     if lockout_data and lockout_data[0]:
@@ -240,20 +219,20 @@ def login_user(username, password):
             return {"error": "locked", "remaining_seconds": remaining_seconds}
         else:
             # Lockout expired, reset
-            c.execute("UPDATE users SET lockout_until = NULL, failed_login_attempts = 0 WHERE username = ?", (username,))
+            c.execute("UPDATE users SET lockout_until = NULL, failed_login_attempts = 0 WHERE username = %s", (username,))
             conn.commit()
     
     c.execute("""SELECT username, password, business_name, is_active, is_admin, start_date, expiration_date, 
                         requests_today, last_request_date, email, daily_request_limit, business_profile, last_form_data,
                         plan_actual, fecha_registro, fecha_ultimo_pago, fecha_vencimiento,
                         ai_requests_today, ai_request_limit, daily_strategies_count
-                 FROM users WHERE username = ?""", (username,))
+                 FROM users WHERE username = %s""", (username,))
     user = c.fetchone()
 
     if user:
         if verify_password(password, user[1]):
             # Reset failed attempts on successful login
-            c.execute("UPDATE users SET failed_login_attempts = 0, lockout_until = NULL WHERE username = ?", (username,))
+            c.execute("UPDATE users SET failed_login_attempts = 0, lockout_until = NULL WHERE username = %s", (username,))
             conn.commit()
             
             # Update subscription status based on expiration_date
@@ -264,6 +243,19 @@ def login_user(username, password):
                     # Expired: deactivate user
                     toggle_user_active(username, False)
                     is_active = False
+            
+            # IMPORTANT: Re-apply plan configuration to ensure limits are up-to-date
+            from auth_subscription import set_user_plan, get_plan_limits
+            current_plan = user[13] or "gratuito"
+            set_user_plan(username, current_plan) # This updates daily_request_limit and ai_request_limit in DB
+            
+            # Re-fetch user data to get updated limits
+            c.execute("""SELECT username, password, business_name, is_active, is_admin, start_date, expiration_date, 
+                                requests_today, last_request_date, email, daily_request_limit, business_profile, last_form_data,
+                                plan_actual, fecha_registro, fecha_ultimo_pago, fecha_vencimiento,
+                                ai_requests_today, ai_request_limit, daily_strategies_count
+                         FROM users WHERE username = %s""", (username,))
+            user = c.fetchone() # Re-fetch updated user data
             
             conn.close()
             return {
@@ -276,7 +268,7 @@ def login_user(username, password):
                 "requests_today": user[7] or 0,
                 "last_request_date": user[8],
                 "email": user[9] or "",
-                "daily_request_limit": user[10] or 5,
+                "daily_request_limit": user[10] or 5, # This will now be the correct plan limit
                 "business_profile": user[11] or "",
                 "last_form_data": user[12] or "",
                 "plan_actual": user[13] or "prueba",
@@ -284,7 +276,7 @@ def login_user(username, password):
                 "fecha_ultimo_pago": user[15],
                 "fecha_vencimiento": user[16],
                 "ai_requests_today": user[17] or 0,
-                "ai_request_limit": user[18] or 10,
+                "ai_request_limit": user[18] or 10, # This will now be the correct plan limit
                 "daily_strategies_count": user[19] or 0
             }
         else:
@@ -295,13 +287,13 @@ def login_user(username, password):
                 # Lock out for 5 minutes
                 from datetime import timedelta
                 lockout_until = (datetime.utcnow() + timedelta(minutes=5)).isoformat()
-                c.execute("UPDATE users SET failed_login_attempts = ?, lockout_until = ? WHERE username = ?", 
+                c.execute("UPDATE users SET failed_login_attempts = %s, lockout_until = %s WHERE username = %s", 
                          (failed_attempts, lockout_until, username))
                 conn.commit()
                 conn.close()
                 return {"error": "locked", "remaining_seconds": 300}
             else:
-                c.execute("UPDATE users SET failed_login_attempts = ? WHERE username = ?", (failed_attempts, username))
+                c.execute("UPDATE users SET failed_login_attempts = %s WHERE username = %s", (failed_attempts, username))
                 conn.commit()
                 conn.close()
                 return None
@@ -312,13 +304,13 @@ def login_user(username, password):
 def check_subscription_status(username):
     """Deactivate user if trial/paid period has expired."""
     from datetime import datetime
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("SELECT expiration_date FROM users WHERE username = ?", (username,))
+    c.execute("SELECT expiration_date FROM users WHERE username = %s", (username,))
     row = c.fetchone()
     if row and row[0]:
         if datetime.utcnow().strftime('%Y-%m-%d') > row[0]:
-            c.execute("UPDATE users SET is_active = 0 WHERE username = ?", (username,))
+            c.execute("UPDATE users SET is_active = %s WHERE username = %s", (db_config.false_value(), username))
             conn.commit()
     conn.close()
 
@@ -326,9 +318,9 @@ def increment_request_count(username):
     """Increment daily request count, reset if new day. Returns (can_request, remaining_requests)."""
     from datetime import datetime
     today = datetime.utcnow().strftime('%Y-%m-%d')
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("SELECT requests_today, last_request_date, daily_request_limit FROM users WHERE username = ?", (username,))
+    c.execute("SELECT requests_today, last_request_date, daily_request_limit FROM users WHERE username = %s", (username,))
     row = c.fetchone()
     requests = row[0] or 0
     last_date = row[1]
@@ -340,7 +332,7 @@ def increment_request_count(username):
         conn.close()
         return False, 0  # No more requests allowed, 0 remaining
     requests += 1
-    c.execute("UPDATE users SET requests_today = ?, last_request_date = ? WHERE username = ?", (requests, today, username))
+    c.execute("UPDATE users SET requests_today = %s, last_request_date = %s WHERE username = %s", (requests, today, username))
     conn.commit()
     conn.close()
     remaining = limit - requests
@@ -349,16 +341,16 @@ def increment_request_count(username):
 def extend_subscription(username, days):
     """Add `days` to the user's expiration_date (admin use)."""
     from datetime import datetime, timedelta
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("SELECT expiration_date FROM users WHERE username = ?", (username,))
+    c.execute("SELECT expiration_date FROM users WHERE username = %s", (username,))
     row = c.fetchone()
     if row and row[0]:
         current = datetime.strptime(row[0], '%Y-%m-%d')
         new_date = current + timedelta(days=days)
     else:
         new_date = datetime.utcnow() + timedelta(days=days)
-    c.execute("UPDATE users SET expiration_date = ?, is_active = 1 WHERE username = ?", (new_date.strftime('%Y-%m-%d'), username))
+    c.execute("UPDATE users SET expiration_date = %s, is_active = %s WHERE username = %s", (new_date.strftime('%Y-%m-%d'), db_config.true_value(), username))
     conn.commit()
     conn.close()
 
@@ -371,18 +363,18 @@ def get_all_users():
 
 def toggle_user_active(username, current_status):
     """Toggles the is_active status of a user."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     new_status = not current_status
-    c.execute("UPDATE users SET is_active = ? WHERE username = ?", (new_status, username))
+    c.execute("UPDATE users SET is_active = %s WHERE username = %s", (new_status, username))
     conn.commit()
     conn.close()
 
 def create_default_admin():
     """Creates a default admin user if no admin exists."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("SELECT count(*) FROM users WHERE is_admin = 1")
+    c.execute("SELECT count(*) FROM users WHERE is_admin = %s", (True,))
     if c.fetchone()[0] == 0:
         print("Creating default admin user...")
         create_user("rvargas91", "alphaSoftware!", "alphasoftpy@gmail.com", "System Admin", is_active=True, is_admin=True, daily_request_limit=30)
@@ -390,9 +382,9 @@ def create_default_admin():
 
 def request_password_reset(username, email):
     """Validates username and email combination. Returns True if match found."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("SELECT email FROM users WHERE username = ?", (username,))
+    c.execute("SELECT email FROM users WHERE username = %s", (username,))
     result = c.fetchone()
     conn.close()
     
@@ -402,14 +394,14 @@ def request_password_reset(username, email):
 
 def change_password(username, old_password, new_password):
     """Changes user password after validating old password. Returns True if successful."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("SELECT password FROM users WHERE username = ?", (username,))
+    c.execute("SELECT password FROM users WHERE username = %s", (username,))
     result = c.fetchone()
     
     if result and verify_password(old_password, result[0]):
         new_hash = get_password_hash(new_password)
-        c.execute("UPDATE users SET password = ? WHERE username = ?", (new_hash, username))
+        c.execute("UPDATE users SET password = %s WHERE username = %s", (new_hash, username))
         conn.commit()
         conn.close()
         return True
@@ -421,7 +413,7 @@ def search_users(query):
     """Search users by username or email. Returns filtered DataFrame."""
     conn = sqlite3.connect(DB_NAME)
     df = pd.read_sql_query(
-        "SELECT username, business_name, email, is_active, is_admin, daily_request_limit FROM users WHERE username LIKE ? OR email LIKE ?",
+        "SELECT username, business_name, email, is_active, is_admin, daily_request_limit FROM users WHERE username LIKE %s OR email LIKE %s",
         conn,
         params=(f"%{query}%", f"%{query}%")
     )
@@ -430,9 +422,9 @@ def search_users(query):
 
 def update_business_profile(username, profile_text):
     """Updates the business profile for a user."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("UPDATE users SET business_profile = ? WHERE username = ?", (profile_text, username))
+    c.execute("UPDATE users SET business_profile = %s WHERE username = %s", (profile_text, username))
     conn.commit()
     conn.close()
 
@@ -448,9 +440,9 @@ def get_brain_data(username):
     }
     """
     import json
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("SELECT business_profile FROM users WHERE username = ?", (username,))
+    c.execute("SELECT business_profile FROM users WHERE username = %s", (username,))
     result = c.fetchone()
     conn.close()
     
@@ -597,19 +589,19 @@ def enrich_brain_from_interaction(username, seccion, user_msg, ai_response):
 def save_last_form_data(username, form_data):
     """Saves the last form data for a user as JSON."""
     import json
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     form_json = json.dumps(form_data)
-    c.execute("UPDATE users SET last_form_data = ? WHERE username = ?", (form_json, username))
+    c.execute("UPDATE users SET last_form_data = %s WHERE username = %s", (form_json, username))
     conn.commit()
     conn.close()
 
 def get_last_form_data(username):
     """Retrieves the last form data for a user."""
     import json
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("SELECT last_form_data FROM users WHERE username = ?", (username,))
+    c.execute("SELECT last_form_data FROM users WHERE username = %s", (username,))
     result = c.fetchone()
     conn.close()
     
@@ -628,9 +620,9 @@ from auth_subscription import get_plan_limits
 
 def get_user_estrategias_limit(username):
     """Get the maximum number of strategies allowed for a user based on their plan."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("SELECT plan_actual FROM users WHERE username = ?", (username,))
+    c.execute("SELECT plan_actual FROM users WHERE username = %s", (username,))
     result = c.fetchone()
     conn.close()
     
@@ -661,9 +653,9 @@ def create_estrategia(username, nombre_estrategia, producto_servicio, estrategia
     limit = get_user_estrategias_limit(username)
     
     # Get current usage
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("SELECT daily_strategies_count, last_strategy_date FROM users WHERE username = ?", (username,))
+    c.execute("SELECT daily_strategies_count, last_strategy_date FROM users WHERE username = %s", (username,))
     row = c.fetchone()
     current_count = row[0] or 0
     last_date = row[1]
@@ -678,11 +670,11 @@ def create_estrategia(username, nombre_estrategia, producto_servicio, estrategia
         conn.close()
         return (False, f"Has alcanzado el límite diario de {limit} estrategias de tu plan", None)
     
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     # Check if strategy name already exists for this user
-    c.execute("SELECT id FROM estrategias_v2 WHERE user_id = ? AND nombre_estrategia = ?", 
+    c.execute("SELECT id FROM estrategias_v2 WHERE user_id = %s AND nombre_estrategia = %s", 
              (username, nombre_estrategia))
     if c.fetchone():
         conn.close()
@@ -704,29 +696,34 @@ def create_estrategia(username, nombre_estrategia, producto_servicio, estrategia
     feedback_json = json.dumps(feedback_historico if feedback_historico else [], ensure_ascii=False)
     
     try:
+        # PostgreSQL: Use RETURNING clause
         c.execute("""
             INSERT INTO estrategias_v2 
             (user_id, nombre_estrategia, producto_servicio, activa,
              avatar, embudo, ads, objeciones, whatsapp, acciones_diarias, kpis,
              created_at, updated_at, duracion_dias, semana_actual, roadmap, feedback_historico)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?)
-        """, (username, nombre_estrategia, producto_servicio, 1,
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            RETURNING id
+        """, (username, nombre_estrategia, producto_servicio, db_config.true_value(),
               avatar_json, embudo_json, ads_json, objeciones_json, whatsapp_json,
-              acciones_json, kpis_json, now, now, duracion_dias, roadmap_json, feedback_json))
-              
-        estrategia_id = c.lastrowid
+              acciones_json, kpis_json, now, now, duracion_dias, 1, roadmap_json, feedback_json))
+        
+        estrategia_id = c.fetchone()[0]
         
         # Update daily count
         c.execute("""
             UPDATE users 
-            SET daily_strategies_count = ?, last_strategy_date = ? 
-            WHERE username = ?
+            SET daily_strategies_count = %s, last_strategy_date = %s 
+            WHERE username = %s
         """, (current_count + 1, today, username))
         conn.commit()
         conn.close()
         return (True, "Estrategia creada exitosamente", estrategia_id)
     except Exception as e:
         conn.close()
+        print(f"❌ Error en create_estrategia: {e}")
+        import traceback
+        traceback.print_exc()
         return (False, f"Error al crear estrategia: {str(e)}", None)
 
 def update_estrategia(estrategia_id, username, estrategia_data, nombre_estrategia=None, producto_servicio=None):
@@ -746,11 +743,11 @@ def update_estrategia(estrategia_id, username, estrategia_data, nombre_estrategi
     import json
     from datetime import datetime
     
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     # Verify ownership
-    c.execute("SELECT id FROM estrategias_v2 WHERE id = ? AND user_id = ?", (estrategia_id, username))
+    c.execute("SELECT id FROM estrategias_v2 WHERE id = %s AND user_id = %s", (estrategia_id, username))
     if not c.fetchone():
         conn.close()
         return (False, "Estrategia no encontrada o no tienes permisos")
@@ -770,19 +767,19 @@ def update_estrategia(estrategia_id, username, estrategia_data, nombre_estrategi
         if nombre_estrategia and producto_servicio:
             c.execute("""
                 UPDATE estrategias_v2 
-                SET nombre_estrategia = ?, producto_servicio = ?,
-                    avatar = ?, embudo = ?, ads = ?, objeciones = ?, whatsapp = ?, 
-                    acciones_diarias = ?, kpis = ?, updated_at = ?
-                WHERE id = ? AND user_id = ?
+                SET nombre_estrategia = %s, producto_servicio = %s,
+                    avatar = %s, embudo = %s, ads = %s, objeciones = %s, whatsapp = %s, 
+                    acciones_diarias = %s, kpis = %s, updated_at = %s
+                WHERE id = %s AND user_id = %s
             """, (nombre_estrategia, producto_servicio,
                   avatar_json, embudo_json, ads_json, objeciones_json, whatsapp_json,
                   acciones_json, kpis_json, now, estrategia_id, username))
         else:
             c.execute("""
                 UPDATE estrategias_v2 
-                SET avatar = ?, embudo = ?, ads = ?, objeciones = ?, whatsapp = ?, 
-                    acciones_diarias = ?, kpis = ?, updated_at = ?
-                WHERE id = ? AND user_id = ?
+                SET avatar = %s, embudo = %s, ads = %s, objeciones = %s, whatsapp = %s, 
+                    acciones_diarias = %s, kpis = %s, updated_at = %s
+                WHERE id = %s AND user_id = %s
             """, (avatar_json, embudo_json, ads_json, objeciones_json, whatsapp_json,
                   acciones_json, kpis_json, now, estrategia_id, username))
         
@@ -802,18 +799,18 @@ def get_estrategia_by_id(estrategia_id, username):
     """
     import json
     
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     c.execute("""
         SELECT e.id, e.nombre_estrategia, e.producto_servicio, e.activa,
                e.avatar, e.embudo, e.ads, e.objeciones, e.whatsapp, e.acciones_diarias, e.kpis,
                e.created_at, e.updated_at,
                (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id) as num_tareas,
-               (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id AND completada = 1) as tareas_completadas,
+               (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id AND completada = %s) as tareas_completadas,
                e.duracion_dias, e.semana_actual, e.roadmap, e.feedback_historico
         FROM estrategias_v2 e
-        WHERE e.id = ? AND e.user_id = ?
-    """, (estrategia_id, username))
+        WHERE e.id = %s AND e.user_id = %s
+    """, (db_config.true_value(), estrategia_id, username))
     
     result = c.fetchone()
     conn.close()
@@ -854,18 +851,18 @@ def get_all_estrategias(username):
     """
     import json
     
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     c.execute("""
         SELECT e.id, e.nombre_estrategia, e.producto_servicio, e.activa,
                e.created_at, e.updated_at,
                (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id) as num_tareas,
-               (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id AND completada = 1) as tareas_completadas
+               (SELECT COUNT(*) FROM tareas_diarias WHERE estrategia_id = e.id AND completada = %s) as tareas_completadas
         FROM estrategias_v2 e
-        WHERE e.user_id = ?
+        WHERE e.user_id = %s
         ORDER BY e.created_at DESC
-    """, (username,))
+    """, (db_config.true_value(), username))
     
     results = c.fetchall()
     conn.close()
@@ -887,9 +884,9 @@ def get_all_estrategias(username):
 
 def count_user_estrategias(username):
     """Count how many strategies a user has."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("SELECT COUNT(*) FROM estrategias_v2 WHERE user_id = ?", (username,))
+    c.execute("SELECT COUNT(*) FROM estrategias_v2 WHERE user_id = %s", (username,))
     count = c.fetchone()[0]
     conn.close()
     return count
@@ -901,21 +898,21 @@ def delete_estrategia(estrategia_id, username):
     Returns:
         (success, message)
     """
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     # Verify ownership
-    c.execute("SELECT id FROM estrategias_v2 WHERE id = ? AND user_id = ?", (estrategia_id, username))
+    c.execute("SELECT id FROM estrategias_v2 WHERE id = %s AND user_id = %s", (estrategia_id, username))
     if not c.fetchone():
         conn.close()
         return (False, "Estrategia no encontrada o no tienes permisos")
     
     try:
         # Delete associated tasks first
-        c.execute("DELETE FROM tareas_diarias WHERE estrategia_id = ?", (estrategia_id,))
+        c.execute("DELETE FROM tareas_diarias WHERE estrategia_id = %s", (estrategia_id,))
         
         # Delete strategy
-        c.execute("DELETE FROM estrategias_v2 WHERE id = ?", (estrategia_id,))
+        c.execute("DELETE FROM estrategias_v2 WHERE id = %s", (estrategia_id,))
         
         conn.commit()
         conn.close()
@@ -968,14 +965,14 @@ def save_section_history(username, seccion, tipo, contenido):
     """
     from datetime import datetime
     
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     now = datetime.utcnow().isoformat()
     
     c.execute("""
         INSERT INTO historial_secciones (user_id, seccion, tipo, contenido, timestamp)
-        VALUES (?, ?, ?, ?, ?)
+        VALUES (%s, %s, %s, %s, %s)
     """, (username, seccion, tipo, contenido, now))
     
     conn.commit()
@@ -994,22 +991,22 @@ def get_section_history(username, seccion, limit=None):
     Returns:
         List of dicts with keys: id, tipo, contenido, timestamp
     """
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     if limit:
         c.execute("""
             SELECT id, tipo, contenido, timestamp
             FROM historial_secciones
-            WHERE user_id = ? AND seccion = ?
+            WHERE user_id = %s AND seccion = %s
             ORDER BY timestamp DESC
-            LIMIT ?
+            LIMIT %s
         """, (username, seccion, limit))
     else:
         c.execute("""
             SELECT id, tipo, contenido, timestamp
             FROM historial_secciones
-            WHERE user_id = ? AND seccion = ?
+            WHERE user_id = %s AND seccion = %s
             ORDER BY timestamp ASC
         """, (username, seccion))
     
@@ -1034,13 +1031,13 @@ def get_all_section_history(username):
     Returns:
         Dict with section names as keys and list of interactions as values
     """
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     c.execute("""
         SELECT seccion, tipo, contenido, timestamp
         FROM historial_secciones
-        WHERE user_id = ?
+        WHERE user_id = %s
         ORDER BY seccion, timestamp ASC
     """, (username,))
     
@@ -1069,13 +1066,13 @@ def clear_section_history(username, seccion=None):
         username: user's username
         seccion: optional section name. If None, clears all history for user
     """
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     if seccion:
-        c.execute("DELETE FROM historial_secciones WHERE user_id = ? AND seccion = ?", (username, seccion))
+        c.execute("DELETE FROM historial_secciones WHERE user_id = %s AND seccion = %s", (username, seccion))
     else:
-        c.execute("DELETE FROM historial_secciones WHERE user_id = ?", (username,))
+        c.execute("DELETE FROM historial_secciones WHERE user_id = %s", (username,))
     
     conn.commit()
     conn.close()
@@ -1089,7 +1086,7 @@ def save_archived_conversation(username, seccion, resumen, mensajes_count):
     """
     from datetime import datetime
     
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     timestamp = datetime.utcnow().isoformat()
@@ -1097,7 +1094,7 @@ def save_archived_conversation(username, seccion, resumen, mensajes_count):
     c.execute("""
         INSERT INTO conversaciones_archivadas 
         (user_id, seccion, resumen, mensajes_count, timestamp, expandible)
-        VALUES (?, ?, ?, ?, ?, 1)
+        VALUES (%s, %s, %s, %s, %s, 1)
     """, (username, seccion, resumen, mensajes_count, timestamp))
     
     conn.commit()
@@ -1109,24 +1106,24 @@ def get_archived_conversations(username, seccion=None, limit=3):
     Retrieves archived conversations for a user.
     If seccion is specified, only returns archives for that section.
     """
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     if seccion:
         c.execute("""
             SELECT id, seccion, resumen, mensajes_count, timestamp
             FROM conversaciones_archivadas
-            WHERE user_id = ? AND seccion = ?
+            WHERE user_id = %s AND seccion = %s
             ORDER BY timestamp DESC
-            LIMIT ?
+            LIMIT %s
         """, (username, seccion, limit))
     else:
         c.execute("""
             SELECT id, seccion, resumen, mensajes_count, timestamp
             FROM conversaciones_archivadas
-            WHERE user_id = ?
+            WHERE user_id = %s
             ORDER BY timestamp DESC
-            LIMIT ?
+            LIMIT %s
         """, (username, limit))
     
     results = c.fetchall()
@@ -1201,9 +1198,9 @@ Resumen:"""
     save_archived_conversation(username, seccion, summary, len(messages))
     
     # Delete individual messages
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
-    c.execute("DELETE FROM historial_secciones WHERE user_id = ? AND seccion = ?", (username, seccion))
+    c.execute("DELETE FROM historial_secciones WHERE user_id = %s AND seccion = %s", (username, seccion))
     conn.commit()
     conn.close()
     
@@ -1218,255 +1215,10 @@ def should_compact_section(username, seccion, message_count_threshold=10):
 
 # ==================== SUBSCRIPTION MANAGEMENT ====================
 
-# Plan configurations
-PLAN_CONFIGS = {
-    'gratuito': {
-        'duracion_dias': 999999,  # Permanent
-        'estrategias_dia': 1,
-        'consultas_ia_dia': 5
-    },
-    'prueba': {
-        'duracion_dias': 7,
-        'estrategias_dia': 5,
-        'consultas_ia_dia': 10
-    },
-    'mensual': {
-        'duracion_dias': 30,
-        'estrategias_dia': 5,
-        'consultas_ia_dia': 10
-    },
-    'trimestral': {
-        'duracion_dias': 90,
-        'estrategias_dia': 10,
-        'consultas_ia_dia': 20
-    },
-    'semestral': {
-        'duracion_dias': 180,
-        'estrategias_dia': 15,
-        'consultas_ia_dia': 30
-    },
-    'anual': {
-        'duracion_dias': 360,
-        'estrategias_dia': 15,
-        'consultas_ia_dia': 30
-    }
-}
+# Plan limits for strategies
+# Plan limits are now managed in auth_subscription.py
+from auth_subscription import get_plan_limits, set_user_plan, check_and_expire_users, increment_ai_request, get_ai_request_status, track_tokens
 
-def get_plan_limits(plan_name):
-    """Returns the limits for a given plan."""
-    return PLAN_CONFIGS.get(plan_name, PLAN_CONFIGS['gratuito'])
-
-def set_user_plan(username, plan_name, payment_date=None):
-    """
-    Sets a user's plan and calculates expiration date.
-    """
-    from datetime import datetime, timedelta
-    
-    if plan_name not in PLAN_CONFIGS:
-        return False
-    
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    
-    now = datetime.utcnow()
-    payment_date = payment_date or now
-    plan_config = PLAN_CONFIGS[plan_name]
-    expiration_date = payment_date + timedelta(days=plan_config['duracion_dias'])
-    
-    c.execute("""
-        UPDATE users 
-        SET plan_actual = ?,
-            fecha_ultimo_pago = ?,
-            fecha_vencimiento = ?,
-            daily_request_limit = ?,
-            ai_request_limit = ?
-        WHERE username = ?
-    """, (
-        plan_name,
-        payment_date.isoformat(),
-        expiration_date.isoformat(),
-        plan_config['estrategias_dia'],
-        plan_config['consultas_ia_dia'],
-        username
-    ))
-    
-    conn.commit()
-    conn.close()
-    return True
-
-def check_and_expire_users():
-    """
-    Checks all users and expires those whose fecha_vencimiento has passed.
-    Changes them to 'gratuito' plan.
-    Should be run daily at 2 AM via cron.
-    """
-    from datetime import datetime
-    
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    
-    now = datetime.utcnow().isoformat()
-    
-    # Find expired users
-    c.execute("""
-        SELECT username, plan_actual, fecha_vencimiento
-        FROM users
-        WHERE fecha_vencimiento < ? 
-        AND plan_actual != 'gratuito'
-        AND is_active = 1
-    """, (now,))
-    
-    expired_users = c.fetchall()
-    
-    if expired_users:
-        print(f"Found {len(expired_users)} expired users")
-        
-        for username, old_plan, expiration in expired_users:
-            print(f"Expiring user: {username} (was {old_plan}, expired {expiration})")
-            set_user_plan(username, 'gratuito')
-    
-    conn.close()
-    return len(expired_users)
-
-def increment_ai_request(username):
-    """
-    Increments AI request counter for a user.
-    Returns (can_request, remaining) tuple.
-    """
-    from datetime import datetime
-    
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    
-    # Get current user data
-    c.execute("""
-        SELECT ai_requests_today, ai_request_limit, last_request_date
-        FROM users
-        WHERE username = ?
-    """, (username,))
-    
-    result = c.fetchone()
-    if not result:
-        conn.close()
-        return (False, 0)
-    
-    ai_requests_today, ai_request_limit, last_request_date = result
-    
-    # Check if we need to reset (new day)
-    today = datetime.utcnow().date().isoformat()
-    last_date = last_request_date[:10] if last_request_date else None
-    
-    if last_date != today:
-        # Reset counter for new day
-        ai_requests_today = 0
-    
-    # Check if user can make request
-    if ai_requests_today >= ai_request_limit:
-        conn.close()
-        return (False, 0)
-    
-    # Increment counter
-    ai_requests_today += 1
-    
-    c.execute("""
-        UPDATE users
-        SET ai_requests_today = ?,
-            last_request_date = ?
-        WHERE username = ?
-    """, (ai_requests_today, datetime.utcnow().isoformat(), username))
-    
-    conn.commit()
-    conn.close()
-    
-    remaining = ai_request_limit - ai_requests_today
-    return (True, remaining)
-
-def get_ai_request_status(username):
-    """
-    Gets current AI request status for a user.
-    Returns (used, limit, remaining) tuple.
-    """
-    from datetime import datetime
-    
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    
-    c.execute("""
-        SELECT ai_requests_today, ai_request_limit, last_request_date
-        FROM users
-        WHERE username = ?
-    """, (username,))
-    
-    result = c.fetchone()
-    conn.close()
-    
-    if not result:
-        return (0, 10, 10)
-    
-    ai_requests_today, ai_request_limit, last_request_date = result
-    
-    # Check if we need to reset (new day)
-    today = datetime.utcnow().date().isoformat()
-    last_date = last_request_date[:10] if last_request_date else None
-    
-    if last_date != today:
-        ai_requests_today = 0
-    
-    remaining = ai_request_limit - ai_requests_today
-    return (ai_requests_today, ai_request_limit, remaining)
-
-def track_tokens(username, tokens_used):
-    """
-    Tracks token usage for a user.
-    Updates total, monthly, and daily counters.
-    """
-    from datetime import datetime
-    
-    conn = sqlite3.connect(DB_NAME)
-    c = conn.cursor()
-    
-    # Get current token data
-    c.execute("""
-        SELECT tokens_total, tokens_mes_actual, tokens_dia_actual, tokens_last_reset
-        FROM users
-        WHERE username = ?
-    """, (username,))
-    
-    result = c.fetchone()
-    if not result:
-        conn.close()
-        return False
-    
-    tokens_total, tokens_mes, tokens_dia, last_reset = result
-    
-    now = datetime.utcnow()
-    last_reset_date = datetime.fromisoformat(last_reset) if last_reset else now
-    
-    # Check if we need to reset monthly counter
-    if now.month != last_reset_date.month:
-        tokens_mes = 0
-    
-    # Check if we need to reset daily counter
-    if now.date() != last_reset_date.date():
-        tokens_dia = 0
-    
-    # Update counters
-    tokens_total = (tokens_total or 0) + tokens_used
-    tokens_mes = (tokens_mes or 0) + tokens_used
-    tokens_dia = (tokens_dia or 0) + tokens_used
-    
-    c.execute("""
-        UPDATE users
-        SET tokens_total = ?,
-            tokens_mes_actual = ?,
-            tokens_dia_actual = ?,
-            tokens_last_reset = ?
-        WHERE username = ?
-    """, (tokens_total, tokens_mes, tokens_dia, now.isoformat(), username))
-    
-    conn.commit()
-    conn.close()
-    return True
 
 def clear_base_info(username):
     """
@@ -1614,27 +1366,27 @@ def delete_user(username):
     Returns:
         (success, message)
     """
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     try:
         # Delete associated tasks
-        c.execute("DELETE FROM tareas_diarias WHERE user_id = ?", (username,))
+        c.execute("DELETE FROM tareas_diarias WHERE user_id = %s", (username,))
         
         # Delete associated strategies
-        c.execute("DELETE FROM estrategias_v2 WHERE user_id = ?", (username,))
+        c.execute("DELETE FROM estrategias_v2 WHERE user_id = %s", (username,))
         
         # Delete section history
-        c.execute("DELETE FROM historial_secciones WHERE user_id = ?", (username,))
+        c.execute("DELETE FROM historial_secciones WHERE user_id = %s", (username,))
         
         # Delete archived conversations
-        c.execute("DELETE FROM conversaciones_archivadas WHERE user_id = ?", (username,))
+        c.execute("DELETE FROM conversaciones_archivadas WHERE user_id = %s", (username,))
         
         # Delete achievements
-        c.execute("DELETE FROM logros_usuario WHERE user_id = ?", (username,))
+        c.execute("DELETE FROM logros_usuario WHERE user_id = %s", (username,))
         
         # Delete the user
-        c.execute("DELETE FROM users WHERE username = ?", (username,))
+        c.execute("DELETE FROM users WHERE username = %s", (username,))
         
         conn.commit()
         conn.close()
@@ -1643,9 +1395,11 @@ def delete_user(username):
         conn.close()
         return (False, f"Error al eliminar usuario: {str(e)}")
 
-# Auto-initialize database when module is imported
-try:
-    init_db()
-    create_default_admin()
-except Exception as e:
-    print(f"Warning: Database initialization error: {e}")
+# Auto-initialize removed to prevent side effects on import
+# init_db() must be called explicitly by main.py or migration scripts
+if __name__ == "__main__":
+    try:
+        init_db()
+        create_default_admin()
+    except Exception as e:
+        print(f"Warning: Database initialization error: {e}")

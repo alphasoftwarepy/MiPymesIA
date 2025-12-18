@@ -1,13 +1,6 @@
-import sqlite3
 import os
-
-# Use /app/data for production (Easypanel persistent volume), current dir for local dev
-DB_PATH = os.getenv("DB_PATH", "/app/data" if os.path.exists("/app/data") else ".")
-
-# Ensure the directory exists
-os.makedirs(DB_PATH, exist_ok=True)
-
-DB_NAME = os.path.join(DB_PATH, "users.db")
+import db_config
+from db_config import get_connection
 
 # ==================== SUBSCRIPTION MANAGEMENT ====================
 
@@ -53,7 +46,7 @@ def set_user_plan(username, plan_name, payment_date=None):
     if plan_name not in PLAN_CONFIGS:
         return False
     
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     now = datetime.utcnow()
@@ -63,12 +56,12 @@ def set_user_plan(username, plan_name, payment_date=None):
     
     c.execute("""
         UPDATE users 
-        SET plan_actual = ?,
-            fecha_ultimo_pago = ?,
-            fecha_vencimiento = ?,
-            daily_request_limit = ?,
-            ai_request_limit = ?
-        WHERE username = ?
+        SET plan_actual = %s,
+            fecha_ultimo_pago = %s,
+            fecha_vencimiento = %s,
+            daily_request_limit = %s,
+            ai_request_limit = %s
+        WHERE username = %s
     """, (
         plan_name,
         payment_date.isoformat(),
@@ -90,7 +83,7 @@ def check_and_expire_users():
     """
     from datetime import datetime
     
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     now = datetime.utcnow().isoformat()
@@ -99,10 +92,10 @@ def check_and_expire_users():
     c.execute("""
         SELECT username, plan_actual, fecha_vencimiento
         FROM users
-        WHERE fecha_vencimiento < ? 
+        WHERE fecha_vencimiento < %s 
         AND plan_actual != 'gratuito'
-        AND is_active = 1
-    """, (now,))
+        AND is_active = %s
+    """, (now, db_config.true_value()))
     
     expired_users = c.fetchall()
     
@@ -123,14 +116,14 @@ def increment_ai_request(username):
     """
     from datetime import datetime
     
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     # Get current user data
     c.execute("""
         SELECT ai_requests_today, ai_request_limit, last_request_date
         FROM users
-        WHERE username = ?
+        WHERE username = %s
     """, (username,))
     
     result = c.fetchone()
@@ -158,9 +151,9 @@ def increment_ai_request(username):
     
     c.execute("""
         UPDATE users
-        SET ai_requests_today = ?,
-            last_request_date = ?
-        WHERE username = ?
+        SET ai_requests_today = %s,
+            last_request_date = %s
+        WHERE username = %s
     """, (ai_requests_today, datetime.utcnow().isoformat(), username))
     
     conn.commit()
@@ -176,13 +169,13 @@ def get_ai_request_status(username):
     """
     from datetime import datetime
     
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     c.execute("""
         SELECT ai_requests_today, ai_request_limit, last_request_date
         FROM users
-        WHERE username = ?
+        WHERE username = %s
     """, (username,))
     
     result = c.fetchone()
@@ -210,14 +203,14 @@ def track_tokens(username, tokens_used):
     """
     from datetime import datetime
     
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     # Get current token data
     c.execute("""
         SELECT tokens_total, tokens_mes_actual, tokens_dia_actual, tokens_last_reset
         FROM users
-        WHERE username = ?
+        WHERE username = %s
     """, (username,))
     
     result = c.fetchone()
@@ -245,11 +238,11 @@ def track_tokens(username, tokens_used):
     
     c.execute("""
         UPDATE users
-        SET tokens_total = ?,
-            tokens_mes_actual = ?,
-            tokens_dia_actual = ?,
-            tokens_last_reset = ?
-        WHERE username = ?
+        SET tokens_total = %s,
+            tokens_mes_actual = %s,
+            tokens_dia_actual = %s,
+            tokens_last_reset = %s
+        WHERE username = %s
     """, (tokens_total, tokens_mes, tokens_dia, now.isoformat(), username))
     
     conn.commit()

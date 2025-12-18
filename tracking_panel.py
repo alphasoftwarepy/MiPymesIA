@@ -11,8 +11,12 @@ def tracking_panel_page():
     """Main tracking panel page with tabs for multiple strategies"""
     st.title("📊 Mi Progreso")
     
-    user = st.session_state.user
-    username = user['username']
+    user = st.session_state.get('user')
+    if not user:
+        st.error("No se encontró información del usuario. Por favor inicia sesión.")
+        st.stop()
+        
+    username = user.get('username')
     
     # Obtener todas las estrategias del usuario
     import auth
@@ -348,7 +352,7 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
                             st.session_state.confirm_regen_week = True
                             st.rerun()
                     else:
-                        st.warning("¿Estás seguro? Se borrarán las tareas actuales de esta semana.")
+                        st.warning("¿Estás seguro%s Se borrarán las tareas actuales de esta semana.")
                         col_conf1, col_conf2 = st.columns(2)
                         with col_conf1:
                             if st.button("✅ Sí, Regenerar", type="primary"):
@@ -376,7 +380,10 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
                                 st.rerun()
 
                 with col_cycle2:
-                    if st.button("🏁 Cerrar Semana y Avanzar", type="primary", help="Completa la semana y genera la siguiente"):
+                    if st.button("🏁 Cerrar Semana y Avanzar",
+                               type="primary",
+                               help="Completa la semana y genera la siguiente",
+                               disabled=(current_week_real >= total_weeks)):
                         st.session_state.show_feedback_modal = True
 
             # Feedback Modal Logic
@@ -391,22 +398,46 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
                     submitted = st.form_submit_button("🚀 Generar Siguiente Semana")
                     
                     if submitted:
+                        # Get strategy info to calculate weeks
+                        import auth
+                        estrategia_info = auth.get_estrategia_by_id(estrategia_id, username)
+                        current_week_real = estrategia_info.get('semana_actual', 1)
+                        total_weeks = int(estrategia_info.get('duracion_dias', 30) / 7)
+                        roadmap = estrategia_info.get('roadmap', [])
+                        
+                        print(f"📊 Current week: {current_week_real}, Total weeks: {total_weeks}")
+                        
                         # Save feedback logic would go here (need to add to auth.py or handle in tasks_manager/main)
                         
                         # Generate Next Week
                         next_week = current_week_real + 1
                         if next_week <= total_weeks:
                             # 1. Update Strategy current_week in DB
-                            import sqlite3
-                            conn = sqlite3.connect(auth.DB_NAME)
+                            import db_config
+                            conn = db_config.get_connection()
                             c = conn.cursor()
-                            c.execute("UPDATE estrategias_v2 SET semana_actual = ? WHERE id = ?", (next_week, estrategia_id))
+                            c.execute("UPDATE estrategias_v2 SET semana_actual = %s WHERE id = %s", (next_week, estrategia_id))
                             conn.commit()
                             conn.close()
                             
                             # 2. Generate Tasks
+                            print(f"🔄 Iniciando generación de tareas para semana {next_week}")
+                            print(f"📊 Roadmap data: {roadmap}")
+                            
                             with st.spinner("🧠 Diseñando tu próxima semana..."):
-                                tasks_manager.generate_weekly_tasks(username, estrategia_id, next_week, f"{feedback_text}. Metrics: {metric_input}", roadmap)
+                                try:
+                                    saved_count, created_tasks = tasks_manager.generate_weekly_tasks(
+                                        username, estrategia_id, next_week, 
+                                        f"{feedback_text}. Metrics: {metric_input}", 
+                                        roadmap
+                                    )
+                                    print(f"✅ Generadas {saved_count} tareas para semana {next_week}")
+                                except Exception as e:
+                                    print(f"❌ Error generando tareas: {e}")
+                                    import traceback
+                                    traceback.print_exc()
+                                    st.error(f"Error al generar tareas: {e}")
+                                    st.stop()
                             
                             st.session_state.show_feedback_modal = False
                             st.session_state.view_week_num = next_week # Update view
@@ -564,7 +595,7 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
                 st.rerun()
         
         if st.session_state.get('confirm_reset_progress', False):
-            st.error("¿Estás COMPLETAMENTE SEGURO? Esta acción no se puede deshacer.")
+            st.error("¿Estás COMPLETAMENTE SEGURO%s Esta acción no se puede deshacer.")
             col_conf_reset1, col_conf_reset2 = st.columns(2)
             with col_conf_reset1:
                 # Double confirmation button
@@ -718,8 +749,8 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                         st.rerun()
                 
                 with col_s2:
-                    if st.button("⏰ ¿Cuándo hacerlo?", key=f"sugg2_{task['id']}_e{estrategia_id or 'todas'}", use_container_width=True):
-                        user_msg = "¿Cuál es el mejor momento para hacer esta tarea?"
+                    if st.button("⏰ ¿Cuándo hacerlo%s", key=f"sugg2_{task['id']}_e{estrategia_id or 'todas'}", use_container_width=True):
+                        user_msg = "¿Cuál es el mejor momento para hacer esta tarea%s"
                         st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
                         with st.spinner("🤔 Pensando..."):
                             ai_response = get_task_ai_help(task, user_msg, username)

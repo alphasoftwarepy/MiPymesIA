@@ -2,16 +2,11 @@
 Tasks Manager - Handles task generation, CRUD operations, and progress tracking
 """
 
-import sqlite3
 import json
 from datetime import datetime, timedelta
 from openai import OpenAI
 import os
-
-# Use /app/data for production (Easypanel persistent volume), current dir for local dev
-DB_PATH = os.getenv("DB_PATH", "/app/data" if os.path.exists("/app/data") else ".")
-os.makedirs(DB_PATH, exist_ok=True)
-DB_NAME = os.path.join(DB_PATH, "users.db")
+import db_config
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -226,7 +221,7 @@ FORMATO JSON:
         
         import re
         # Regex to find JSON block (supports json, js, or no tag)
-        json_match = re.search(r"```(?:json|js)?\s*(\[[\s\S]*?\])\s*```", tasks_json)
+        json_match = re.search(r"```(%s:json|js)%s\s*(\[[\s\S]*%s\])\s*```", tasks_json)
         
         if json_match:
             tasks_json = json_match.group(1)
@@ -302,11 +297,11 @@ def save_distributed_tasks(username, estrategia_id, tasks, day_offset=0):
                 final_tasks.append(t_copy)
 
     # Save to DB applying Offset
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     # Get max current task number for ID consistency
-    c.execute("SELECT COUNT(*) FROM tareas_diarias WHERE user_id = ? AND estrategia_id = ?", (username, estrategia_id))
+    c.execute("SELECT COUNT(*) FROM tareas_diarias WHERE user_id = %s AND estrategia_id = %s", (username, estrategia_id))
     start_num = c.fetchone()[0]
     
     created_tasks = []
@@ -327,7 +322,7 @@ def save_distributed_tasks(username, estrategia_id, tasks, day_offset=0):
                 INSERT INTO tareas_diarias 
                 (user_id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, 
                  fecha_creacion, seccion_origen, puntos, estrategia_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
             """, (username, titulo_con_prefijo, task.get('descripcion', ''), 
                   task.get('categoria', 'general'), task.get('prioridad', 'media'), 
                   task.get('frecuencia', 'unica'), absolute_day,
@@ -345,7 +340,7 @@ def save_distributed_tasks(username, estrategia_id, tasks, day_offset=0):
 
 def delete_week_tasks(username, estrategia_id, week_num):
     """Deletes all tasks for a specific week."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     start_day = (week_num - 1) * 7
@@ -353,7 +348,7 @@ def delete_week_tasks(username, estrategia_id, week_num):
     
     c.execute("""
         DELETE FROM tareas_diarias 
-        WHERE user_id = ? AND estrategia_id = ? AND dia_semana BETWEEN ? AND ?
+        WHERE user_id = %s AND estrategia_id = %s AND dia_semana BETWEEN %s AND %s
     """, (username, estrategia_id, start_day, end_day))
     
     conn.commit()
@@ -366,7 +361,7 @@ def delete_week_tasks(username, estrategia_id, week_num):
 def create_task(username, titulo, descripcion="", categoria="general", prioridad="media", 
                 frecuencia="unica", dia_semana=None, seccion_origen="", estrategia_id=None):
     """Create a new task."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     now = datetime.utcnow().isoformat()
@@ -380,7 +375,7 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
         # Contar tareas existentes para esta estrategia
         c.execute("""
             SELECT COUNT(*) FROM tareas_diarias 
-            WHERE user_id = ? AND estrategia_id = ?
+            WHERE user_id = %s AND estrategia_id = %s
         """, (username, estrategia_id))
         task_count = c.fetchone()[0]
         task_num = task_count + 1
@@ -409,7 +404,7 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
         # Count how many weeks ahead this task is (for recurring tasks)
         c.execute("""
             SELECT COUNT(*) FROM tareas_diarias 
-            WHERE user_id = ? AND titulo LIKE ? AND dia_semana = ?
+            WHERE user_id = %s AND titulo LIKE %s AND dia_semana = %s
         """, (username, f"{titulo}%", dia_semana))
         count = c.fetchone()[0]
         
@@ -429,7 +424,7 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
             INSERT INTO tareas_diarias 
             (user_id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, 
              fecha_creacion, seccion_origen, puntos, estrategia_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         """, (username, titulo_con_prefijo, descripcion, categoria, prioridad, frecuencia, dia_semana,
               now, seccion_origen, puntos, estrategia_id))
         
@@ -443,15 +438,16 @@ def create_task(username, titulo, descripcion="", categoria="general", prioridad
 
 def get_tasks_for_today(username, estrategia_id=None):
     """Get tasks scheduled for today based on assigned date from strategy creation."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     if estrategia_id:
-        # Filter by exact date match using calculated assigned date
+        # Filter by exact date match using calculated assigned date (PostgreSQL)
         query = """
             SELECT id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, completada, puntos, fecha_completada, seccion_origen
             FROM tareas_diarias 
-            WHERE user_id = ? AND estrategia_id = ? AND DATE((SELECT created_at FROM estrategias_v2 WHERE id = estrategia_id), '+' || dia_semana || ' days') = DATE(?)
+            WHERE user_id = %s AND estrategia_id = %s 
+            AND CAST((SELECT created_at FROM estrategias_v2 WHERE id = estrategia_id) AS DATE) + (dia_semana || ' days')::interval = CAST(%s AS DATE)
         """
         params = [username, estrategia_id, datetime.now().strftime('%Y-%m-%d')]
     else:
@@ -460,7 +456,7 @@ def get_tasks_for_today(username, estrategia_id=None):
         query = """
             SELECT id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, completada, puntos, fecha_completada, seccion_origen
             FROM tareas_diarias 
-            WHERE user_id = ? AND dia_semana = ?
+            WHERE user_id = %s AND dia_semana = %s
         """
         params = [username, today_iso]
     
@@ -487,18 +483,18 @@ def get_tasks_for_today(username, estrategia_id=None):
 
 def get_tasks_for_week(username, estrategia_id=None):
     """Get all tasks for the user, optionally filtered by strategy."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     query = """
         SELECT id, titulo, descripcion, categoria, prioridad, frecuencia, dia_semana, completada, puntos, fecha_completada, seccion_origen
         FROM tareas_diarias 
-        WHERE user_id = ?
+        WHERE user_id = %s
     """
     params = [username]
     
     if estrategia_id:
-        query += " AND estrategia_id = ?"
+        query += " AND estrategia_id = %s"
         params.append(estrategia_id)
     
     c.execute(query, tuple(params))
@@ -525,13 +521,13 @@ def get_tasks_for_week(username, estrategia_id=None):
 
 def complete_task(username, task_id):
     """Mark a task as completed and award points."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     now = datetime.utcnow().isoformat()
     
     # Get task points
-    c.execute("SELECT puntos FROM tareas_diarias WHERE id = ? AND user_id = ?", (task_id, username))
+    c.execute("SELECT puntos FROM tareas_diarias WHERE id = %s AND user_id = %s", (task_id, username))
     result = c.fetchone()
     
     if not result:
@@ -543,15 +539,15 @@ def complete_task(username, task_id):
     # Mark task as completed
     c.execute("""
         UPDATE tareas_diarias
-        SET completada = 1, fecha_completada = ?
-        WHERE id = ? AND user_id = ?
-    """, (now, task_id, username))
+        SET completada = %s, fecha_completada = %s
+        WHERE id = %s AND user_id = %s
+    """, (db_config.true_value(), now, task_id, username))
     
     # Award points to user
     c.execute("""
         UPDATE users
-        SET puntos_totales = puntos_totales + ?
-        WHERE username = ?
+        SET puntos_totales = puntos_totales + %s
+        WHERE username = %s
     """, (puntos, username))
     
     conn.commit()
@@ -566,11 +562,11 @@ def complete_task(username, task_id):
 
 def uncomplete_task(username, task_id):
     """Unmark a task as completed."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     # Get task points
-    c.execute("SELECT puntos FROM tareas_diarias WHERE id = ? AND user_id = ?", (task_id, username))
+    c.execute("SELECT puntos FROM tareas_diarias WHERE id = %s AND user_id = %s", (task_id, username))
     result = c.fetchone()
     
     if not result:
@@ -582,15 +578,15 @@ def uncomplete_task(username, task_id):
     # Unmark task
     c.execute("""
         UPDATE tareas_diarias
-        SET completada = 0, fecha_completada = NULL
-        WHERE id = ? AND user_id = ?
-    """, (task_id, username))
+        SET completada = %s, fecha_completada = NULL
+        WHERE id = %s AND user_id = %s
+    """, (db_config.false_value(), task_id, username))
     
-    # Remove points from user
+    # Remove points from user (use GREATEST for PostgreSQL compatibility)
     c.execute("""
         UPDATE users
-        SET puntos_totales = MAX(0, puntos_totales - ?)
-        WHERE username = ?
+        SET puntos_totales = GREATEST(0, puntos_totales - %s)
+        WHERE username = %s
     """, (puntos, username))
     
     conn.commit()
@@ -601,10 +597,10 @@ def uncomplete_task(username, task_id):
 
 def delete_task(username, task_id):
     """Delete a task."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
-    c.execute("DELETE FROM tareas_diarias WHERE id = ? AND user_id = ?", (task_id, username))
+    c.execute("DELETE FROM tareas_diarias WHERE id = %s AND user_id = %s", (task_id, username))
     
     conn.commit()
     conn.close()
@@ -629,7 +625,7 @@ def get_weekly_progress(username, estrategia_id=None):
 
 def update_streak(username):
     """Update user's streak based on task completion."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     today = datetime.now().date().isoformat()
@@ -638,7 +634,7 @@ def update_streak(username):
     c.execute("""
         SELECT ultimo_dia_activo, racha_actual, racha_maxima
         FROM users
-        WHERE username = ?
+        WHERE username = %s
     """, (username,))
     
     result = c.fetchone()
@@ -653,8 +649,8 @@ def update_streak(username):
     c.execute("""
         SELECT COUNT(*)
         FROM tareas_diarias
-        WHERE user_id = ? AND completada = 1 AND DATE(fecha_completada) = DATE(?)
-    """, (username, today))
+        WHERE user_id = %s AND completada = %s AND DATE(fecha_completada) = DATE(%s)
+    """, (username, db_config.true_value(), today))
     
     completed_today = c.fetchone()[0]
     
@@ -680,10 +676,10 @@ def update_streak(username):
         # Update user
         c.execute("""
             UPDATE users
-            SET ultimo_dia_activo = ?,
-                racha_actual = ?,
-                racha_maxima = ?
-            WHERE username = ?
+            SET ultimo_dia_activo = %s,
+                racha_actual = %s,
+                racha_maxima = %s
+            WHERE username = %s
         """, (today, racha_actual, racha_maxima, username))
         
         conn.commit()
@@ -693,14 +689,14 @@ def update_streak(username):
 
 def check_achievements(username):
     """Check and award achievements based on user progress."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     # Get user stats
     c.execute("""
         SELECT puntos_totales, racha_actual, racha_maxima
         FROM users
-        WHERE username = ?
+        WHERE username = %s
     """, (username,))
     
     result = c.fetchone()
@@ -714,8 +710,8 @@ def check_achievements(username):
     c.execute("""
         SELECT COUNT(*)
         FROM tareas_diarias
-        WHERE user_id = ? AND completada = 1
-    """, (username,))
+        WHERE user_id = %s AND completada = %s
+    """, (username, db_config.true_value()))
     
     total_completadas = c.fetchone()[0]
     
@@ -739,7 +735,7 @@ def check_achievements(username):
         try:
             c.execute("""
                 INSERT INTO logros_usuario (user_id, logro_id, logro_nombre, fecha_obtenido)
-                VALUES (?, ?, ?, ?)
+                VALUES (%s, %s, %s, %s)
             """, (username, logro_id, logro_nombre, now))
         except sqlite3.IntegrityError:
             # Achievement already awarded
@@ -751,13 +747,13 @@ def check_achievements(username):
 
 def get_user_achievements(username):
     """Get all achievements earned by user."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     c.execute("""
         SELECT logro_id, logro_nombre, fecha_obtenido
         FROM logros_usuario
-        WHERE user_id = ?
+        WHERE user_id = %s
         ORDER BY fecha_obtenido DESC
     """, (username,))
     
@@ -777,14 +773,14 @@ def get_user_achievements(username):
 
 def get_user_stats(username, estrategia_id=None):
     """Get comprehensive user statistics. Optionally filter by estrategia_id."""
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     # Get user gamification data (global, not filtered by strategy)
     c.execute("""
         SELECT puntos_totales, nivel, racha_actual, racha_maxima
         FROM users
-        WHERE username = ?
+        WHERE username = %s
     """, (username,))
     
     user_data = c.fetchone()
@@ -804,22 +800,22 @@ def get_user_stats(username, estrategia_id=None):
         }
     
     # Base query for stats
-    base_where = "WHERE user_id = ?"
+    base_where = "WHERE user_id = %s"
     params = [username]
     
     if estrategia_id:
-        base_where += " AND estrategia_id = ?"
+        base_where += " AND estrategia_id = %s"
         params.append(estrategia_id)
     
     # Get task stats
     c.execute(f"""
         SELECT 
             COUNT(*) as total,
-            SUM(CASE WHEN completada = 1 THEN 1 ELSE 0 END) as completadas,
-            SUM(CASE WHEN completada = 0 THEN 1 ELSE 0 END) as pendientes
+            SUM(CASE WHEN completada = %s THEN 1 ELSE 0 END) as completadas,
+            SUM(CASE WHEN completada = %s THEN 1 ELSE 0 END) as pendientes
         FROM tareas_diarias
         {base_where}
-    """, tuple(params))
+    """, tuple([db_config.true_value(), db_config.false_value()] + params))
     
     task_stats = c.fetchone()
     
@@ -827,11 +823,11 @@ def get_user_stats(username, estrategia_id=None):
     c.execute(f"""
         SELECT categoria, 
                COUNT(*) as total,
-               SUM(CASE WHEN completada = 1 THEN 1 ELSE 0 END) as completadas
+               SUM(CASE WHEN completada = %s THEN 1 ELSE 0 END) as completadas
         FROM tareas_diarias
         {base_where}
         GROUP BY categoria
-    """, tuple(params))
+    """, tuple([db_config.true_value()] + params))
     
     category_stats = c.fetchall()
     
@@ -857,21 +853,21 @@ def reset_user_progress(username):
     Does NOT affect plan limits or strategy creation limits.
     """
     print(f"⚠️ RESETTING PROGRESS FOR USER: {username}")
-    conn = sqlite3.connect(DB_NAME)
+    conn = db_config.get_connection()
     c = conn.cursor()
     
     try:
         # 1. Delete all tasks
-        c.execute("DELETE FROM tareas_diarias WHERE user_id = ?", (username,))
+        c.execute("DELETE FROM tareas_diarias WHERE user_id = %s", (username,))
         deleted_tasks = c.rowcount
         
         # 2. Delete all achievements
-        c.execute("DELETE FROM logros_usuario WHERE user_id = ?", (username,))
+        c.execute("DELETE FROM logros_usuario WHERE user_id = %s", (username,))
         deleted_achievements = c.rowcount
         
         # 3. Delete weekly progress if exists
         try:
-            c.execute("DELETE FROM progreso_semanal WHERE user_id = ?", (username,))
+            c.execute("DELETE FROM progreso_semanal WHERE user_id = %s", (username,))
             deleted_progress = c.rowcount
         except sqlite3.OperationalError:
             # Table might not exist yet
@@ -885,11 +881,11 @@ def reset_user_progress(username):
                 racha_actual = 0,
                 racha_maxima = 0,
                 ultimo_dia_activo = NULL
-            WHERE username = ?
+            WHERE username = %s
         """, (username,))
         
         # 5. Reset all strategies to Week 1
-        c.execute("UPDATE estrategias_v2 SET semana_actual = 1 WHERE user_id = ?", (username,))
+        c.execute("UPDATE estrategias_v2 SET semana_actual = 1 WHERE user_id = %s", (username,))
         updated_strategies = c.rowcount
         
         conn.commit()

@@ -16,8 +16,12 @@ def strategy_selector_page():
     st.title("🚀 Generador MiPymesIA")
     st.caption("Estrategias de Marketing y de Publicidad")
     
-    user = st.session_state.user
-    username = user['username']
+    user = st.session_state.get('user')
+    if not user:
+        st.error("No se encontró información del usuario. Por favor inicia sesión.")
+        st.stop()
+        
+    username = user.get('username')
     plan = user.get('plan_actual', 'gratuito')
     
     # Get user's strategy limit
@@ -205,7 +209,12 @@ def handle_strategy_deletion():
         return
     
     estrategia_id = st.session_state.deleting_strategy_id
-    username = st.session_state.user['username']
+    user = st.session_state.get('user', {})
+    username = user.get('username')
+    
+    if not username:
+        st.error("Sesión inválida.")
+        return
     
     # Get strategy info
     estrategia = auth.get_estrategia_by_id(estrategia_id, username)

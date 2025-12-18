@@ -9,8 +9,12 @@ def business_brain_page():
     st.title("🧠 Cerebro del Negocio")
     st.caption("Conocimiento acumulado sobre tu negocio y servicios")
     
-    user = st.session_state.user
-    username = user['username']
+    user = st.session_state.get('user')
+    if not user:
+        st.error("No se encontró información del usuario. Por favor inicia sesión.")
+        st.stop()
+        
+    username = user.get('username')
     
     brain_data = auth.get_brain_data(username)
     

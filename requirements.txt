@@ -10,3 +10,6 @@ python-dotenv
 pandas
 APScheduler==3.10.4
 psutil
+psycopg2-binary
+sqlalchemy
+extra-streamlit-components
