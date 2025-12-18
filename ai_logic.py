@@ -124,20 +124,85 @@ Assistant:"""
         
         # Define section prompts
         section_prompts = {
-            "AVATAR": f"""Eres un Estratega de Marketing Senior.
+            "AVATAR": f"""Eres un Estratega de Marketing Senior especializado en Buyer Personas.
 {base_info}
 
-Genera 1 Avatar de Cliente Ideal MUY ESPECÍFICO (no genérico) para este negocio.
-Define:
-- Nombre del Avatar
-- Dolor Principal (Qué le quita el sueño)
-- Objeciones Típicas
-- Vocabulario que usa
+Genera 1 AVATAR DE CLIENTE IDEAL ultra-detallado y específico (NO genérico) siguiendo EXACTAMENTE esta estructura:
+
+AVATAR 1 — "[NOMBRE DESCRIPTIVO EN MAYÚSCULAS]"
+
+**Descripción general**
+Párrafo de 2-3 líneas describiendo quién es, su situación actual y qué busca.
+
+**Datos demográficos**
+- Edad: [rango específico]
+- Género: [género predominante]
+- Ubicación: [país/región específica]
+- Ingresos: [nivel económico]
+- Estado civil: [situación familiar]
+- Nivel educativo: [educación]
+
+**Situación actual**
+Lista de 3-4 puntos describiendo:
+- Su trabajo/ocupación actual
+- Sus responsabilidades diarias
+- Sus desafíos cotidianos
+- Su relación con el producto/servicio
+
+**Dolor principal**
+❌ [Descripción del dolor #1 más grande que le quita el sueño]
+
+**Otros dolores**
+- [Dolor secundario 1]
+- [Dolor secundario 2]
+- [Dolor secundario 3]
+- [Dolor secundario 4]
+
+**Deseos y metas**
+- [Deseo/meta 1]
+- [Deseo/meta 2]
+- [Deseo/meta 3]
+- [Deseo/meta 4]
+
+**Objeciones típicas**
+- "[Objeción 1 en primera persona]"
+- "[Objeción 2 en primera persona]"
+- "[Objeción 3 en primera persona]"
+- "[Objeción 4 en primera persona]"
+
+**Disparadores de compra**
+- [Disparador 1 - qué lo hace decidirse]
+- [Disparador 2]
+- [Disparador 3]
+- [Disparador 4]
+- [Disparador 5]
+
+**Tipo de contenido que consume**
+- [Tipo de contenido 1]
+- [Tipo de contenido 2]
+- [Tipo de contenido 3]
+- [Tipo de contenido 4]
+
+**Red social principal**
+[Red social principal] ([formato específico que más consume])
+Secundaria: [Red social secundaria]
+
+**Tono y palabras que conectan**
+[Descripción del tono ideal: emocional/racional, formal/informal, etc.]
+Enfoque en [temas clave que resuenan].
+
+Ejemplos de palabras clave:
+"[palabra 1]", "[palabra 2]", "[palabra 3]", "[palabra 4]", "[palabra 5]".
+
+**Ejemplo de mensaje gancho**
+✨ "[Mensaje gancho de 1-2 líneas que conecte emocionalmente con el avatar]" ✨
 
 IMPORTANTE: 
-- Responde ÚNICAMENTE con la información del Avatar
-- NO menciones "EMBUDO DE CONTENIDO" ni ninguna otra sección
-- NO generes títulos de otras secciones
+- Sé MUY ESPECÍFICO con edad, ubicación, situación
+- Usa datos demográficos reales del mercado {business_info.get('rubro')}
+- Las objeciones deben estar en primera persona como si el avatar hablara
+- El mensaje gancho debe usar el tono y palabras identificadas
+- NO menciones otras secciones
 - TERMINA tu respuesta después del Avatar""",
             
             "EMBUDO": f"""Eres un Estratega de Marketing Senior.
