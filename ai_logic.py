@@ -1164,7 +1164,7 @@ REGLAS CRÍTICAS:
 2. **CTAs ESPECÍFICOS**: Cada acción de contenido debe tener su CTA
 3. **Eliminar tareas inútiles**: Usar ❌ para mostrar qué NO hacer
 4. **Output real**: Usar ✔ para mostrar resultado concreto
-5. **Fechas reales**: Calcular desde hoy ({datetime.now().strftime('%d/%m')})
+5. **Fechas reales**: Calcular desde hoy
 6. **Fases claras**: Cada fase tiene objetivo específico
 7. **Todo lleva a conversión**: WhatsApp, ventas, leads
 
