@@ -408,11 +408,71 @@ Genera una ESTRATEGIA COMPLETA DE MARKETING Y VENTAS siguiendo EXACTAMENTE esta 
 
 <<<SECTION_START: AVATAR>>>
 👤 AVATAR DE CLIENTE IDEAL
-Genera 1 Avatar MUY ESPECÍFICO:
-- Nombre del Avatar
-- Dolor Principal (Qué le quita el sueño)
-- Objeciones Típicas
-- Vocabulario que usa
+
+Genera 1 AVATAR ultra-detallado siguiendo esta estructura:
+
+AVATAR 1 — "[NOMBRE DESCRIPTIVO EN MAYÚSCULAS]"
+
+**Descripción general**
+Párrafo de 2-3 líneas describiendo quién es, su situación actual y qué busca.
+
+**Datos demográficos**
+- Edad: [rango específico]
+- Género: [género predominante]
+- Ubicación: [país/región específica]
+- Ingresos: [nivel económico]
+- Estado civil: [situación familiar]
+- Nivel educativo: [educación]
+
+**Situación actual**
+- Su trabajo/ocupación actual
+- Sus responsabilidades diarias
+- Sus desafíos cotidianos
+- Su relación con el producto/servicio
+
+**Dolor principal**
+❌ [Descripción del dolor #1 más grande que le quita el sueño]
+
+**Otros dolores**
+- [Dolor secundario 1]
+- [Dolor secundario 2]
+- [Dolor secundario 3]
+- [Dolor secundario 4]
+
+**Deseos y metas**
+- [Deseo/meta 1]
+- [Deseo/meta 2]
+- [Deseo/meta 3]
+- [Deseo/meta 4]
+
+**Objeciones típicas**
+- "[Objeción 1 en primera persona]"
+- "[Objeción 2 en primera persona]"
+- "[Objeción 3 en primera persona]"
+- "[Objeción 4 en primera persona]"
+
+**Disparadores de compra**
+- [Disparador 1]
+- [Disparador 2]
+- [Disparador 3]
+- [Disparador 4]
+
+**Tipo de contenido que consume**
+- [Tipo 1]
+- [Tipo 2]
+- [Tipo 3]
+
+**Red social principal**
+[Red principal] ([formato específico])
+Secundaria: [Red secundaria]
+
+**Tono y palabras que conectan**
+[Descripción del tono ideal]
+Enfoque en [temas clave].
+Palabras clave: "[palabra 1]", "[palabra 2]", "[palabra 3]".
+
+**Ejemplo de mensaje gancho**
+✨ "[Mensaje gancho de 1-2 líneas]" ✨
 
 <<<SECTION_START: EMBUDO_TOFU>>>
 📢 EMBUDO - TOFU (Descubrimiento) - Lunes y Jueves
