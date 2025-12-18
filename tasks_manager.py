@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from openai import OpenAI
 import os
 import db_config
+import streamlit as st
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
@@ -481,8 +482,11 @@ def get_tasks_for_today(username, estrategia_id=None):
     conn.close()
     return tasks
 
+@st.cache_data(ttl=60, show_spinner=False)
 def get_tasks_for_week(username, estrategia_id=None):
-    """Get all tasks for the user, optionally filtered by strategy."""
+    """Get all tasks for the user, optionally filtered by strategy.
+    CACHED for 1 minute to improve performance.
+    """
     conn = db_config.get_connection()
     c = conn.cursor()
     
@@ -771,8 +775,11 @@ def get_user_achievements(username):
     return achievements
 
 
+@st.cache_data(ttl=120, show_spinner=False)
 def get_user_stats(username, estrategia_id=None):
-    """Get comprehensive user statistics. Optionally filter by estrategia_id."""
+    """Get comprehensive user statistics. Optionally filter by estrategia_id.
+    CACHED for 2 minutes to improve performance.
+    """
     conn = db_config.get_connection()
     c = conn.cursor()
     

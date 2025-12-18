@@ -790,9 +790,11 @@ def update_estrategia(estrategia_id, username, estrategia_data, nombre_estrategi
         conn.close()
         return (False, f"Error al actualizar estrategia: {str(e)}")
 
+@st.cache_data(ttl=120, show_spinner=False)
 def get_estrategia_by_id(estrategia_id, username):
     """
     Retrieves a specific strategy by ID.
+    CACHED for 2 minutes to improve performance.
     
     Returns:
         Dict with strategy data or None if not found
@@ -842,9 +844,11 @@ def get_estrategia_by_id(estrategia_id, username):
             return None
     return None
 
+@st.cache_data(ttl=60, show_spinner=False)
 def get_all_estrategias(username):
     """
     Retrieves all strategies for a user.
+    CACHED for 1 minute to improve performance.
     
     Returns:
         List of strategy dicts with basic info + task counts
