@@ -31,13 +31,26 @@ def get_connection_pool():
 
 def get_connection():
     """
-    Returns a PostgreSQL database connection.
+    Returns a PostgreSQL database connection from the pool.
+    This is much faster than creating a new connection each time.
     """
     try:
-        return psycopg2.connect(DATABASE_URL)
+        pool = get_connection_pool()
+        return pool.getconn()
     except Exception as e:
         print(f"⚠️ PostgreSQL connection failed: {e}")
         raise
+
+def return_connection(conn):
+    """
+    Returns a connection back to the pool.
+    Call this when you're done with a connection.
+    """
+    try:
+        pool = get_connection_pool()
+        pool.putconn(conn)
+    except Exception as e:
+        print(f"⚠️ Error returning connection to pool: {e}")
 
 class PostgresCursorWrapper:
     """
