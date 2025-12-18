@@ -439,6 +439,8 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
                                     st.error(f"Error al generar tareas: {e}")
                                     st.stop()
                             
+                            # Clear cache to show new week tasks immediately
+                            st.cache_data.clear()
                             st.session_state.show_feedback_modal = False
                             st.session_state.view_week_num = next_week # Update view
                             st.success("✅ ¡Semana iniciada!")
@@ -1002,6 +1004,8 @@ def show_create_task_form(username, estrategia_id=None):
                 )
                 
                 if success:
+                    # Clear cache to show new task immediately
+                    st.cache_data.clear()
                     st.success("✅ Tarea creada exitosamente")
                     st.session_state.show_create_task = False
                     st.rerun()
