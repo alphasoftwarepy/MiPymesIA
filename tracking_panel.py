@@ -187,7 +187,7 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
         st.metric("📈 Progreso Semana", f"{prog_pct}%")
 
     # ========== TABS ==========
-    tab1, tab2, tab3 = st.tabs(["📋 Tareas de Hoy", "📅 Vista Semanal", "🏆 Logros"])
+    tab1, tab2, tab3, tab4 = st.tabs(["📋 Tareas de Hoy", "📅 Vista Semanal", "✅ Completadas", "🏆 Logros"])
     
     # ========== TAB 1: TAREAS ==========
     with tab1:
@@ -534,8 +534,92 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
                         for task in tasks_dia:
                             render_task_card(task, username, compact=True, day_context=day_offset, estrategia_id=estrategia_id)
     
-    # ========== TAB 3: LOGROS ==========
+    # ========== TAB 3: TAREAS COMPLETADAS ==========
     with tab3:
+        st.markdown("### ✅ Tareas Completadas de la Semana")
+        
+        # Get all completed tasks for the current week
+        all_week_tasks = tasks_manager.get_tasks_for_week(username, estrategia_id)
+        completed_week_tasks = [t for t in all_week_tasks if t['completada']]
+        
+        if not completed_week_tasks:
+            st.info("🎯 Aún no has completado tareas esta semana. ¡Comienza ahora!")
+        else:
+            # Stats
+            total_points = sum(t['puntos'] for t in completed_week_tasks)
+            col_stat1, col_stat2, col_stat3 = st.columns(3)
+            
+            with col_stat1:
+                st.metric("✅ Completadas", len(completed_week_tasks))
+            with col_stat2:
+                st.metric("⭐ Puntos Ganados", total_points)
+            with col_stat3:
+                # Calculate completion rate
+                total_week = len(all_week_tasks)
+                completion_rate = int((len(completed_week_tasks) / total_week * 100)) if total_week > 0 else 0
+                st.metric("📈 Tasa de Completitud", f"{completion_rate}%")
+            
+            st.markdown("---")
+            
+            # Filter options
+            col_filter1, col_filter2 = st.columns(2)
+            
+            with col_filter1:
+                filter_category = st.selectbox(
+                    "Filtrar por categoría",
+                    ["Todas"] + list(set(t['categoria'] for t in completed_week_tasks)),
+                    key=f"filter_cat_completed_{estrategia_id}"
+                )
+            
+            with col_filter2:
+                sort_option = st.selectbox(
+                    "Ordenar por",
+                    ["Más recientes", "Más antiguas", "Mayor puntaje", "Categoría"],
+                    key=f"sort_completed_{estrategia_id}"
+                )
+            
+            # Apply filters
+            filtered_tasks = completed_week_tasks
+            if filter_category != "Todas":
+                filtered_tasks = [t for t in filtered_tasks if t['categoria'] == filter_category]
+            
+            # Apply sorting
+            if sort_option == "Más recientes":
+                filtered_tasks = sorted(filtered_tasks, key=lambda x: x.get('fecha_completada', ''), reverse=True)
+            elif sort_option == "Más antiguas":
+                filtered_tasks = sorted(filtered_tasks, key=lambda x: x.get('fecha_completada', ''))
+            elif sort_option == "Mayor puntaje":
+                filtered_tasks = sorted(filtered_tasks, key=lambda x: x['puntos'], reverse=True)
+            elif sort_option == "Categoría":
+                filtered_tasks = sorted(filtered_tasks, key=lambda x: x['categoria'])
+            
+            st.markdown(f"**Mostrando {len(filtered_tasks)} tarea(s)**")
+            st.markdown("---")
+            
+            # Display completed tasks
+            today = datetime.now().date()
+            for task in filtered_tasks:
+                # Format completion date
+                if task.get('fecha_completada'):
+                    try:
+                        comp_date = datetime.fromisoformat(task['fecha_completada']).date()
+                        days_ago = (today - comp_date).days
+                        if days_ago == 0:
+                            date_str = "Hoy"
+                        elif days_ago == 1:
+                            date_str = "Ayer"
+                        else:
+                            date_str = f"Hace {days_ago} días"
+                    except:
+                        date_str = ""
+                else:
+                    date_str = ""
+                
+                # Render completed task
+                render_task_card(task, username, is_completed=True, completion_date=date_str, estrategia_id=estrategia_id)
+    
+    # ========== TAB 4: LOGROS ==========
+    with tab4:
         
         # Achievements
         achievements = tasks_manager.get_user_achievements(username)
