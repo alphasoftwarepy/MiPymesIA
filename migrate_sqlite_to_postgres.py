@@ -49,15 +49,16 @@ def migrate():
 
     print(f"🚀 Starting migration from {sqlite_db_path} to Postgres...")
     
-    # 0. Clean Postgres (Optional but recommended for full migration)
-    print("🧹 Cleaning target database...")
-    clean_conn = psycopg2.connect(DATABASE_URL)
-    clean_cursor = clean_conn.cursor()
-    tables_to_drop = ["tareas_diarias", "conversaciones_archivadas", "historial_secciones", "estrategias_v2", "logros_usuario", "users"]
-    for t in tables_to_drop:
-        clean_cursor.execute(f"DROP TABLE IF EXISTS {t} CASCADE;")
-    clean_conn.commit()
-    clean_conn.close()
+    # 0. Clean Postgres (DISABLED - preserving existing users like malcaraz)
+    # print("🧹 Cleaning target database...")
+    # clean_conn = psycopg2.connect(DATABASE_URL)
+    # clean_cursor = clean_conn.cursor()
+    # tables_to_drop = ["tareas_diarias", "conversaciones_archivadas", "historial_secciones", "estrategias_v2", "logros_usuario", "users"]
+    # for t in tables_to_drop:
+    #     clean_cursor.execute(f"DROP TABLE IF EXISTS {t} CASCADE;")
+    # clean_conn.commit()
+    # clean_conn.close()
+    print("ℹ️ Preserving existing data in PostgreSQL (e.g., malcaraz user)")
 
     # 1. Initialize Postgres Schema
     print("🛠️ Initializing Postgres Schema...")
