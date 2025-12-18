@@ -440,59 +440,215 @@ Sé MUY ESPECÍFICO para {business_info.get('rubro')} y {business_info.get('plat
             "WHATSAPP": f"""Eres un Estratega de Ventas.
 {base_info}
 
-Genera FLUJO WHATSAPP 7 DÍAS:
+**Avatar:** {business_info.get('rubro')}
+**Tono:** Cercano, humano, cero presión agresiva
+**Estrategia:** Conversación → Valor → Prueba → Objeciones → Cierre
+
+Genera FLUJO WHATSAPP 7 DÍAS siguiendo EXACTAMENTE esta estructura:
 
 <<<SECTION_START: WHATSAPP_DIA1>>>
-🔵 DÍA 1: Contacto + Diagnóstico.
-Mensaje: Saludo + 2 preguntas clave.
+� DÍA 1 — APERTURA + DIAGNÓSTICO
+
+🎯 **Objetivo:** Iniciar conversación y detectar dolor
+
+**Mensaje:**
+¡Hola! 👋 Soy de [Negocio].
+
+Quería preguntarte algo rápido:
+👉 [Pregunta abierta sobre su situación actual]
+
+([Opciones de respuesta])
+
+🔑 **Clave:** Pregunta abierta → hace hablar al prospecto.
 
 <<<SECTION_START: WHATSAPP_DIA2>>>
-🟦 DÍA 2: Valor + Invitación.
-Mensaje: Tip útil + invitación suave.
+� DÍA 2 — AMPLIFICAR EL DOLOR
+
+🎯 **Objetivo:** Que reconozca el problema como urgente
+
+**Mensaje:**
+Gracias por contarme 🙌
+
+Muchos [público objetivo] nos dicen lo mismo:
+❌ [Dolor 1]
+❌ [Dolor 2]
+❌ [Dolor 3]
+
+¿Cuál de estos te pasa más seguido hoy?
+
+🔑 **Clave:** Lo hace identificarse sin vender aún.
 
 <<<SECTION_START: WHATSAPP_DIA3>>>
-🟩 DÍA 3: Prueba Social.
-Mensaje: Caso éxito breve + CTA.
+� DÍA 3 — SOLUCIÓN + PRUEBA SOCIAL
+
+🎯 **Objetivo:** Mostrar que sí funciona para alguien como él
+
+**Mensaje:**
+Te cuento algo rápido 👇
+
+[Nombre] (negocio similar al tuyo) estaba igual: [problema].
+
+En [tiempo] con [producto/servicio] logró:
+✅ [Resultado 1]
+✅ [Resultado 2]
+✅ [Resultado 3]
+
+¿Te gustaría ver cómo funciona por dentro?
+
+🔑 **Micro-CTA:** "ver cómo funciona" (no "comprar").
 
 <<<SECTION_START: WHATSAPP_DIA4>>>
-🟧 DÍA 4: Objeción.
-Mensaje: Reencuadre de objeción principal.
+� DÍA 4 — OBJECIÓN PRINCIPAL
+
+🎯 **Objetivo:** Derribar el [objeción más común]
+
+**Mensaje:**
+Algo importante 💡
+
+[Reencuadre de la objeción principal]
+👉 [Solución/garantía]
+
+[Evidencia o tranquilidad]
+
+¿Qué es lo que más te preocuparía al [acción]?
+
+🔑 **Clave:** Que él mismo exprese la objeción.
 
 <<<SECTION_START: WHATSAPP_DIA5>>>
-🟥 DÍA 5: Urgencia.
-Mensaje: Cupos/Tiempo limitado.
+� DÍA 5 — OFERTA + URGENCIA SUAVE
+
+🎯 **Objetivo:** Presentar la oportunidad sin presión dura
+
+**Mensaje:**
+Te aviso con tiempo ⏰
+
+[Oferta especial/prueba gratis]
+
+[Razón de urgencia real]
+
+¿Te gustaría aprovecharlo y probar sin compromiso?
+
+🔑 **Urgencia real + bajo riesgo.**
 
 <<<SECTION_START: WHATSAPP_DIA6>>>
-🟪 DÍA 6: Valor Final.
-Mensaje: Recurso extra + mini cierre.
+� DÍA 6 — VALOR EXTRA + SEGURIDAD
+
+🎯 **Objetivo:** Reforzar confianza y resolver dudas finales
+
+**Mensaje:**
+Te dejo este tip rápido 🎁
+
+👉 [Insight valioso sobre su industria/problema]
+
+Con [producto/servicio] eso queda claro desde el primer día.
+
+¿Querés que te muestre cómo se vería en tu negocio?
+
+🔑 **CTA personalizado:** "en tu negocio".
 
 <<<SECTION_START: WHATSAPP_DIA7>>>
-⬛ DÍA 7: Cierre/Parking.
-Mensaje: Última llamada o despedida elegante.
+🔴 DÍA 7 — CIERRE ELEGANTE
 
-Sé CONCISO. Mensajes listos para copiar y pegar.""",
+🎯 **Objetivo:** Decisión final sin presión
+
+**Mensaje:**
+Gracias por tomarte el tiempo esta semana 🙌
+
+Si decidís [beneficio principal],
+[Producto/servicio] está listo para ayudarte.
+
+Estoy acá para cualquier duda o para activarte el acceso cuando quieras 👍
+
+🔑 **Cierre humano, deja la puerta abierta.**
+
+Sé MUY ESPECÍFICO para {business_info.get('rubro')}. Mensajes listos para copiar y pegar.""",
             
             "OBJECIONES": f"""Eres un Estratega de Ventas.
 {base_info}
 
-Responde a 5 OBJECIONES (Pregunta, Reframing, Propuesta, Cierre):
+Genera MANEJO DE OBJECIONES optimizado para WhatsApp siguiendo EXACTAMENTE esta estructura:
 
 <<<SECTION_START: OBJECION_COSTO>>>
-OBJECIÓN: COSTO
+💰 OBJECIÓN: COSTO
+
+**Pregunta (diagnóstico suave):**
+Para entenderte mejor, ¿hoy tenés algún presupuesto pensado para [categoría]?
+
+**Reframing (valor vs gasto):**
+Lo entiendo totalmente.
+La mayoría lo ve como un gasto, pero en realidad es una inversión que [beneficio económico concreto].
+
+**Propuesta (bajo riesgo):**
+Por eso ofrecemos [prueba/garantía], para que primero veas si realmente te sirve.
+
+**Mini-cierre:**
+¿Querés que te [acción específica] y lo evalúas tranquilo?
 
 <<<SECTION_START: OBJECION_TIEMPO>>>
-OBJECIÓN: TIEMPO
+⏱️ OBJECIÓN: TIEMPO
+
+**Pregunta:**
+Aproximadamente, ¿cuánto tiempo por día o por semana te lleva hoy [tarea actual]?
+
+**Reframing:**
+Justamente ese tiempo es el que más se puede recuperar.
+Muchos usuarios pasan de horas a minutos por día con [solución].
+
+**Propuesta:**
+La puesta en marcha es simple y te acompañamos paso a paso, no estás solo.
+
+**Mini-cierre:**
+¿Te gustaría probarlo y ver cuánto tiempo podrías ahorrar?
 
 <<<SECTION_START: OBJECION_PERSONAL>>>
-OBJECIÓN: PERSONAL/SOCIOS
+👥 OBJECIÓN: SOCIOS / PERSONAL
+
+**Pregunta:**
+¿Tomás vos solo estas decisiones o lo hablás con socios / alguien del equipo?
+
+**Reframing:**
+Tiene sentido evaluarlo en conjunto.
+Cuando [beneficio colectivo], todos trabajan más tranquilos.
+
+**Propuesta:**
+Si querés, podemos hacer una demo corta para que todos lo vean y saquen dudas.
+
+**Mini-cierre:**
+¿Te parece si coordinamos un horario y lo vemos juntos?
 
 <<<SECTION_START: OBJECION_INTEGRACION>>>
-OBJECIÓN: INTEGRACIÓN/CAMBIO
+🔄 OBJECIÓN: CAMBIO / INTEGRACIÓN
+
+**Pregunta:**
+¿Lo que más te preocupa es cambiar de [sistema actual] o perder información actual?
+
+**Reframing:**
+Es normal pensarlo.
+Justamente nos enfocamos en que el cambio sea simple y sin dolores de cabeza.
+
+**Propuesta:**
+Te ayudamos a [proceso de migración] y dejamos todo listo para que arranques sin problemas.
+
+**Mini-cierre:**
+¿Querés que te explique cómo sería el paso a paso?
 
 <<<SECTION_START: OBJECION_MIEDO>>>
-OBJECIÓN: MIEDO/DESCONFIANZA
+😟 OBJECIÓN: MIEDO / DESCONFIANZA
 
-Sé CONCISO y PERSUASIVO.
+**Pregunta:**
+¿Qué es lo que más te genera duda o desconfianza de [acción]?
+
+**Reframing:**
+Es totalmente válido.
+Por eso trabajamos con [público objetivo] reales y acompañamos en todo el proceso.
+
+**Propuesta:**
+La [prueba/garantía] justamente es para que lo pruebes sin compromiso, con soporte incluido.
+
+**Mini-cierre:**
+¿Te gustaría aprovechar la prueba y sacarte la duda por vos mismo?
+
+Sé CONCISO y PERSUASIVO. Tono conversacional para WhatsApp.
 NO agregues comentarios finales como 'Espero que estas respuestas sean útiles'.""",
             
             "ACCIONES_DIARIAS": f"""Eres un Estratega de Productividad.
@@ -511,17 +667,109 @@ NO agregues comentarios finales como 'Con esta rutina, Rodrigo podrá...'.""",
             "METRICAS": f"""Eres un Analista de Marketing.
 {base_info}
 
-Genera MÉTRICAS CLAVE (Definición, Meta, Acción Mejora):
+**Objetivo general:** Detectar rápido qué funciona, qué ajustar y qué escalar.
 
-### Costo por Lead
+Genera MÉTRICAS CLAVE siguiendo EXACTAMENTE esta estructura:
 
-### Tasa de Cierre
+🎯 **1. CPL — COSTO POR LEAD**
 
-### Tasa de Conversión
+**Definición:**
+Costo total invertido en publicidad ÷ número de leads generados.
 
-### Engagement
+**Valor ideal:**
+✅ Menos de $[valor] USD por lead
 
-Sé CONCISO."""
+**Umbral de alerta:**
+⚠️ $[valor] USD o más
+
+🔧 **Acción de mejora inmediata (si está en alerta)**
+- [Acción 1: revisar gancho/creativos]
+- [Acción 2: ajustar segmentación]
+- [Acción 3: cambiar CTA]
+
+🚀 **Acción de escalamiento (si está ideal)**
+- [Acción 1: duplicar conjunto ganador]
+- [Acción 2: aumentar presupuesto gradualmente]
+- [Acción 3: mantener mismo creativo]
+
+🔒 **2. TASA DE CIERRE (WhatsApp / Ventas)**
+
+**Definición:**
+Leads que compran ÷ leads contactados × 100
+
+**Valor ideal:**
+✅ [porcentaje]% o más
+
+**Umbral de alerta:**
+⚠️ [porcentaje]% o menos
+
+🔧 **Acción de mejora inmediata**
+- Revisar: [Día 1 y Día 2 del flujo]
+- Ajustar: [Más diagnóstico, menos venta directa]
+- Implementar: [Audios cortos, preguntas reales]
+
+🚀 **Acción de escalamiento**
+- Estandarizar el flujo ganador
+- Capacitar a ventas con objeciones frecuentes
+- Documentar respuestas exactas
+
+🔄 **3. CONVERSIÓN (Landing / Acción)**
+
+**Definición:**
+Visitantes que realizan la acción deseada (registro, demo, mensaje).
+
+**Valor ideal:**
+✅ [porcentaje]% o más
+
+**Umbral de alerta:**
+⚠️ [porcentaje]% o menos
+
+🔧 **Acción de mejora inmediata**
+- Simplificar: [Menos texto, un solo CTA]
+- Reforzar: [Beneficio principal arriba]
+- Optimizar: [Velocidad de carga]
+
+🚀 **Acción de escalamiento**
+- Test A/B: [Dolor vs beneficio]
+- Probar CTAs: ["Ver demo" vs "Probar gratis"]
+- Mantener versión ganadora
+
+💬 **4. ENGAGEMENT (Anuncios y Contenido)**
+
+**Definición:**
+Interacciones (likes, comentarios, guardados) ÷ alcance × 100
+
+**Valor ideal:**
+✅ [porcentaje]% o más
+
+**Umbral de alerta:**
+⚠️ [porcentaje]% o menos
+
+🔧 **Acción de mejora inmediata**
+- Usar más: [Preguntas directas, problemas cotidianos]
+- Formatos: [Reels cortos, comparativos antes/después]
+- Ganchos: ["¿Te pasa esto?"]
+
+🚀 **Acción de escalamiento**
+- Reutilizar contenido con más comentarios
+- Colaborar con clientes para testimonios
+- Crear serie de contenido similar
+
+---
+
+🧠 **TABLA RÁPIDA DE CONTROL SEMANAL**
+
+| Métrica | Ideal | Alerta | Acción inmediata |
+|----------|-------|--------|---------------------|
+| CPL | < $[X] | > $[Y] | Ajustar creativo/segmentación |
+| Cierre | ≥ [X]% | ≤ [Y]% | Mejorar flujo WhatsApp |
+| Conversión | ≥ [X]% | ≤ [Y]% | Optimizar landing |
+| Engagement | ≥ [X]% | ≤ [Y]% | Cambiar formato/gancho |
+
+📌 **Regla de oro:**
+👉 Nunca optimizar todo a la vez. Cambiar una sola variable, medir 48–72 h y decidir.
+
+Sé CONCISO y ESPECÍFICO para {business_info.get('rubro')}."""
         }
         
         if section_name not in section_prompts:
@@ -760,59 +1008,81 @@ Palabras clave: "[palabra 1]", "[palabra 2]", "[palabra 3]".
 📌 **Frase eje:** "[Frase memorable para toda la campaña]"
 
 <<<SECTION_START: WHATSAPP_DIA1>>>
-💬 DÍA 1 — Contacto + Diagnóstico
-Mensaje: Saludo + 2 Preguntas.
-Respuestas condicionadas.
+� DÍA 1 — APERTURA + DIAGNÓSTICO
+🎯 **Objetivo:** Iniciar conversación y detectar dolor
+**Mensaje:** ¡Hola! 👋 Soy de [Negocio]. Quería preguntarte: 👉 [Pregunta abierta]
+🔑 **Clave:** Pregunta abierta → hace hablar.
 
 <<<SECTION_START: WHATSAPP_DIA2>>>
-💬 DÍA 2 — Valor + Invitación
-Mensaje: Tip útil + Invitación suave.
-Respuestas condicionadas.
+� DÍA 2 — AMPLIFICAR EL DOLOR
+🎯 **Objetivo:** Que reconozca el problema como urgente
+**Mensaje:** Gracias 🙌 Muchos [público] nos dicen: ❌ [Dolor 1] ❌ [Dolor 2] ❌ [Dolor 3]. ¿Cuál te pasa más?
+🔑 **Clave:** Identificación sin vender.
 
 <<<SECTION_START: WHATSAPP_DIA3>>>
-💬 DÍA 3 — Prueba Social
-Mensaje: Caso éxito + CTA.
-Respuestas condicionadas.
+� DÍA 3 — SOLUCIÓN + PRUEBA SOCIAL
+🎯 **Objetivo:** Mostrar que funciona
+**Mensaje:** Te cuento 👇 [Nombre] logró: ✅ [Resultado 1] ✅ [Resultado 2] ✅ [Resultado 3]. ¿Ver cómo funciona?
+🔑 **Micro-CTA:** "ver cómo funciona".
 
 <<<SECTION_START: WHATSAPP_DIA4>>>
-💬 DÍA 4 — Objeción + Reencuadre
-Mensaje: Reencuadre + Propuesta.
-Respuestas condicionadas.
+� DÍA 4 — OBJECIÓN PRINCIPAL
+🎯 **Objetivo:** Derribar objeción
+**Mensaje:** Algo importante 💡 [Reencuadre] 👉 [Solución]. ¿Qué te preocuparía?
+🔑 **Clave:** Que exprese la objeción.
 
 <<<SECTION_START: WHATSAPP_DIA5>>>
-💬 DÍA 5 — Urgencia
-Mensaje: Cupos/Tiempo limitado.
-Respuestas condicionadas.
+� DÍA 5 — OFERTA + URGENCIA SUAVE
+🎯 **Objetivo:** Oportunidad sin presión
+**Mensaje:** Te aviso ⏰ [Oferta/prueba]. [Urgencia]. ¿Probar sin compromiso?
+🔑 **Urgencia real + bajo riesgo.**
 
 <<<SECTION_START: WHATSAPP_DIA6>>>
-💬 DÍA 6 — Valor Final
-Mensaje: Recurso extra + Mini cierre.
-Respuestas condicionadas.
+� DÍA 6 — VALOR EXTRA + SEGURIDAD
+🎯 **Objetivo:** Reforzar confianza
+**Mensaje:** Tip 🎁 👉 [Insight]. Con [producto] eso queda claro. ¿Ver en tu negocio?
+🔑 **CTA personalizado.**
 
 <<<SECTION_START: WHATSAPP_DIA7>>>
-💬 DÍA 7 — Cierre/Parking
-Mensaje: Última llamada o despedida elegante.
-Respuestas condicionadas.
+� DÍA 7 — CIERRE ELEGANTE
+🎯 **Objetivo:** Decisión final sin presión
+**Mensaje:** Gracias 🙌 Si decidís [beneficio], [Producto] está listo. Estoy acá 👍
+🔑 **Cierre humano.**
 
 <<<SECTION_START: OBJECION_COSTO>>>
-🛡️ OBJECIÓN: COSTO
-Pregunta, Reframing, Propuesta, Mini Cierre.
+� OBJECIÓN: COSTO
+**Pregunta:** Para entenderte mejor, ¿tenés presupuesto pensado?
+**Reframing:** Lo entiendo. Es inversión, no gasto. [Beneficio económico].
+**Propuesta:** Ofrecemos [prueba/garantía].
+**Mini-cierre:** ¿Querés probarlo tranquilo?
 
 <<<SECTION_START: OBJECION_TIEMPO>>>
-🛡️ OBJECIÓN: TIEMPO
-Pregunta, Reframing, Propuesta, Mini Cierre.
+⏱️ OBJECIÓN: TIEMPO
+**Pregunta:** ¿Cuánto tiempo te lleva hoy [tarea]?
+**Reframing:** Ese tiempo se recupera. De horas a minutos.
+**Propuesta:** Puesta en marcha simple, te acompañamos.
+**Mini-cierre:** ¿Ver cuánto tiempo ahorrarías?
 
 <<<SECTION_START: OBJECION_PERSONAL>>>
-🛡️ OBJECIÓN: PERSONAL/SOCIOS
-Pregunta, Reframing, Propuesta, Mini Cierre.
+� OBJECIÓN: SOCIOS / PERSONAL
+**Pregunta:** ¿Decidís solo o con socios/equipo?
+**Reframing:** Tiene sentido evaluarlo juntos.
+**Propuesta:** Demo corta para todos.
+**Mini-cierre:** ¿Coordinamos horario?
 
 <<<SECTION_START: OBJECION_INTEGRACION>>>
-🛡️ OBJECIÓN: INTEGRACIÓN/CAMBIO
-Pregunta, Reframing, Propuesta, Mini Cierre.
+� OBJECIÓN: CAMBIO / INTEGRACIÓN
+**Pregunta:** ¿Te preocupa cambiar o perder info?
+**Reframing:** Normal pensarlo. Cambio simple.
+**Propuesta:** Te ayudamos a migrar todo.
+**Mini-cierre:** ¿Te explico el paso a paso?
 
 <<<SECTION_START: OBJECION_MIEDO>>>
-🛡️ OBJECIÓN: MIEDO/DESCONFIANZA
-Pregunta, Reframing, Propuesta, Mini Cierre.
+� OBJECIÓN: MIEDO / DESCONFIANZA
+**Pregunta:** ¿Qué te genera duda?
+**Reframing:** Válido. Trabajamos con [público] reales.
+**Propuesta:** Prueba sin compromiso, con soporte.
+**Mini-cierre:** ¿Sacarte la duda por vos mismo?
 
 
 <<<SECTION_START: METRICAS>>>
