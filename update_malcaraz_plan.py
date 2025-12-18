@@ -1,5 +1,5 @@
 """
-Script para actualizar el plan de 'malcaraz' de 'anual' a 'pro'
+Script para actualizar planes de usuarios VPS a 'pro'
 Ejecutar en la consola de EasyPanel
 """
 import psycopg2
@@ -15,27 +15,31 @@ print("🔄 Conectando a PostgreSQL...")
 conn = psycopg2.connect(DATABASE_URL)
 cursor = conn.cursor()
 
-# Verificar usuario actual
-cursor.execute("SELECT username, plan_actual FROM users WHERE username = %s", ('malcaraz',))
-user = cursor.fetchone()
+# Usuarios a actualizar
+usuarios = ['malcaraz', 'rvargas91']
 
-if not user:
-    print("❌ Usuario 'malcaraz' no encontrado")
-    conn.close()
-    exit(1)
-
-print(f"📋 Usuario encontrado: {user[0]}")
-print(f"   Plan actual: {user[1]}")
-
-# Actualizar a 'pro'
-cursor.execute("UPDATE users SET plan_actual = %s WHERE username = %s", ('pro', 'malcaraz'))
-conn.commit()
-
-# Verificar cambio
-cursor.execute("SELECT plan_actual FROM users WHERE username = %s", ('malcaraz',))
-new_plan = cursor.fetchone()[0]
-
-print(f"✅ Plan actualizado a: {new_plan}")
+for username in usuarios:
+    # Verificar usuario actual
+    cursor.execute("SELECT username, plan_actual FROM users WHERE username = %s", (username,))
+    user = cursor.fetchone()
+    
+    if not user:
+        print(f"⚠️ Usuario '{username}' no encontrado")
+        continue
+    
+    print(f"\n📋 Usuario: {user[0]}")
+    print(f"   Plan actual: {user[1]}")
+    
+    # Actualizar a 'pro'
+    cursor.execute("UPDATE users SET plan_actual = %s WHERE username = %s", ('pro', username))
+    conn.commit()
+    
+    # Verificar cambio
+    cursor.execute("SELECT plan_actual FROM users WHERE username = %s", (username,))
+    new_plan = cursor.fetchone()[0]
+    
+    print(f"   ✅ Plan actualizado a: {new_plan}")
 
 conn.close()
-print("🎉 ¡Listo!")
+print("\n🎉 ¡Todos los planes actualizados!")
+
