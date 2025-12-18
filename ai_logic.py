@@ -1128,23 +1128,82 @@ Acción de Escalamiento.
 - NO agregues comentarios finales como "Espero que...", "¡Mucho éxito!", etc.
 - Sé CONCISO pero COMPLETO en cada sección"""
 
-        # PROMPT 2: SINGLE ROADMAP JSON
+        # PROMPT 2: DETAILED ROADMAP CALENDAR
         roadmap_prompt = f"""CONTEXTO:
 {base_info}
 
 OBJETIVO:
-Genera el ROADMAP ESTRATÉGICO en formato JSON.
+Genera un CALENDARIO OPTIMIZADO ultra-detallado y accionable para {int(business_info.get('duration_days', 30))} días.
 
-ESTRUCTURA JSON REQUERIDA:
-[
-  {{
-    "semana": 1,
-    "foco": "Nombre del foco (ej. Setup & Awareness)",
-    "descripcion": "Descripción breve de objetivos"
-  }},
-  ...
-]
-Cubriendo {int(business_info.get('duration_days', 30)/7)} semanas. SOLO JSON. SIN MARKDOWN.
+ESTRUCTURA REQUERIDA:
+
+Divide en FASES (cada fase = 1 semana aprox):
+
+🟢 FASE 1 — [NOMBRE FASE] ([FECHAS])
+
+🎯 **Objetivo:** [objetivo específico de esta fase]
+
+📅 **[Día de la semana] [Fecha]**
+
+✅ [Tarea accionable 1]
+✅ [Tarea accionable 2]
+✅ [Tarea accionable 3 con CTA específico]
+
+❌ Eliminar: "[tarea inútil común]"
+✔ Output real: [resultado concreto esperado]
+
+📅 **[Siguiente día]**
+
+✅ [Tarea 1]
+✅ [Tarea 2]
+...
+
+REGLAS CRÍTICAS:
+
+1. **Tareas ACCIONABLES**: No "investigar", "analizar". Sí "Crear", "Publicar", "Escribir"
+2. **CTAs ESPECÍFICOS**: Cada acción de contenido debe tener su CTA
+3. **Eliminar tareas inútiles**: Usar ❌ para mostrar qué NO hacer
+4. **Output real**: Usar ✔ para mostrar resultado concreto
+5. **Fechas reales**: Calcular desde hoy ({datetime.now().strftime('%d/%m')})
+6. **Fases claras**: Cada fase tiene objetivo específico
+7. **Todo lleva a conversión**: WhatsApp, ventas, leads
+
+EJEMPLO DE FASE:
+
+🟢 FASE 1 — BASE SÓLIDA (18/12 – 22/12)
+
+🎯 **Objetivo:** dejar listo el "motor" para vender
+
+📅 **Jueves 18/12**
+
+✅ Crear perfiles Facebook + Instagram
+✅ Definir propuesta clara (1 frase):
+"[Propuesta de valor específica para {business_info.get('rubro')}]"
+
+📅 **Viernes 19/12**
+
+✅ Análisis rápido de competencia (solo 5 competidores)
+- Qué ofrecen
+- Qué prometen
+- Qué NO dicen (oportunidad)
+
+❌ Eliminar: "elaborar informe largo"
+✔ Output real: 3 bullets accionables
+
+AL FINAL, agregar:
+
+🧠 **RESUMEN DURO (CLAVE)**
+
+- Menos tareas ❌
+- Más acciones que venden ✅
+- [Canal principal] es el centro
+- Ads solo después de validar orgánico
+- Todo tiene CTA
+- Todo se mide
+
+GENERA {int(business_info.get('duration_days', 30)/7)} FASES cubriendo {business_info.get('duration_days', 30)} días.
+
+FORMATO: Markdown con emojis. NO JSON. Calendario visual y accionable.
 """
 
 
