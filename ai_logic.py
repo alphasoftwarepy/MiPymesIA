@@ -11,7 +11,7 @@ from langchain.prompts import (
 )
 
 load_dotenv()
-from langchain.callbacks import get_openai_callback
+from langchain_community.callbacks.manager import get_openai_callback
 import auth_subscription
 
 class MarketingStrategist:
