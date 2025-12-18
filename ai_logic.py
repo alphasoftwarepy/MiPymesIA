@@ -296,34 +296,146 @@ Sé ESPECÍFICO para {business_info.get('rubro')}. NO uses placeholders genéric
             "ADS": f"""Eres un Estratega de Ads especializado en {business_info.get('plataforma')}.
 {base_info}
 
-IMPORTANTE - PLATAFORMA(S) SELECCIONADA(S): {business_info.get('plataforma')}
+IMPORTANTE - PLATAFORMA(S): {business_info.get('plataforma')}
 
-INSTRUCCIONES SEGÚN PLATAFORMA:
-- Si es SOLO Facebook Ads: Enfócate en copy emocional, creativos visuales (videos/imágenes), segmentación por intereses/demografía.
-- Si es SOLO Google Ads: Enfócate en copy basado en intención de búsqueda, anuncios de texto/búsqueda, segmentación por keywords.
-- Si son AMBAS plataformas: Divide el presupuesto 60% Facebook / 40% Google y adapta la estrategia para cada una.
-
-Genera ESTRATEGIA DE ADS (3 niveles) ADAPTADA A LA(S) PLATAFORMA(S):
+Genera ESTRATEGIA DE ADS (3 niveles) siguiendo EXACTAMENTE esta estructura:
 
 <<<SECTION_START: ADS_FRIO>>>
-🔥 TRÁFICO FRÍO
-Objetivo: Atraer desconocidos.
-Define: Objetivo, Ángulo (Dolor), 3 Variaciones Copy (adaptadas a la plataforma), Creativos (específicos para la plataforma), Segmentación (según plataforma), Presupuesto (50%).
-Si son ambas plataformas, especifica qué hacer en cada una.
+❄️ TRÁFICO FRÍO (Descubrimiento)
+
+🎯 **Objetivo**
+Reconocimiento + engagement inicial. Que el cliente se identifique con el problema y recuerde la marca.
+
+🎯 **Ángulo principal (Dolor real)**
+❌ [Dolor 1]
+❌ [Dolor 2]
+❌ [Dolor 3]
+❌ [Dolor 4]
+
+✍️ **Variaciones de Copy ({business_info.get('plataforma')})**
+
+**Copy 1 – Dolor directo**
+❌ "[Frase gancho sobre el dolor]"
+
+[Desarrollo breve]
+Descubrí cómo [solución sin complicarte].
+
+**Copy 2 – Tiempo = dinero**
+⏳ "[Pregunta sobre pérdida de tiempo/dinero]"
+
+[Beneficio claro]
+
+**Copy 3 – Anti-[competencia/método viejo]**
+📉 "[Crítica al método actual]"
+
+[Propuesta de valor]
+
+🎨 **Creativos (muy específicos para {business_info.get('plataforma')})**
+
+**Para Instagram Reels / Facebook Feed:**
+Video corto 10–15s:
+- Escena 1: [problema/caos]
+- Escena 2: [solución/orden]
+- Texto en pantalla: "[Frase clave]"
+
+**Para Feed:**
+Imagen comparativa:
+- Izquierda: "[Método viejo] ❌"
+- Derecha: "[Tu solución] ✅"
+
+🎯 **Segmentación (Frío real)**
+- Ubicación: [país/región]
+- Edad: [rango]
+- Intereses: [lista de intereses relevantes]
+- Excluir: Visitantes web, leads existentes
+
+💰 **Presupuesto**
+50% – ${business_info.get('presupuesto', 0)*0.5} USD
+
+👉 **CTA**
+"[CTA suave: 'Conocé', 'Descubrí cómo funciona']"
 
 <<<SECTION_START: ADS_TIBIO>>>
-🔥 TRÁFICO TIBIO
-Objetivo: Retargeting.
-Define: Objetivo, Ángulo (Prueba Social), Copy (adaptado a la plataforma), Creativos (específicos para la plataforma), Segmentación (según plataforma), Presupuesto (35%).
-Si son ambas plataformas, especifica qué hacer en cada una.
+🔥 TRÁFICO TIBIO (Consideración)
+
+🎯 **Objetivo**
+Generación de leads / mensajes / visitas calificadas
+
+🎯 **Ángulo (Prueba social + alivio)**
+👉 "No sos el único, a otros ya les funcionó"
+
+✍️ **Copy optimizado**
+⭐ "[Historia personal o de cliente]"
+
+Hoy [resultado logrado].
+
+👉 Mirá cómo otros [público objetivo] ya [beneficio] con [producto/servicio].
+
+🎨 **Creativos**
+
+**Opciones recomendadas:**
+- Video testimonio corto (15–30s)
+- Imagen con cita real: "[Testimonio de cliente]"
+
+🎯 **Segmentación**
+Personas que:
+- Vieron videos (25%–50%)
+- Interactuaron con Instagram/Facebook
+- Visitaron la web
+- Lookalike de leads (si existe)
+
+💰 **Presupuesto**
+35% – ${business_info.get('presupuesto', 0)*0.35} USD
+
+👉 **CTA**
+"Ver demostración" o "Solicitar demo gratis"
 
 <<<SECTION_START: ADS_CALIENTE>>>
-🔥 TRÁFICO CALIENTE
-Objetivo: Cierre.
-Define: Objetivo, Ángulo (Urgencia), Copy Cierre (adaptado a la plataforma), Creativos (específicos para la plataforma), Segmentación (según plataforma), Presupuesto (15%).
-Si son ambas plataformas, especifica qué hacer en cada una.
+🌋 TRÁFICO CALIENTE (Conversión)
 
-Sé CONCISO pero ESPECÍFICO para {business_info.get('plataforma')}. Contenido específico para {business_info.get('rubro')}.""",
+🎯 **Objetivo**
+Ventas / Prueba directa YA
+
+🎯 **Ángulo (Urgencia + bajo riesgo)**
+⏰ Tiempo limitado
+🛡 Sin riesgo (prueba/garantía)
+
+✍️ **Copy de cierre (más fuerte)**
+🔥 "[Urgencia: Últimos cupos/Oferta por tiempo limitado]"
+
+[Beneficio principal]
+
+⏰ [Urgencia específica]
+
+🎨 **Creativos**
+
+**Historias (clave):**
+- Historia 1: "[Consecuencia de no actuar]"
+- Historia 2: "[Cómo funciona la solución]"
+- Historia 3: "[Urgencia + CTA directo]"
+
+🎯 **Segmentación**
+Personas que:
+- Enviaron mensaje
+- Visitaron página de precios
+- Interactuaron con anuncios tibios
+
+💰 **Presupuesto**
+15% – ${business_info.get('presupuesto', 0)*0.15} USD
+
+👉 **CTA**
+"Empezar ahora" o "Activar prueba"
+
+---
+
+🧠 **Ajuste estratégico importante**
+
+📌 **Frase eje para TODA la campaña:**
+"[Frase memorable que conecte frío → tibio → caliente]"
+
+Eso crea coherencia entre los 3 niveles de tráfico.
+
+Sé MUY ESPECÍFICO para {business_info.get('rubro')} y {business_info.get('plataforma')}. NO uses placeholders genéricos.""",
             
             "WHATSAPP": f"""Eres un Estratega de Ventas.
 {base_info}
