@@ -162,10 +162,13 @@ def render_strategy_card_full(estrategia, username):
             if st.button("🗑️ Eliminar", key=f"del_{estrategia['id']}", use_container_width=True):
                 st.session_state.deleting_strategy_id = estrategia['id']
                 st.rerun()
+        
         with col3:
-            if st.button("📥 Exportar", key=f"exp_{estrategia['id']}", use_container_width=True):
-                # TODO: Implement PDF export
-                st.info("Función de exportación próximamente")
+            # Export button - HIDDEN (not implemented yet)
+            # if st.button("📥 Exportar", key=f"exp_{estrategia['id']}", use_container_width=True):
+            #     # TODO: Implement PDF export
+            #     st.info("Función de exportación próximamente")
+            pass
         
         st.markdown("---")
 
