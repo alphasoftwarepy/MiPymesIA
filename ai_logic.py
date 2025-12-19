@@ -115,12 +115,18 @@ Assistant:"""
 - Nombre: {business_info.get('nombre')}
 - Tipo: {business_info.get('tipo')}
 - Producto Estrella: {business_info.get('producto')}
+- Diferenciador Competitivo: {business_info.get('diferenciador', 'No especificado')}
 - Precio: {business_info.get('precio', 'No especificado')}
-- Meta: {business_info.get('meta')}
+- Meta Actual: {business_info.get('meta')}
 - Presupuesto: {business_info.get('presupuesto')}
 - Modalidad de Venta: {business_info.get('modalidad_venta', 'No especificado')}
 - Sistema Actual: {business_info.get('sistema_actual', 'No especificado')}
-- Plataformas: {business_info.get('plataforma')}{buyer_persona_text}"""
+- Plataformas: {business_info.get('plataforma')}{buyer_persona_text}
+
+IMPORTANTE - PRIORIDADES ESTRATÉGICAS:
+1. La META ACTUAL es "{business_info.get('meta')}" - TODA la estrategia debe enfocarse en lograr este objetivo específico.
+2. El DIFERENCIADOR COMPETITIVO es "{business_info.get('diferenciador', 'No especificado')}" - Úsalo como argumento principal en todos los mensajes, ads y contenido.
+3. El PRECIO es {business_info.get('precio', 'No especificado')} USD - Ajusta el tono, urgencia y estrategia según el ticket (bajo/medio/alto)."""
         
         # Define section prompts
         section_prompts = {
@@ -838,13 +844,19 @@ Sé CONCISO y ESPECÍFICO para {business_info.get('rubro')}."""
 - Nombre: {business_info.get('nombre')}
 - Tipo: {business_info.get('tipo')}
 - Producto Estrella: {business_info.get('producto')}
+- Diferenciador Competitivo: {business_info.get('diferenciador', 'No especificado')}
 - Precio: {business_info.get('precio', 'No especificado')}
-- Meta: {business_info.get('meta')}
+- Meta Actual: {business_info.get('meta')}
 - Presupuesto: {business_info.get('presupuesto')}
 - Modalidad de Venta: {business_info.get('modalidad_venta', 'No especificado')}
 - Sistema Actual: {business_info.get('sistema_actual', 'No especificado')}
 - Plataformas: {business_info.get('plataforma')}{buyer_persona_text}
 - Duración de la Estrategia: {business_info.get('duration_days', 30)} días
+
+IMPORTANTE - PRIORIDADES ESTRATÉGICAS:
+1. La META ACTUAL es "{business_info.get('meta')}" - TODA la estrategia debe enfocarse en lograr este objetivo específico.
+2. El DIFERENCIADOR COMPETITIVO es "{business_info.get('diferenciador', 'No especificado')}" - Úsalo como argumento principal en todos los mensajes, ads y contenido.
+3. El PRECIO es {business_info.get('precio', 'No especificado')} USD - Ajusta el tono, urgencia y estrategia según el ticket (bajo/medio/alto).
 """
         
         # SINGLE UNIFIED PROMPT - generates all sections at once
