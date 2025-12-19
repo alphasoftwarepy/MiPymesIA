@@ -7,7 +7,7 @@ def chat_page():
     Uses enriched brain data for ultra-personalized responses.
     """
     st.title("💬 MiPymes IA")
-    st.caption("Tu asistente de marketing que conoce profundamente tu negocio")
+    st.caption("Consultor Estratégico: Consultas basadas en tus datos reales y objetivos")
     
     user = st.session_state.get('user')
     if not user:

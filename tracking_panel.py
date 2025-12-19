@@ -814,55 +814,24 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                     with st.chat_message(msg["role"]):
                         st.markdown(msg["content"])
                 
-                # Quick suggestions
-                st.caption("💡 **Sugerencias rápidas:**")
-                col_s1, col_s2, col_s3 = st.columns(3)
+                                # Proactive execution button
+                if st.button("🚀 ¡Ayúdame con esta tarea!", key=f"exec_{task['id']}_e{estrategia_id or 'todas'}", use_container_width=True, type="primary"):
+                    user_msg = "Ayúdame a ejecutar esta tarea con un borrador o guía específica para mi negocio"
+                    st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
+                    
+                    # Generate AI response immediately
+                    with st.spinner("🤔 Creando tu borrador personalizado..."):
+                        ai_response = get_task_ai_help(task, user_msg, username, proactive=True)
+                        st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
+                    
+                    # Save to DB
+                    import auth
+                    auth.save_section_history(username, chat_section_id, "user", user_msg)
+                    auth.save_section_history(username, chat_section_id, "assistant", ai_response)
+                    
+                    st.rerun()
                 
-                with col_s1:
-                    if st.button("📝 Dame un ejemplo", key=f"sugg1_{task['id']}_e{estrategia_id or 'todas'}", use_container_width=True):
-                        user_msg = "Dame un ejemplo concreto de cómo hacer esta tarea"
-                        st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
-                        # Generate AI response immediately
-                        with st.spinner("🤔 Pensando..."):
-                            ai_response = get_task_ai_help(task, user_msg, username)
-                            st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
-                        
-                        # Save to DB
-                        import auth
-                        auth.save_section_history(username, chat_section_id, "user", user_msg)
-                        auth.save_section_history(username, chat_section_id, "assistant", ai_response)
-                        
-                        st.rerun()
-                
-                with col_s2:
-                    if st.button("⏰ ¿Cuándo hacerlo%s", key=f"sugg2_{task['id']}_e{estrategia_id or 'todas'}", use_container_width=True):
-                        user_msg = "¿Cuál es el mejor momento para hacer esta tarea%s"
-                        st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
-                        with st.spinner("🤔 Pensando..."):
-                            ai_response = get_task_ai_help(task, user_msg, username)
-                            st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
-                        
-                        # Save to DB
-                        import auth
-                        auth.save_section_history(username, chat_section_id, "user", user_msg)
-                        auth.save_section_history(username, chat_section_id, "assistant", ai_response)
-                        
-                        st.rerun()
-                
-                with col_s3:
-                    if st.button("🎯 Tips y trucos", key=f"sugg3_{task['id']}_e{estrategia_id or 'todas'}", use_container_width=True):
-                        user_msg = "Dame tips y mejores prácticas para esta tarea"
-                        st.session_state[chat_history_key].append({"role": "user", "content": user_msg})
-                        with st.spinner("🤔 Pensando..."):
-                            ai_response = get_task_ai_help(task, user_msg, username)
-                            st.session_state[chat_history_key].append({"role": "assistant", "content": ai_response})
-                        
-                        # Save to DB
-                        import auth
-                        auth.save_section_history(username, chat_section_id, "user", user_msg)
-                        auth.save_section_history(username, chat_section_id, "assistant", ai_response)
-                        
-                        st.rerun()
+                st.caption("💬 O escribe tu pregunta específica abajo:")
                 
                 # Chat input (like sections - supports Enter key)
                 prompt = st.chat_input("Pregunta sobre esta tarea...", key=f"chat_input_{task['id']}_e{estrategia_id or 'todas'}")
@@ -886,7 +855,7 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
         st.markdown("")
 
 
-def get_task_ai_help(task, user_question, username):
+def get_task_ai_help(task, user_question, username, proactive=False):
     """Get AI assistance for a specific task."""
     from openai import OpenAI
     import os
@@ -936,6 +905,18 @@ CONTEXTO DEL NEGOCIO (Cerebro):
         context += f"- Producto/Servicio: {estrategia.get('producto', 'N/A')}\n"
         context += f"- Nombre: {estrategia.get('nombre', 'N/A')}\n"
         
+        # Add differentiator, price, and goal if available
+        diferenciador = estrategia.get('diferenciador', '')
+        precio = estrategia.get('precio', 0)
+        meta = estrategia.get('meta', '')
+        
+        if diferenciador:
+            context += f"- 🎯 DIFERENCIADOR COMPETITIVO: {diferenciador}\n"
+        if precio and precio > 0:
+            context += f"- 💰 PRECIO: ${precio} USD\n"
+        if meta:
+            context += f"- 🎯 META ACTUAL: {meta}\n"
+
         # Add relevant section content based on task category
         seccion = task.get('categoria', '')
         if seccion == 'contenido' or seccion == 'embudo':
@@ -956,16 +937,43 @@ CONTEXTO DEL NEGOCIO (Cerebro):
         if avatar_content:
             context += f"\nBuyer Persona (extracto):\n{avatar_content[:300]}...\n"
     
-    context += f"""
+# Add proactive mode instructions
+    if proactive:
+        context += f"""
+MODO PROACTIVO - EJECUTOR:
+Tu objetivo es darle al usuario un BORRADOR LISTO PARA USAR, no solo consejos.
+INSTRUCCIONES CRÍTICAS:
+1. Crea un borrador completo y específico para esta tarea usando el producto/servicio real
+2. Si es contenido/copy: Escribe el texto completo con emojis, hashtags y CTA
+3. Si es Reel/video: Escribe el guion completo escena por escena
+4. Si es ads: Escribe 3 variantes de copy listas para publicar
+5. Si es WhatsApp: Escribe el mensaje completo listo para enviar
+6. SIEMPRE integra el DIFERENCIADOR COMPETITIVO de forma natural en el mensaje
+7. Ajusta el tono según el PRECIO (bajo=urgencia, alto=valor/exclusividad)
+8. Alinea el mensaje con la META ACTUAL del negocio
+9. Máximo 250 palabras, formato listo para copiar y pegar
+💡 OPORTUNIDAD ESTRATÉGICA (solo si aplica):
+- Si detectas que el borrador puede mejorar significativamente usando el diferenciador, agrega al final:
+  "💡 Oportunidad: [Breve sugerencia de cómo potenciar el mensaje con el diferenciador]"
+- NO agregues esta sección si el diferenciador ya está bien integrado
+PREGUNTA DEL USUARIO: {user_question}
+"""
+    else:
+        context += f"""
 INSTRUCCIONES CRÍTICAS:
 1. USA el producto/servicio específico de la estrategia en tus ejemplos
-2. Sé específico y práctico para ESTE negocio y ESTA tarea
-3. Si es contenido: crea copy, hashtags, CTAs específicos para el producto
-4. Si es ads: sugiere textos, segmentación y presupuesto
-5. Si es Reel/video: crea guion específico para el producto/servicio mencionado
-6. Sé breve pero completo (máximo 200 palabras)
-7. NO inventes campañas genéricas, usa el contexto real
-
+2. Adapta tu respuesta según el PRECIO del producto:
+   - Precio bajo (<$50): Enfócate en urgencia, volumen, promociones
+   - Precio medio ($50-$500): Enfócate en valor, beneficios, comparación
+   - Precio alto (>$500): Enfócate en exclusividad, transformación, ROI
+3. Alinea tu consejo con la META ACTUAL (si es ganar seguidores, no vendas directo; si es vender, sé más agresivo)
+4. Si es contenido/copy: Usa fórmulas probadas (AIDA, PAS) con el diferenciador integrado
+5. Si es ads: Sugiere segmentación específica según el buyer persona y presupuesto real
+6. Si es Reel/video: Crea estructura con hook, valor y CTA alineados a la meta
+7. Si es WhatsApp: Ajusta el tono según el precio (bajo=casual, alto=profesional)
+8. Si es análisis/métricas: Usa los KPIs relevantes para la meta actual
+9. Sé breve pero completo (máximo 200 palabras)
+10. NO inventes campañas genéricas, usa el contexto real
 PREGUNTA DEL USUARIO: {user_question}
 """
     
