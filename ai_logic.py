@@ -1221,6 +1221,7 @@ OBJECIÓN: MIEDO / DESCONFIANZA
 MÉTRICAS Y OPTIMIZACIÓN
 
 ### Costo por Lead
+
 Definición y Valor Ideal.
 
 Umbral de Alerta.
