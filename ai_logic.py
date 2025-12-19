@@ -135,7 +135,7 @@ IMPORTANTE - PRIORIDADES ESTRATÉGICAS:
 
 Genera 1 AVATAR DE CLIENTE IDEAL ultra-detallado y específico (NO genérico) siguiendo EXACTAMENTE esta estructura:
 
-**AVATAR 1 — [NOMBRE DESCRIPTIVO EN MAYÚSCULAS]**
+**[NOMBRE DESCRIPTIVO EN MAYÚSCULAS]**
 
 **Descripción general**
 
@@ -608,6 +608,7 @@ La mayoría lo ve como un gasto, pero en realidad es una inversión que [benefic
 Por eso ofrecemos [prueba/garantía], para que primero veas si realmente te sirve.
 
 **Mini-cierre:**
+
 ¿Querés que te [acción específica] y lo evalúas tranquilo?
 
 <<<SECTION_START: OBJECION_TIEMPO>>>
@@ -624,6 +625,7 @@ Muchos usuarios pasan de horas a minutos por día con [solución].
 La puesta en marcha es simple y te acompañamos paso a paso, no estás solo.
 
 **Mini-cierre:**
+
 ¿Te gustaría probarlo y ver cuánto tiempo podrías ahorrar?
 
 <<<SECTION_START: OBJECION_PERSONAL>>>
@@ -640,6 +642,7 @@ Cuando [beneficio colectivo], todos trabajan más tranquilos.
 Si querés, podemos hacer una demo corta para que todos lo vean y saquen dudas.
 
 **Mini-cierre:**
+
 ¿Te parece si coordinamos un horario y lo vemos juntos?
 
 <<<SECTION_START: OBJECION_INTEGRACION>>>
@@ -656,6 +659,7 @@ Justamente nos enfocamos en que el cambio sea simple y sin dolores de cabeza.
 Te ayudamos a [proceso de migración] y dejamos todo listo para que arranques sin problemas.
 
 **Mini-cierre:**
+
 ¿Querés que te explique cómo sería el paso a paso?
 
 <<<SECTION_START: OBJECION_MIEDO>>>
@@ -672,6 +676,7 @@ Por eso trabajamos con [público objetivo] reales y acompañamos en todo el proc
 La [prueba/garantía] justamente es para que lo pruebes sin compromiso, con soporte incluido.
 
 **Mini-cierre:**
+
 ¿Te gustaría aprovechar la prueba y sacarte la duda por vos mismo?
 
 Sé CONCISO y PERSUASIVO. Tono conversacional para WhatsApp.
@@ -1026,8 +1031,10 @@ Reconocimiento + engagement inicial
 
 **Copy 1:** 
 [Gancho dolor]
+
 **Copy 2:** 
 [Tiempo = dinero]
+
 **Copy 3:** 
 [Anti-método viejo]
 
@@ -1128,8 +1135,8 @@ Mostrar que funciona
 
 **Mensaje:**
 
-Te cuento 👇 [Nombre] logró: 
-[Resultado 1] [Resultado 2] [Resultado 3]. ¿Ver cómo funciona?
+Te cuento 👇 
+[Nombre] logró: [Resultado 1] [Resultado 2] [Resultado 3]. ¿Ver cómo funciona?
 
 **Micro-CTA:** 
 "ver cómo funciona".
@@ -1142,7 +1149,8 @@ Derribar objeción
 
 **Mensaje:**
 
-Algo importante 💡 [Reencuadre] 👉 [Solución]. ¿Qué te preocuparía?
+Algo importante 💡 
+[Reencuadre] 👉 [Solución]. ¿Qué te preocuparía?
 
 **Clave:** 
 Que exprese la objeción.
@@ -1155,7 +1163,8 @@ Oportunidad sin presión
 
 **Mensaje:**
 
-Te aviso ⏰ [Oferta/prueba]. [Urgencia]. ¿Probar sin compromiso?
+Te aviso 
+⏰ [Oferta/prueba]. [Urgencia]. ¿Probar sin compromiso?
 
 **Urgencia real + bajo riesgo.**
 
@@ -1167,7 +1176,7 @@ Reforzar confianza
 
 **Mensaje:**
 
-Tip 🎁 👉 [Insight]. Con [producto] eso queda claro. ¿Ver en tu negocio?
+[Insight]. Con [producto] eso queda claro. ¿Ver en tu negocio?
 
 **CTA personalizado.**
 
@@ -1179,7 +1188,9 @@ Decisión final sin presión
 
 **Mensaje:**
 
-Gracias 🙌 Si decidís [beneficio], [Producto] está listo. Estoy acá 👍
+Gracias 🙌 
+Si decidís [beneficio], [Producto] está listo. Estoy acá 👍
+
 **Cierre humano.**
 
 <<<SECTION_START: OBJECION_COSTO>>>
