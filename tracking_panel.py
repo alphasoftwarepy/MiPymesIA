@@ -500,7 +500,7 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
             for t in all_tasks:
                 if estrategia_info:
                     # Calculate assigned date for this task (creation + dia_semana days)
-                    task_assigned_date = datetime.fromisoformat(estrategia_info['created_at']).date() + timedelta(days=t['dia_semana'])
+                    task_assigned_date = datetime.fromisoformat(estrategia_info['created_at']).date() + timedelta(days=t['dia_semana'] if t['dia_semana'] is not None else 0)
                     
                     # Unique tasks logic (same as before)
                     if t['frecuencia'] == 'unica':
