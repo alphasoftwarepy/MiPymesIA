@@ -157,7 +157,7 @@ Lista de 3-4 puntos describiendo:
 - Su relación con el producto/servicio
 
 **Dolor principal**
-❌ [Descripción del dolor #1 más grande que le quita el sueño]
+[Descripción del dolor #1 más grande que le quita el sueño]
 
 **Otros dolores**
 - [Dolor secundario 1]
@@ -203,7 +203,7 @@ Lista de 3-4 puntos describiendo:
 - "[palabra 1]", "[palabra 2]", "[palabra 3]", "[palabra 4]", "[palabra 5]".
 
 **Ejemplo de mensaje gancho**
-✨ [Mensaje gancho de 1-2 líneas que conecte emocionalmente con el avatar] ✨
+[Mensaje gancho de 1-2 líneas que conecte emocionalmente con el avatar]
 
 IMPORTANTE: 
 - Sé MUY ESPECÍFICO con edad, ubicación, situación
@@ -228,14 +228,14 @@ Genera un EMBUDO DE CONTENIDO SEMANAL (3 niveles) siguiendo EXACTAMENTE esta est
 [Reel/Post/Video] ([duración si aplica])
 
 **Gancho (primeros 3 segundos):**
-❌ [Frase gancho que ataque el dolor directamente]
+[Frase gancho que ataque el dolor directamente]
 
 **Desarrollo breve:**
 - [Punto 1: Mostrar el caos/problema]
 - [Punto 2: Frase clave memorable]
 
 **CTA:**
-👉 [Call to action suave que invite a comentar/escribir]
+[Call to action suave que invite a comentar/escribir]
 
 💡 **Por qué funciona:**
 [Explicación breve de la estrategia psicológica]
@@ -250,19 +250,19 @@ Genera un EMBUDO DE CONTENIDO SEMANAL (3 niveles) siguiendo EXACTAMENTE esta est
 [Carrusel/Historia/Video educativo]
 
 **Gancho (portada):**
-✅ [Transformación o resultado logrado]
+[Transformación o resultado logrado]
 
 **Estructura del contenido:**
-1️⃣ [El problema común]
-2️⃣ [Qué pasaba antes]
-3️⃣ [Qué cambió con la solución]
-4️⃣ [Resultados concretos]
-5️⃣ [Mini testimonio o frase de cliente]
+[El problema común]
+[Qué pasaba antes]
+[Qué cambió con la solución]
+[Resultados concretos]
+[Mini testimonio o frase de cliente]
 
 **CTA:**
-👉 [Invitación a ver demo o conocer más]
+[Invitación a ver demo o conocer más]
 
-💡 **Por qué funciona:**
+**Por qué funciona:**
 [Explicación de cómo educa y baja objeciones]
 
 <<<SECTION_START: EMBUDO_BOFU>>>
@@ -283,17 +283,17 @@ Acción inmediata con urgencia clara y riesgo percibido bajo.
 "[Cómo el producto/servicio resuelve el problema]"
 
 **Parte 3 Oferta + urgencia:**
-🔥 [Oferta especial/prueba gratis]
-💰 [Precio accesible]
-⏰ [Urgencia temporal]
+[Oferta especial/prueba gratis]
+[Precio accesible]
+[Urgencia temporal]
 
 **CTA:**
-👉 [Acción directa: link, mensaje, etc.]
+[Acción directa: link, mensaje, etc.]
 
-💡 **Por qué funciona:**
-✔ [Razón 1: urgencia]
-✔ [Razón 2: precio/accesibilidad]
-✔ [Razón 3: bajo riesgo]
+**Por qué funciona:**
+[Razón 1: urgencia]
+[Razón 2: precio/accesibilidad]
+[Razón 3: bajo riesgo]
 
 ---
 
@@ -303,7 +303,7 @@ Acción inmediata con urgencia clara y riesgo percibido bajo.
 **MOFU** = prueba y claridad
 **BOFU** = decisión rápida
 
-📌 Usar la MISMA frase clave toda la semana para crear recordación + coherencia.
+Usar la MISMA frase clave toda la semana para crear recordación + coherencia.
 
 Sé ESPECÍFICO para {business_info.get('rubro')}. NO uses placeholders genéricos.""",
             
@@ -317,34 +317,34 @@ Genera ESTRATEGIA DE ADS (3 niveles) siguiendo EXACTAMENTE esta estructura:
 <<<SECTION_START: ADS_FRIO>>>
 ❄️ TRÁFICO FRÍO (Descubrimiento)
 
-🎯 **Objetivo**
+**Objetivo**
 Reconocimiento + engagement inicial. Que el cliente se identifique con el problema y recuerde la marca.
 
-🎯 **Ángulo principal (Dolor real)**
-❌ [Dolor 1]
-❌ [Dolor 2]
-❌ [Dolor 3]
-❌ [Dolor 4]
+**Ángulo principal (Dolor real)**
+[Dolor 1]
+[Dolor 2]
+[Dolor 3]
+[Dolor 4]
 
-✍️ **Variaciones de Copy ({business_info.get('plataforma')})**
+**Variaciones de Copy ({business_info.get('plataforma')})**
 
 **Copy 1 Dolor directo**
-❌ [Frase gancho sobre el dolor]
+[Frase gancho sobre el dolor]
 
 [Desarrollo breve]
 Descubrí cómo [solución sin complicarte].
 
 **Copy 2 Tiempo = dinero**
-⏳ [Pregunta sobre pérdida de tiempo/dinero]
+[Pregunta sobre pérdida de tiempo/dinero]
 
 [Beneficio claro]
 
 **Copy 3 Anti-[competencia/método viejo]**
-📉 [Crítica al método actual]
+[Crítica al método actual]
 
 [Propuesta de valor]
 
-🎨 **Creativos (muy específicos para {business_info.get('plataforma')})**
+**Creativos (muy específicos para {business_info.get('plataforma')})**
 
 **Para Instagram Reels / Facebook Feed:**
 Video corto 10 a 15 segundos:
@@ -354,97 +354,95 @@ Video corto 10 a 15 segundos:
 
 **Para Feed:**
 Imagen comparativa:
-- Izquierda: [Método viejo] ❌
-- Derecha: [Tu solución] ✅
+- Izquierda: [Método viejo]
+- Derecha: [Tu solución]
 
-🎯 **Segmentación (Frío real)**
+**Segmentación (Frío real)**
 - Ubicación: [país/región]
 - Edad: [rango]
 - Intereses: [lista de intereses relevantes]
 - Excluir: Visitantes web, leads existentes
 
-💰 **Presupuesto**
+**Presupuesto**
 50% del presupuesto total: ${business_info.get('presupuesto', 0)*0.5} USD
 
-👉 **CTA**
+**CTA**
 [CTA suave: 'Conocé', 'Descubrí cómo funciona']
 
 <<<SECTION_START: ADS_TIBIO>>>
 🔥 TRÁFICO TIBIO (Consideración)
 
-🎯 **Objetivo**
+**Objetivo**
 Generación de leads / mensajes / visitas calificadas
 
-🎯 **Ángulo (Prueba social + alivio)**
-👉 No sos el único, a otros ya les funcionó
+**Ángulo (Prueba social + alivio)**
+No sos el único, a otros ya les funcionó
 
-✍️ **Copy optimizado**
-⭐ [Historia personal o de cliente]
+**Copy optimizado**
+[Historia personal o de cliente]
 
 Hoy [resultado logrado].
 
-👉 Mirá cómo otros [público objetivo] ya [beneficio] con [producto/servicio].
+Mirá cómo otros [público objetivo] ya [beneficio] con [producto/servicio].
 
-🎨 **Creativos**
+**Creativos**
 
 **Opciones recomendadas:**
 - Video testimonio corto (15 a 30 segundos)
 - Imagen con cita real: [Testimonio de cliente]
 
-🎯 **Segmentación**
+**Segmentación**
 Personas que:
 - Vieron videos (25% a 50%)
 - Interactuaron con Instagram/Facebook
 - Visitaron la web
 - Lookalike de leads (si existe)
 
-💰 **Presupuesto**
+**Presupuesto**
 35% del presupuesto total: ${business_info.get('presupuesto', 0)*0.35} USD
 
-👉 **CTA**
+**CTA**
 Ver demostración o Solicitar demo gratis
 
 <<<SECTION_START: ADS_CALIENTE>>>
 🌋 TRÁFICO CALIENTE (Conversión)
 
-🎯 **Objetivo**
+**Objetivo**
 Ventas / Prueba directa YA
 
-🎯 **Ángulo (Urgencia + bajo riesgo)**
-⏰ Tiempo limitado
-🛡 Sin riesgo (prueba/garantía)
+**Ángulo (Urgencia + bajo riesgo)**
+Tiempo limitado
+Sin riesgo (prueba/garantía)
 
-✍️ **Copy de cierre (más fuerte)**
-🔥 [Urgencia: Últimos cupos/Oferta por tiempo limitado]
+**Copy de cierre (más fuerte)**
+Urgencia: Últimos cupos/Oferta por tiempo limitado
+Beneficio principal
+Urgencia específica
 
-[Beneficio principal]
-
-⏰ [Urgencia específica]
-
-🎨 **Creativos**
+**Creativos**
 
 **Historias (clave):**
 - Historia 1: [Consecuencia de no actuar]
 - Historia 2: [Cómo funciona la solución]
 - Historia 3: [Urgencia + CTA directo]
 
-🎯 **Segmentación**
+**Segmentación**
 Personas que:
 - Enviaron mensaje
 - Visitaron página de precios
 - Interactuaron con anuncios tibios
 
-💰 **Presupuesto**
+**Presupuesto**
 15% del presupuesto total: ${business_info.get('presupuesto', 0)*0.15} USD
 
-👉 **CTA**
+**CTA**
 Empezar ahora o Activar prueba
 
 ---
 
 🧠 **Ajuste estratégico importante**
 
-📌 **Frase eje para TODA la campaña:**
+**Frase eje para TODA la campaña:**
 "[Frase memorable que conecte frío → tibio → caliente]"
 
 Eso crea coherencia entre los 3 niveles de tráfico.
@@ -463,7 +461,7 @@ Genera FLUJO WHATSAPP 7 DÍAS siguiendo EXACTAMENTE esta estructura:
 <<<SECTION_START: WHATSAPP_DIA1>>>
 **DÍA 1 — APERTURA + DIAGNÓSTICO**
 
-🎯 **Objetivo:** 
+**Objetivo:** 
 Iniciar conversación y detectar dolor
 
 **Mensaje:**
@@ -475,12 +473,12 @@ Quería preguntarte algo rápido:
 
 ([Opciones de respuesta])
 
-🔑 **Clave:** Pregunta abierta → hace hablar al prospecto.
+**Clave:** Pregunta abierta → hace hablar al prospecto.
 
 <<<SECTION_START: WHATSAPP_DIA2>>>
 **DÍA 2 — AMPLIFICAR EL DOLOR**
 
-🎯 **Objetivo:** 
+**Objetivo:** 
 Que reconozca el problema como urgente
 
 **Mensaje:**
@@ -488,18 +486,18 @@ Que reconozca el problema como urgente
 Gracias por contarme 🙌
 
 Muchos [público objetivo] nos dicen lo mismo:
-❌ [Dolor 1]
-❌ [Dolor 2]
-❌ [Dolor 3]
+[Dolor 1]
+[Dolor 2]
+[Dolor 3]
 
 ¿Cuál de estos te pasa más seguido hoy?
 
-🔑 **Clave:** Lo hace identificarse sin vender aún.
+**Clave:** Lo hace identificarse sin vender aún.
 
 <<<SECTION_START: WHATSAPP_DIA3>>>
 **DÍA 3 — SOLUCIÓN + PRUEBA SOCIAL**
 
-🎯 **Objetivo:** 
+**Objetivo:** 
 Mostrar que sí funciona para alguien como él
 
 **Mensaje:**
@@ -509,18 +507,18 @@ Te cuento algo rápido 👇
 [Nombre] (negocio similar al tuyo) estaba igual: [problema].
 
 En [tiempo] con [producto/servicio] logró:
-✅ [Resultado 1]
-✅ [Resultado 2]
-✅ [Resultado 3]
+[Resultado 1]
+[Resultado 2]
+[Resultado 3]
 
 ¿Te gustaría ver cómo funciona por dentro?
 
-🔑 **Micro-CTA:** "ver cómo funciona" (no "comprar").
+Micro-CTA:** "ver cómo funciona" (no "comprar").
 
 <<<SECTION_START: WHATSAPP_DIA4>>>
 **DÍA 4 — OBJECIÓN PRINCIPAL**
 
-🎯 **Objetivo:** 
+**Objetivo:** 
 Derribar el [objeción más común]
 
 **Mensaje:**
@@ -534,12 +532,12 @@ Algo importante 💡
 
 ¿Qué es lo que más te preocuparía al [acción]?
 
-🔑 **Clave:** Que él mismo exprese la objeción.
+**Clave:** Que él mismo exprese la objeción.
 
 <<<SECTION_START: WHATSAPP_DIA5>>>
 **DÍA 5 — OFERTA + URGENCIA SUAVE**
 
-🎯 **Objetivo:** 
+**Objetivo:** 
 Presentar la oportunidad sin presión dura
 
 **Mensaje:**
@@ -552,30 +550,30 @@ Te aviso con tiempo ⏰
 
 ¿Te gustaría aprovecharlo y probar sin compromiso?
 
-🔑 **Urgencia real + bajo riesgo.**
+**Urgencia real + bajo riesgo.**
 
 <<<SECTION_START: WHATSAPP_DIA6>>>
 **DÍA 6 — VALOR EXTRA + SEGURIDAD**
 
-🎯 **Objetivo:** 
+**Objetivo:** 
 Reforzar confianza y resolver dudas finales
 
 **Mensaje:**
 
-Te dejo este tip rápido 🎁
+Te dejo este tip rápido
 
-👉 [Insight valioso sobre su industria/problema]
+[Insight valioso sobre su industria/problema]
 
 Con [producto/servicio] eso queda claro desde el primer día.
 
 ¿Querés que te muestre cómo se vería en tu negocio?
 
-🔑 **CTA personalizado:** "en tu negocio".
+CTA personalizado: "en tu negocio".
 
 <<<SECTION_START: WHATSAPP_DIA7>>>
 **DÍA 7 — CIERRE ELEGANTE**
 
-🎯 **Objetivo:** 
+**Objetivo:** 
 Decisión final sin presión
 
 **Mensaje:**
@@ -587,7 +585,7 @@ Si decidís [beneficio principal],
 
 Estoy acá para cualquier duda o para activarte el acceso cuando quieras 👍
 
-🔑 **Cierre humano, deja la puerta abierta.**
+**Cierre humano, deja la puerta abierta.**
 
 Sé MUY ESPECÍFICO para {business_info.get('rubro')}. Mensajes listos para copiar y pegar.""",
             
@@ -786,6 +784,8 @@ Interacciones (likes, comentarios, guardados) ÷ alcance × 100
 ---
 
 **TABLA RÁPIDA DE CONTROL SEMANAL**
+
+IMPORTANTE: Genera esta tabla EN FORMATO MARKDOWN con valores específicos para {business_info.get('rubro')}:
 
 | Métrica | Ideal | Alerta | Acción inmediata |
 |----------|-------|--------|---------------------|
@@ -1102,7 +1102,7 @@ Iniciar conversación y detectar dolor
 
 **Mensaje:**
 
-¡Hola! 👋 Soy de [Negocio]. Quería preguntarte: 👉 [Pregunta abierta]
+¡Hola! 👋 Soy de [Negocio]. Quería preguntarte: [Pregunta abierta]
 
 **Clave:** 
 Pregunta abierta → hace hablar.
@@ -1115,7 +1115,7 @@ Que reconozca el problema como urgente
 
 **Mensaje:**
 
-Gracias 🙌 Muchos [público] nos dicen: ❌ [Dolor 1] ❌ [Dolor 2] ❌ [Dolor 3]. ¿Cuál te pasa más?
+Gracias 🙌 Muchos [público] nos dicen: [Dolor 1] [Dolor 2] [Dolor 3]. ¿Cuál te pasa más?
 
 **Clave:** 
 Identificación sin vender.
@@ -1128,7 +1128,8 @@ Mostrar que funciona
 
 **Mensaje:**
 
-Te cuento 👇 [Nombre] logró: ✅ [Resultado 1] ✅ [Resultado 2] ✅ [Resultado 3]. ¿Ver cómo funciona?
+Te cuento 👇 [Nombre] logró: 
+[Resultado 1] [Resultado 2] [Resultado 3]. ¿Ver cómo funciona?
 
 **Micro-CTA:** 
 "ver cómo funciona".
@@ -1558,49 +1559,49 @@ Define:
 8. CTA específico.
 
 <<<SECTION_START: WHATSAPP_DIA1>>>
-🔵 DÍA 1 — Contacto + Diagnóstico Inteligente
+DÍA 1 — Contacto + Diagnóstico Inteligente
 Objetivo: Romper el hielo.
 Texto del mensaje: Saludo + 2 Preguntas de diagnóstico.
 Respuestas condicionadas: Qué decir si responde A, B o C.
 IMPORTANTE: Usa párrafos separados para cada parte.
 
 <<<SECTION_START: WHATSAPP_DIA2>>>
-🟦 DÍA 2 — Aporte de Valor + Invitación a Demo
+DÍA 2 — Aporte de Valor + Invitación a Demo
 Objetivo: Enseñar algo útil + agendar sin presión.
 Texto del mensaje: Dato curioso/Tip + Invitación suave.
 Respuestas condicionadas: Qué decir si acepta o rechaza.
 IMPORTANTE: Usa párrafos separados.
 
 <<<SECTION_START: WHATSAPP_DIA3>>>
-🟩 DÍA 3 — Prueba Social
+DÍA 3 — Prueba Social
 Objetivo: Activar confianza.
 Texto del mensaje: Mini caso de éxito real + CTA suave.
 Respuestas condicionadas: Qué decir si muestra interés.
 IMPORTANTE: Usa párrafos separados.
 
 <<<SECTION_START: WHATSAPP_DIA4>>>
-🟧 DÍA 4 — Objeción Principal + Reencuadre
+DÍA 4 — Objeción Principal + Reencuadre
 Objetivo: Atacar la objeción del avatar sin confrontar.
 Texto del mensaje: "Entiendo X..." + Reencuadre + Propuesta.
 Respuestas condicionadas: Manejo de la objeción específica.
 IMPORTANTE: Usa párrafos separados.
 
 <<<SECTION_START: WHATSAPP_DIA5>>>
-🟥 DÍA 5 — Urgencia Ligera
+DÍA 5 — Urgencia Ligera
 Objetivo: Mover al tibio.
 Texto del mensaje: Cupos/Bono/Tiempo limitado.
 Respuestas condicionadas: Qué decir si pide info.
 IMPORTANTE: Usa párrafos separados.
 
 <<<SECTION_START: WHATSAPP_DIA6>>>
-🟪 DÍA 6 — Aporte de Valor Final
+DÍA 6 — Aporte de Valor Final
 Objetivo: Reforzar autoridad.
 Texto del mensaje: Recurso/Link útil + Mini cierre.
 Respuestas condicionadas: Qué decir si agradece.
 IMPORTANTE: Usa párrafos separados.
 
 <<<SECTION_START: WHATSAPP_DIA7>>>
-⬛ DÍA 7 — Cierre Elegante o Parking
+DÍA 7 — Cierre Elegante o Parking
 Objetivo: Definir o dejar puerta abierta.
 Texto del mensaje: Cierre final o "Plan de mejora gratis".
 Respuestas condicionadas: Qué decir si acepta el plan.
