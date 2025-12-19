@@ -69,9 +69,36 @@ def chat_page():
         # Get all user strategies to extract buyer personas
         all_estrategias = auth.get_all_estrategias(username)
         
-        # Format base information
-        base_info = brain_data.get('base', {})
+        # Extract REAL business information from Cerebro
         base_context = ""
+        
+        # Get rubros (industries)
+        rubros = brain_data.get('rubros', [])
+        if rubros:
+            rubros_text = ", ".join([r.get('nombre', '') for r in rubros if r.get('nombre')])
+            base_context += f"\n🏢 RUBROS: {rubros_text}\n"
+        
+        # Get tipos de venta (sales types)
+        tipos_venta = brain_data.get('tipos_venta', [])
+        if tipos_venta:
+            tipos_text = ", ".join([t.get('nombre', '') for t in tipos_venta if t.get('nombre')])
+            base_context += f"💼 TIPOS DE VENTA: {tipos_text}\n"
+        
+        # Get servicios y productos
+        servicios = brain_data.get('servicios', [])
+        if servicios:
+            base_context += f"\n📦 SERVICIOS Y PRODUCTOS ({len(servicios)} total):\n"
+            for servicio in servicios[:10]:  # Max 10
+                nombre = servicio.get('nombre', '')
+                descripcion = servicio.get('descripcion', '')
+                if nombre:
+                    base_context += f"  • {nombre}"
+                    if descripcion:
+                        base_context += f": {descripcion[:100]}"
+                    base_context += "\n"
+        
+        # Get base info if available (from form)
+        base_info = brain_data.get('base', {})
         if base_info:
             base_context = f"""
 INFORMACIÓN BASE DEL NEGOCIO:
