@@ -66,6 +66,9 @@ def chat_page():
         # Get enriched brain data
         brain_data = auth.get_brain_data(username)
         
+        # Get all user strategies to extract buyer personas
+        all_estrategias = auth.get_all_estrategias(username)
+        
         # Format base information
         base_info = brain_data.get('base', {})
         base_context = ""
@@ -84,6 +87,19 @@ INFORMACIÓN BASE DEL NEGOCIO:
 """
             if base_info.get('avatar', {}).get('descripcion'):
                 base_context += f"\nCLIENTE IDEAL:\n{base_info['avatar']['descripcion']}\n"
+        
+        # Extract buyer personas from all strategies
+        buyer_personas_context = ""
+        if all_estrategias:
+            avatares = []
+            for estrategia in all_estrategias:
+                avatar_content = estrategia.get('avatar', '')
+                if avatar_content and len(avatar_content) > 50:  # Only if has meaningful content
+                    estrategia_nombre = estrategia.get('producto', 'Estrategia')
+                    avatares.append(f"\n📊 AVATAR DE '{estrategia_nombre}':\n{avatar_content[:500]}...")  # First 500 chars
+            
+            if avatares:
+                buyer_personas_context = "\n\n🎯 BUYER PERSONAS CONOCIDOS (de tus estrategias):\n" + "\n".join(avatares[:3])  # Max 3 avatares
         
         # Format insights
         insights = brain_data.get('insights', [])
@@ -120,6 +136,7 @@ INFORMACIÓN BASE DEL NEGOCIO:
 Eres MiPymes IA, un asistente de marketing experto que conoce profundamente este negocio.
 
 {base_context}
+{buyer_personas_context}
 
 {insights_context}
 
@@ -129,12 +146,14 @@ CONTEXTO ADICIONAL DEL USUARIO:
 PREGUNTA DEL USUARIO:
 {prompt}
 
-INSTRUCCIONES:
-- Usa TODA la información del negocio para dar respuestas ultra personalizadas
+INSTRUCCIONES CRÍTICAS:
+- USA TODA la información del negocio que tienes arriba para dar respuestas ULTRA PERSONALIZADAS
+- NUNCA digas que no tienes información del negocio - YA LA TIENES
+- Menciona el rubro, productos/servicios específicos cuando sea relevante
+- Usa los buyer personas conocidos para dar sugerencias más precisas
 - Menciona insights y aprendizajes recientes cuando sean relevantes
-- Sé específico con el rubro, producto y tipo de cliente
 - Da ejemplos concretos basados en lo que ya sabes del negocio
-- Si detectas información valiosa en la pregunta del usuario, será guardada automáticamente
+- Sé específico y accionable, no genérico
 """
         
         # Generate response
