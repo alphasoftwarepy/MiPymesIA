@@ -2214,6 +2214,63 @@ def wizard_page():
         with col1:
             # Single PDF Download Button with improved error handling
             try:
+                # ========== CARGAR DATOS PARA PDF SI ES ESTRATEGIA EXISTENTE ==========
+                if st.session_state.get('editing_strategy_id') and not st.session_state.get('strategy_result'):
+                    # Cargar estrategia desde BD
+                    estrategia = auth.get_estrategia_by_id(st.session_state.get('editing_strategy_id'))
+                    if estrategia:
+                        # Reconstruir strategy_result desde los campos de la BD
+                        strategy_result = f"""
+                <<<SECTION_START: AVATAR>>>
+                {estrategia.get('avatar', '')}
+
+                <<<SECTION_START: EMBUDO_TOFU>>>
+                {estrategia.get('embudo', '').split('MOFU:')[0] if 'MOFU:' in estrategia.get('embudo', '') else estrategia.get('embudo', '')}
+
+                <<<SECTION_START: EMBUDO_MOFU>>>
+                {estrategia.get('embudo', '').split('MOFU:')[1].split('BOFU:')[0] if 'MOFU:' in estrategia.get('embudo', '') and 'BOFU:' in estrategia.get('embudo', '') else ''}
+
+                <<<SECTION_START: EMBUDO_BOFU>>>
+                {estrategia.get('embudo', '').split('BOFU:')[1] if 'BOFU:' in estrategia.get('embudo', '') else ''}
+
+                <<<SECTION_START: ADS_FRIO>>>
+                {estrategia.get('ads', '').split('TIBIO:')[0] if 'TIBIO:' in estrategia.get('ads', '') else estrategia.get('ads', '')}
+
+                <<<SECTION_START: ADS_TIBIO>>>
+                {estrategia.get('ads', '').split('TIBIO:')[1].split('CALIENTE:')[0] if 'TIBIO:' in estrategia.get('ads', '') and 'CALIENTE:' in estrategia.get('ads', '') else ''}
+
+                <<<SECTION_START: ADS_CALIENTE>>>
+                {estrategia.get('ads', '').split('CALIENTE:')[1] if 'CALIENTE:' in estrategia.get('ads', '') else ''}
+
+                <<<SECTION_START: WHATSAPP_DIA1>>>
+                <<<SECTION_START: WHATSAPP_DIA2>>>
+                <<<SECTION_START: WHATSAPP_DIA3>>>
+                <<<SECTION_START: WHATSAPP_DIA4>>>
+                <<<SECTION_START: WHATSAPP_DIA5>>>
+                <<<SECTION_START: WHATSAPP_DIA6>>>
+                <<<SECTION_START: WHATSAPP_DIA7>>>
+                {estrategia.get('whatsapp', '')}
+
+                <<<SECTION_START: OBJECION_COSTO>>>
+                <<<SECTION_START: OBJECION_TIEMPO>>>
+                <<<SECTION_START: OBJECION_PERSONAL>>>
+                <<<SECTION_START: OBJECION_INTEGRACION>>>
+                <<<SECTION_START: OBJECION_MIEDO>>>
+                {estrategia.get('objeciones', '')}
+
+                <<<SECTION_START: METRICAS>>>
+                {estrategia.get('kpis', '')}
+                """
+                        st.session_state.strategy_result = strategy_result
+                        
+                        # Reconstruir business_info básico
+                        st.session_state.business_info = {
+                            'nombre': estrategia.get('nombre', 'Negocio'),
+                            'producto': estrategia.get('producto', 'Producto'),
+                            'rubro': 'Marketing',  # Default
+                            'duration_days': estrategia.get('duracion_dias', 30)
+                        }
+                # ========== FIN CARGA DATOS ==========
                 # Fetch tasks for PDF
                 current_strat_id_pdf = st.session_state.get('editing_strategy_id') or st.session_state.get('estrategia_activa_id')
                 tasks_for_pdf = []
