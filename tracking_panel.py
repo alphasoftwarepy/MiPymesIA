@@ -260,6 +260,10 @@ def show_tasks_for_strategy(username, estrategia_id, estrategia_nombre):
                          tasks_manager.generate_weekly_tasks(username, estrategia_id, 1, "", roadmap)
                          time.sleep(1)
                          loader_placeholder.empty()
+                         
+                         # ⭐ CLEAR CACHE TO REFRESH VIEW
+                         st.cache_data.clear()
+                         
                          st.success("✅ ¡Plan de Acción Generado!")
                          st.rerun()
                      except Exception as e:
@@ -829,6 +833,14 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                     auth.save_section_history(username, chat_section_id, "user", user_msg)
                     auth.save_section_history(username, chat_section_id, "assistant", ai_response)
                     
+                    # ⭐ ENRICH BRAIN FROM INTERACTION
+                    try:
+                        insights_added = auth.enrich_brain_from_interaction(username, chat_section_id, user_msg, ai_response)
+                        if insights_added > 0:
+                            print(f"✅ Added {insights_added} insight(s) to brain from task help (proactive)")
+                    except Exception as e:
+                        print(f"⚠️ Warning: Failed to enrich brain from task help: {e}")
+                    
                     st.rerun()
                 
                 st.caption("💬 O escribe tu pregunta específica abajo:")
@@ -849,6 +861,14 @@ def render_task_card(task, username, is_completed=False, compact=False, day_cont
                     import auth
                     auth.save_section_history(username, chat_section_id, "user", prompt)
                     auth.save_section_history(username, chat_section_id, "assistant", ai_response)
+                    
+                    # ⭐ ENRICH BRAIN FROM INTERACTION
+                    try:
+                        insights_added = auth.enrich_brain_from_interaction(username, chat_section_id, prompt, ai_response)
+                        if insights_added > 0:
+                            print(f"✅ Added {insights_added} insight(s) to brain from task help")
+                    except Exception as e:
+                        print(f"⚠️ Warning: Failed to enrich brain from task help: {e}")
                     
                     st.rerun()
         

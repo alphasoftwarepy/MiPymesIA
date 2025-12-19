@@ -1826,6 +1826,14 @@ def wizard_page():
                             'diferenciador': business_info.get('diferenciador', ''),
                             'descripcion': f"{business_info.get('producto', '')} - {business_info.get('rubro', '')}"
                         }
+                        
+                        # ⭐ SAVE SERVICE TO BRAIN
+                        try:
+                            auth.add_or_update_service(user['username'], service_data)
+                            print(f"✅ Service '{service_data['nombre']}' added to brain")
+                        except Exception as e:
+                            print(f"⚠️ Warning: Failed to add service to brain: {e}")
+                        
                         section_keys = [
                             'objecion_costo', 'objecion_tiempo', 'objecion_personal',
                             'objecion_integracion', 'objecion_miedo',
