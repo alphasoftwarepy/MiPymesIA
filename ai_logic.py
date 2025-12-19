@@ -699,93 +699,93 @@ NO agregues comentarios finales como 'Con esta rutina, Rodrigo podrá...'.""",
 
 Genera MÉTRICAS CLAVE siguiendo EXACTAMENTE esta estructura:
 
-🎯 **1. CPL — COSTO POR LEAD**
+**1. CPL — COSTO POR LEAD**
 
 **Definición:**
 Costo total invertido en publicidad ÷ número de leads generados.
 
 **Valor ideal:**
-✅ Menos de $[valor] USD por lead
+Menos de $[valor] USD por lead
 
 **Umbral de alerta:**
-⚠️ $[valor] USD o más
+$[valor] USD o más
 
-🔧 **Acción de mejora inmediata (si está en alerta)**
+**Acción de mejora inmediata (si está en alerta)**
 - [Acción 1: revisar gancho/creativos]
 - [Acción 2: ajustar segmentación]
 - [Acción 3: cambiar CTA]
 
-🚀 **Acción de escalamiento (si está ideal)**
+**Acción de escalamiento (si está ideal)**
 - [Acción 1: duplicar conjunto ganador]
 - [Acción 2: aumentar presupuesto gradualmente]
 - [Acción 3: mantener mismo creativo]
 
-🔒 **2. TASA DE CIERRE (WhatsApp / Ventas)**
+**2. TASA DE CIERRE (WhatsApp / Ventas)**
 
 **Definición:**
 Leads que compran ÷ leads contactados × 100
 
 **Valor ideal:**
-✅ [porcentaje]% o más
+[porcentaje]% o más
 
 **Umbral de alerta:**
-⚠️ [porcentaje]% o menos
+[porcentaje]% o menos
 
-🔧 **Acción de mejora inmediata**
+**Acción de mejora inmediata**
 - Revisar: [Día 1 y Día 2 del flujo]
 - Ajustar: [Más diagnóstico, menos venta directa]
 - Implementar: [Audios cortos, preguntas reales]
 
-🚀 **Acción de escalamiento**
+**Acción de escalamiento**
 - Estandarizar el flujo ganador
 - Capacitar a ventas con objeciones frecuentes
 - Documentar respuestas exactas
 
-🔄 **3. CONVERSIÓN (Landing / Acción)**
+**3. CONVERSIÓN (Landing / Acción)**
 
 **Definición:**
 Visitantes que realizan la acción deseada (registro, demo, mensaje).
 
 **Valor ideal:**
-✅ [porcentaje]% o más
+[porcentaje]% o más
 
 **Umbral de alerta:**
-⚠️ [porcentaje]% o menos
+[porcentaje]% o menos
 
-🔧 **Acción de mejora inmediata**
+**Acción de mejora inmediata**
 - Simplificar: [Menos texto, un solo CTA]
 - Reforzar: [Beneficio principal arriba]
 - Optimizar: [Velocidad de carga]
 
-🚀 **Acción de escalamiento**
+**Acción de escalamiento**
 - Test A/B: [Dolor vs beneficio]
 - Probar CTAs: ["Ver demo" vs "Probar gratis"]
 - Mantener versión ganadora
 
-💬 **4. ENGAGEMENT (Anuncios y Contenido)**
+**4. ENGAGEMENT (Anuncios y Contenido)**
 
 **Definición:**
 Interacciones (likes, comentarios, guardados) ÷ alcance × 100
 
 **Valor ideal:**
-✅ [porcentaje]% o más
+[porcentaje]% o más
 
 **Umbral de alerta:**
-⚠️ [porcentaje]% o menos
+[porcentaje]% o menos
 
-🔧 **Acción de mejora inmediata**
+**Acción de mejora inmediata**
 - Usar más: [Preguntas directas, problemas cotidianos]
 - Formatos: [Reels cortos, comparativos antes/después]
 - Ganchos: ["¿Te pasa esto?"]
 
-🚀 **Acción de escalamiento**
+**Acción de escalamiento**
 - Reutilizar contenido con más comentarios
 - Colaborar con clientes para testimonios
 - Crear serie de contenido similar
 
 ---
 
-🧠 **TABLA RÁPIDA DE CONTROL SEMANAL**
+**TABLA RÁPIDA DE CONTROL SEMANAL**
 
 | Métrica | Ideal | Alerta | Acción inmediata |
 |----------|-------|--------|---------------------|
@@ -794,8 +794,8 @@ Interacciones (likes, comentarios, guardados) ÷ alcance × 100
 | Conversión | ≥ [X]% | ≤ [Y]% | Optimizar landing |
 | Engagement | ≥ [X]% | ≤ [Y]% | Cambiar formato/gancho |
 
-📌 **Regla de oro:**
-👉 Nunca optimizar todo a la vez. Cambiar una sola variable, medir 48–72 h y decidir.
+**Regla de oro:**
+Nunca optimizar todo a la vez. Cambiar una sola variable, medir 48–72 h y decidir.
 
 Sé CONCISO y ESPECÍFICO para {business_info.get('rubro')}."""
         }
@@ -1240,6 +1240,7 @@ Acción de Mejora Inmediata.
 Acción de Escalamiento.
 
 ### Tasa de Conversión
+
 Definición y Valor Ideal.
 
 Umbral de Alerta.
@@ -1249,6 +1250,7 @@ Acción de Mejora Inmediata.
 Acción de Escalamiento.
 
 ### Engagement
+
 Definición y Valor Ideal.
 
 Umbral de Alerta.
@@ -1684,6 +1686,7 @@ Acción de Mejora Inmediata.
 Acción de Escalamiento.
 
 ### Tasa de Cierre
+
 Definición y Valor Ideal.
 
 Umbral de Alerta.
@@ -1693,6 +1696,7 @@ Acción de Mejora Inmediata.
 Acción de Escalamiento.
 
 ### Tasa de Conversión
+
 Definición y Valor Ideal.
 
 Umbral de Alerta.
@@ -1702,6 +1706,7 @@ Acción de Mejora Inmediata.
 Acción de Escalamiento.
 
 ### Engagement
+
 Definición y Valor Ideal.
 
 Umbral de Alerta.
