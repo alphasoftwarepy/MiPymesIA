@@ -900,6 +900,12 @@ def get_task_ai_help(task, user_question, username):
     estrategia = auth.get_estrategia(username)
     brain_data = auth.get_brain_data(username)
     
+    # Get the SPECIFIC strategy for this task if available
+    if task.get('estrategia_id'):
+        estrategia_especifica = auth.get_estrategia_by_id(task['estrategia_id'])
+        if estrategia_especifica:
+            estrategia = estrategia_especifica
+    
     # Build rich context
     context = f"""Eres un asistente experto en marketing digital que ayuda a ejecutar tareas específicas.
 
@@ -909,34 +915,56 @@ TAREA ACTUAL:
 - Categoría: {task['categoria']}
 - Prioridad: {task['prioridad']}
 
-CONTEXTO DEL NEGOCIO:
+CONTEXTO DEL NEGOCIO (Cerebro):
 """
     
-    if brain_data and brain_data.get('base'):
-        base = brain_data['base']
-        context += f"""- Negocio: {base.get('nombre', 'N/A')}
-- Rubro: {base.get('rubro', 'N/A')}
-- Producto/Servicio: {base.get('producto', 'N/A')}
-- Plataformas: {base.get('plataforma', 'N/A')}
-"""
+    # Get REAL data from Cerebro
+    if brain_data:
+        rubros = brain_data.get('rubros', [])
+        if rubros:
+            rubros_text = ", ".join([r.get('nombre', '') for r in rubros if r.get('nombre')])
+            context += f"- Rubros: {rubros_text}\n"
+        
+        servicios = brain_data.get('servicios', [])
+        if servicios:
+            servicios_text = ", ".join([s.get('nombre', '') for s in servicios[:5] if s.get('nombre')])
+            context += f"- Servicios/Productos: {servicios_text}\n"
     
+    # Add SPECIFIC strategy context
     if estrategia:
-        context += f"\nESTRATEGIA RELACIONADA:\n"
-        seccion = task.get('seccion_origen', '')
-        if seccion == 'embudo':
-            context += f"Embudo de contenido: {estrategia.get('embudo', '')[:500]}...\n"
+        context += f"\nESTRATEGIA ESPECÍFICA:\n"
+        context += f"- Producto/Servicio: {estrategia.get('producto', 'N/A')}\n"
+        context += f"- Nombre: {estrategia.get('nombre', 'N/A')}\n"
+        
+        # Add relevant section content based on task category
+        seccion = task.get('categoria', '')
+        if seccion == 'contenido' or seccion == 'embudo':
+            embudo_content = estrategia.get('embudo', '')
+            if embudo_content:
+                context += f"\nEmbudo de contenido (extracto):\n{embudo_content[:400]}...\n"
         elif seccion == 'ads':
-            context += f"Estrategia de Ads: {estrategia.get('ads', '')[:500]}...\n"
+            ads_content = estrategia.get('ads', '')
+            if ads_content:
+                context += f"\nEstrategia de Ads (extracto):\n{ads_content[:400]}...\n"
         elif seccion == 'whatsapp':
-            context += f"Flujo WhatsApp: {estrategia.get('whatsapp', '')[:500]}...\n"
+            whatsapp_content = estrategia.get('whatsapp', '')
+            if whatsapp_content:
+                context += f"\nFlujo WhatsApp (extracto):\n{whatsapp_content[:400]}...\n"
+        
+        # Add Avatar if available
+        avatar_content = estrategia.get('avatar', '')
+        if avatar_content:
+            context += f"\nBuyer Persona (extracto):\n{avatar_content[:300]}...\n"
     
     context += f"""
-INSTRUCCIONES:
-1. Sé específico y práctico
-2. Da ejemplos concretos aplicados a este negocio
-3. Si es contenido, sugiere copy, hashtags, CTAs
-4. Si es ads, sugiere textos, segmentación, presupuesto
-5. Sé breve pero completo (máximo 200 palabras)
+INSTRUCCIONES CRÍTICAS:
+1. USA el producto/servicio específico de la estrategia en tus ejemplos
+2. Sé específico y práctico para ESTE negocio y ESTA tarea
+3. Si es contenido: crea copy, hashtags, CTAs específicos para el producto
+4. Si es ads: sugiere textos, segmentación y presupuesto
+5. Si es Reel/video: crea guion específico para el producto/servicio mencionado
+6. Sé breve pero completo (máximo 200 palabras)
+7. NO inventes campañas genéricas, usa el contexto real
 
 PREGUNTA DEL USUARIO: {user_question}
 """
