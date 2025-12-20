@@ -864,6 +864,11 @@ IMPORTANTE - PRIORIDADES ESTRATÉGICAS:
 3. El PRECIO es {business_info.get('precio', 'No especificado')} USD - Ajusta el tono, urgencia y estrategia según el ticket (bajo/medio/alto).
 """
         
+        
+        # Inject Business Brain Context if available
+        if self.business_context:
+            base_info += f"\n\nCONTEXTO PROFUNDO DEL NEGOCIO (CEREBRO):\n{self.business_context}\n"
+
         # SINGLE UNIFIED PROMPT - generates all sections at once
         unified_prompt = f"""Eres un Estratega de Marketing Senior y Experto en Ventas.
 {base_info}
@@ -1274,82 +1279,47 @@ Acción de Escalamiento.
 - NO agregues comentarios finales como "Espero que...", "¡Mucho éxito!", etc.
 - Sé CONCISO pero COMPLETO en cada sección"""
 
-        # PROMPT 2: DETAILED ROADMAP CALENDAR
+        # PROMPT 2: DETAILED ROADMAP CALENDAR (Agency Style)
         roadmap_prompt = f"""CONTEXTO:
 {base_info}
 
-OBJETIVO:
-Genera un CALENDARIO OPTIMIZADO ultra-detallado y accionable para {int(business_info.get('duration_days', 30))} días.
+ACTÚA COMO: Agencia de Marketing y Publicidad de Alto Rendimiento.
 
-ESTRUCTURA REQUERIDA:
+TU TAREA: Generar un PLAN DE ACCIÓN (Roadmap) para {int(business_info.get('duration_days', 30))} días ({int(business_info.get('duration_days', 30)/7)} semanas).
 
-Divide en FASES (cada fase = 1 semana aprox):
+REGLAS DE ORO (ESTILO AGENCIA):
+1.  **ACCIONABILIDAD TOTAL**: Nada de "investigar", "analizar". Usa verbos de acción: "Grabar", "Publicar", "Contactar".
+2.  **LENGUAJE OPERATIVO**: Directo, sin relleno.
+3.  **EMBUDO INTEGRADO**: Cada tarea debe tener un propósito (TOFU/MOFU/BOFU).
+4.  **RESULTADOS ESPERADOS**: Indica qué se busca lograr con cada bloque de acciones.
 
-🟢 FASE 1 — [NOMBRE FASE] ([FECHAS])
+ESTRUCTURA DEL CONTENIDO (Para cada semana):
+- **Objetivo/Foco**: Una frase clara (ej: "Lanzamiento y Visibilidad", "Cierre Masivo de Ventas").
+- **Día a Día**: 2-3 tareas CLAVES por día. NO MÁS.
+  - Formato de Tarea: [EMOJI] [ACCIÓN CONCRETA] (Etapa Embudo) - Detalle operativo
 
-🎯 **Objetivo:** [objetivo específico de esta fase]
+EJEMPLO DE ESTILO DE TAREA:
+"🎥 GRABAR Reel (TOFU): '3 Errores al contratar X'. Gancho: 'Deja de perder dinero'. CTA: 'Comenta GUIA'."
+"💬 MENSAJE DIRECTO (BOFU): Enviar audio de seguimiento a los 10 prospectos de ayer. Objetivo: Agendar llamada."
 
-📅 **[Día de la semana] [Fecha]**
+IMPORTANTE - FORMATO DE SALIDA (TÉCNICO):
+Aunque el contenido debe ser rico y estilo agencia, el sistema REQUIERE que la salida sea un **JSON VÁLIDO**.
 
-✅ [Tarea accionable 1]
-✅ [Tarea accionable 2]
-✅ [Tarea accionable 3 con CTA específico]
+Debes generar una LISTA de objetos (uno por cada semana).
+Estructura obligatoria:
+[
+  {{
+    "semana": 1,
+    "foco": "Nombre del Foco de la Semana",
+    "plan_visual": "MARKDOWN DEL CALENDARIO PARA ESTA SEMANA (Aquí pones todo el detalle día por día con emojis, saltos de línea y formato rico)"
+  }},
+   {{
+    "semana": 2,
+    ...
+   }}
+]
 
-❌ Eliminar: "[tarea inútil común]"
-✔ Output real: [resultado concreto esperado]
-
-📅 **[Siguiente día]**
-
-✅ [Tarea 1]
-✅ [Tarea 2]
-...
-
-REGLAS CRÍTICAS:
-
-1. **Tareas ACCIONABLES**: No "investigar", "analizar". Sí "Crear", "Publicar", "Escribir"
-2. **CTAs ESPECÍFICOS**: Cada acción de contenido debe tener su CTA
-3. **Eliminar tareas inútiles**: Usar ❌ para mostrar qué NO hacer
-4. **Output real**: Usar ✔ para mostrar resultado concreto
-5. **Fechas reales**: Calcular desde hoy
-6. **Fases claras**: Cada fase tiene objetivo específico
-7. **Todo lleva a conversión**: WhatsApp, ventas, leads
-
-EJEMPLO DE FASE:
-
-🟢 FASE 1 — BASE SÓLIDA (18/12 – 22/12)
-
-🎯 **Objetivo:** dejar listo el "motor" para vender
-
-📅 **Jueves 18/12**
-
-✅ Crear perfiles Facebook + Instagram
-✅ Definir propuesta clara (1 frase):
-"[Propuesta de valor específica para {business_info.get('rubro')}]"
-
-📅 **Viernes 19/12**
-
-✅ Análisis rápido de competencia (solo 5 competidores)
-- Qué ofrecen
-- Qué prometen
-- Qué NO dicen (oportunidad)
-
-❌ Eliminar: "elaborar informe largo"
-✔ Output real: 3 bullets accionables
-
-AL FINAL, agregar:
-
-🧠 **RESUMEN DURO (CLAVE)**
-
-- Menos tareas ❌
-- Más acciones que venden ✅
-- [Canal principal] es el centro
-- Ads solo después de validar orgánico
-- Todo tiene CTA
-- Todo se mide
-
-GENERA {int(business_info.get('duration_days', 30)/7)} FASES cubriendo {business_info.get('duration_days', 30)} días.
-
-FORMATO: Markdown con emojis. NO JSON. Calendario visual y accionable.
+Genera SOLO EL JSON.
 """
 
 
