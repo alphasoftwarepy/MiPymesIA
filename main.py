@@ -380,6 +380,7 @@ def login_page():
     
     show_footer()
 
+
 def login_form_page():
     """Clean login page similar to registration"""
     st.title("🔐 Iniciar Sesión")
