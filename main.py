@@ -382,55 +382,44 @@ def login_page():
 
 def login_form_page():
     """Clean login page similar to registration"""
-    # Suppress transient form validation warning during page load
-    st.markdown("""
-    <style>
-    /* Hide the "Missing Submit Button" warning that appears briefly during form rendering */
-    div[data-testid="stException"] div[data-testid="stMarkdownContainer"] p {
-        display: none !important;
-    }
-    </style>
-    """, unsafe_allow_html=True)
-    
     st.title("🔐 Iniciar Sesión")
     
     st.info("Ingresa tus credenciales para acceder a tu cuenta")
     
-    with st.form("login_form"):
-        username = st.text_input("Usuario", placeholder="Ingresa tu usuario")
-        password = st.text_input("Contraseña", type="password", placeholder="Ingresa tu contraseña")
-        submit = st.form_submit_button("Ingresar", use_container_width=True, type="primary")
-        
-        if submit:
-            if not username or not password:
-                st.warning("⚠️ Por favor completa todos los campos.")
-            else:
-                user = auth.login_user(username, password)
-                
-                if user and isinstance(user, dict):
-                    if user.get('error') == 'locked':
-                        remaining = user.get('remaining_seconds', 300)
-                        minutes = remaining // 60
-                        seconds = remaining % 60
-                        st.error(f"🔒 Cuenta bloqueada por intentos fallidos. Intenta de nuevo en {minutes}m {seconds}s.")
-                    elif not user.get('is_active'):
-                        st.error("❌ Tu cuenta no está activa. Contacta a soporte.")
-                        admin_phone = "595994209224"
-                        message = f"🔑 Solicitud de activación de cuenta\n\nUsuario: {username}"
-                        whatsapp_url = f"https://wa.me/{admin_phone}?text={urllib.parse.quote(message)}"
-                        st.info(f"📱 Puedes contactar directamente por WhatsApp:")
-                        st.markdown(f"[Abrir WhatsApp]({whatsapp_url})")
-                    else:
-                        st.session_state.authenticated = True
-                        st.session_state.user = user
-                        # Initialize AI agent without business_profile to avoid validation errors
-                        # The business_profile will be used later in chat contexts
-                        st.session_state.ai_agent = MarketingStrategist(business_context="")
-                        st.success("✅ Inicio de sesión exitoso!")
-                        time.sleep(0.5)
-                        st.rerun()
+    # Use manual form handling instead of st.form to avoid validation warning
+    username = st.text_input("Usuario", placeholder="Ingresa tu usuario", key="login_username")
+    password = st.text_input("Contraseña", type="password", placeholder="Ingresa tu contraseña", key="login_password")
+    
+    if st.button("Ingresar", use_container_width=True, type="primary", key="login_submit"):
+        if not username or not password:
+            st.warning("⚠️ Por favor completa todos los campos.")
+        else:
+            user = auth.login_user(username, password)
+            
+            if user and isinstance(user, dict):
+                if user.get('error') == 'locked':
+                    remaining = user.get('remaining_seconds', 300)
+                    minutes = remaining // 60
+                    seconds = remaining % 60
+                    st.error(f"🔒 Cuenta bloqueada por intentos fallidos. Intenta de nuevo en {minutes}m {seconds}s.")
+                elif not user.get('is_active'):
+                    st.error("❌ Tu cuenta no está activa. Contacta a soporte.")
+                    admin_phone = "595994209224"
+                    message = f"🔑 Solicitud de activación de cuenta\\n\\nUsuario: {username}"
+                    whatsapp_url = f"https://wa.me/{admin_phone}?text={urllib.parse.quote(message)}"
+                    st.info(f"📱 Puedes contactar directamente por WhatsApp:")
+                    st.markdown(f"[Abrir WhatsApp]({whatsapp_url})")
                 else:
-                    st.error("❌ Usuario o contraseña incorrectos.")
+                    st.session_state.authenticated = True
+                    st.session_state.user = user
+                    # Initialize AI agent without business_profile to avoid validation errors
+                    # The business_profile will be used later in chat contexts
+                    st.session_state.ai_agent = MarketingStrategist(business_context="")
+                    st.success("✅ Inicio de sesión exitoso!")
+                    time.sleep(0.5)
+                    st.rerun()
+            else:
+                st.error("❌ Usuario o contraseña incorrectos.")
     
     st.divider()
     
