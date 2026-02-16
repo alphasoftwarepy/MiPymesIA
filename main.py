@@ -382,6 +382,16 @@ def login_page():
 
 def login_form_page():
     """Clean login page similar to registration"""
+    # Suppress transient form validation warning during page load
+    st.markdown("""
+    <style>
+    /* Hide the "Missing Submit Button" warning that appears briefly during form rendering */
+    div[data-testid="stException"] div[data-testid="stMarkdownContainer"] p {
+        display: none !important;
+    }
+    </style>
+    """, unsafe_allow_html=True)
+    
     st.title("🔐 Iniciar Sesión")
     
     st.info("Ingresa tus credenciales para acceder a tu cuenta")
