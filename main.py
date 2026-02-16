@@ -1879,6 +1879,7 @@ def wizard_page():
                         print(f"Warning: Failed to save strategy to database: {save_error}")
                     # ================================================
                     
+                    #actualizado
                     # Update user session with new request count
                     if 'user' in st.session_state and st.session_state.user:
                         st.session_state.user['requests_today'] = user.get('requests_today', 0) + 1
