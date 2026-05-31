@@ -1,6 +1,7 @@
 import hashlib
 from passlib.context import CryptContext
 import pandas as pd
+import psycopg2
 
 # Password hashing configuration
 pwd_context = CryptContext(schemes=["pbkdf2_sha256"], deprecated="auto")
@@ -197,7 +198,8 @@ def create_user(username, password, email, business_name="", is_active=False, is
             
         conn.close()
         return True
-    except sqlite3.IntegrityError:
+    except psycopg2.IntegrityError:
+        conn.rollback()
         conn.close()
         return False
 
@@ -356,10 +358,22 @@ def extend_subscription(username, days):
 
 def get_all_users():
     """Returns a list of all users for the admin panel."""
-    conn = sqlite3.connect(DB_NAME)
-    df = pd.read_sql_query("SELECT username, email, business_name, plan_actual, fecha_vencimiento, ai_requests_today, ai_request_limit, tokens_total, tokens_mes_actual, tokens_dia_actual FROM users", conn)
+    conn = db_config.get_connection()
+    c = conn.cursor()
+    c.execute("""
+        SELECT username, email, business_name, plan_actual, fecha_vencimiento,
+               ai_requests_today, ai_request_limit, tokens_total,
+               tokens_mes_actual, tokens_dia_actual
+        FROM users
+        ORDER BY username
+    """)
+    rows = c.fetchall()
     conn.close()
-    return df
+    return pd.DataFrame(rows, columns=[
+        "username", "email", "business_name", "plan_actual", "fecha_vencimiento",
+        "ai_requests_today", "ai_request_limit", "tokens_total",
+        "tokens_mes_actual", "tokens_dia_actual"
+    ])
 
 def toggle_user_active(username, current_status):
     """Toggles the is_active status of a user."""
@@ -411,14 +425,18 @@ def change_password(username, old_password, new_password):
 
 def search_users(query):
     """Search users by username or email. Returns filtered DataFrame."""
-    conn = sqlite3.connect(DB_NAME)
-    df = pd.read_sql_query(
-        "SELECT username, business_name, email, is_active, is_admin, daily_request_limit FROM users WHERE username LIKE %s OR email LIKE %s",
-        conn,
-        params=(f"%{query}%", f"%{query}%")
-    )
+    conn = db_config.get_connection()
+    c = conn.cursor()
+    c.execute("""
+        SELECT username, business_name, email, is_active, is_admin, daily_request_limit
+        FROM users
+        WHERE username ILIKE %s OR email ILIKE %s
+    """, (f"%{query}%", f"%{query}%"))
+    rows = c.fetchall()
     conn.close()
-    return df
+    return pd.DataFrame(rows, columns=[
+        "username", "business_name", "email", "is_active", "is_admin", "daily_request_limit"
+    ])
 
 def update_business_profile(username, profile_text):
     """Updates the business profile for a user."""

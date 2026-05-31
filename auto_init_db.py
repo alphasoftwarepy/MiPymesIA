@@ -1,20 +1,32 @@
 """
 Auto Database Initialization - PostgreSQL Only
-This module ensures PostgreSQL database is properly initialized
+Ensures all PostgreSQL tables exist on every app startup (idempotent).
 """
-import db_config
+import auth
 
-def needs_initialization():
-    """Check if database needs initialization."""
-    # For PostgreSQL, initialization is handled by auth.init_db() and migrations
-    # This function always returns False for PostgreSQL
-    return False
 
 def auto_initialize():
-    """Automatically initialize database if needed."""
-    # PostgreSQL initialization is handled by auth.init_db() on first run
-    print("✅ PostgreSQL database initialization handled by auth.init_db()")
+    """
+    Initialize PostgreSQL database on startup.
+    Uses CREATE TABLE IF NOT EXISTS — safe to call multiple times.
+    """
+    print("🔄 Initializing PostgreSQL database schema...")
+    try:
+        auth.init_db()
+        print("✅ PostgreSQL tables verified/created.")
+    except Exception as e:
+        print(f"❌ Error during DB initialization: {e}")
+        raise
+
+    try:
+        auth.create_default_admin()
+        print("✅ Admin user verified.")
+    except Exception as e:
+        # Non-fatal: admin may already exist or subscription module unavailable
+        print(f"⚠️ Warning during admin setup: {e}")
+
     return True
+
 
 if __name__ == "__main__":
     auto_initialize()

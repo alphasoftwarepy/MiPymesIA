@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from openai import OpenAI
 import os
 import db_config
+import psycopg2
 import streamlit as st
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -741,9 +742,9 @@ def check_achievements(username):
                 INSERT INTO logros_usuario (user_id, logro_id, logro_nombre, fecha_obtenido)
                 VALUES (%s, %s, %s, %s)
             """, (username, logro_id, logro_nombre, now))
-        except sqlite3.IntegrityError:
-            # Achievement already awarded
-            pass
+        except psycopg2.IntegrityError:
+            # Achievement already awarded — ignore duplicate
+            conn.rollback()
     
     conn.commit()
     conn.close()
@@ -872,13 +873,9 @@ def reset_user_progress(username):
         c.execute("DELETE FROM logros_usuario WHERE user_id = %s", (username,))
         deleted_achievements = c.rowcount
         
-        # 3. Delete weekly progress if exists
-        try:
-            c.execute("DELETE FROM progreso_semanal WHERE user_id = %s", (username,))
-            deleted_progress = c.rowcount
-        except sqlite3.OperationalError:
-            # Table might not exist yet
-            deleted_progress = 0
+        # 3. Delete weekly progress
+        c.execute("DELETE FROM progreso_semanal WHERE user_id = %s", (username,))
+        deleted_progress = c.rowcount
             
         # 4. Reset User Stats
         c.execute("""
