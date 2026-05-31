@@ -54,3 +54,7 @@ Desktop.ini
 *_backup.py
 *_backup_*.py
 *.bak
+
+# Internal development notes
+dev-notes/
+
